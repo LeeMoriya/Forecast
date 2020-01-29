@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Partiality.Modloader;
 using UnityEngine;
+using OptionalUI;
 
 public class Downpour : PartialityMod
 {
@@ -23,5 +24,9 @@ public class Downpour : PartialityMod
         GameObject go = new GameObject();
         script = go.AddComponent<RainScript>();
         script.Initialize();
+    }
+    public static OptionInterface LoadOI()
+    {
+        return new RainConfig();
     }
 }

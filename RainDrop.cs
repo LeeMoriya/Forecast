@@ -45,7 +45,7 @@ public class RainDrop : CosmeticSprite
         this.lastLife = this.life;
         if (this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid && !foreground)
         {
-            if (UnityEngine.Random.Range(0f, 1f) > 0.15f)
+            if (UnityEngine.Random.Range(0f, 1f) > 0.05f)
             {
                 if (this.vel.y < 0f && this.room.GetTile(this.pos + new Vector2(0f, 20f)).Terrain == Room.Tile.TerrainType.Air)
                 {

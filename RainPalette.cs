@@ -15,11 +15,12 @@ class RainPalette
     }
 
     public static float darkness;
+    public static bool paletteChange = true;
 
     //Room effect color changes
     private static void RoomCamera_ApplyEffectColorsToPaletteTexture(On.RoomCamera.orig_ApplyEffectColorsToPaletteTexture orig, RoomCamera self, ref Texture2D texture, int color1, int color2)
     {
-        if (self.game.session is StoryGameSession)
+        if (self.game.session is StoryGameSession && paletteChange)
         {
             darkness = RainFall.rainIntensity * 0.5f;
             self.allEffectColorsTexture = new Texture2D(40, 4, TextureFormat.ARGB32, false);
@@ -48,7 +49,7 @@ class RainPalette
                     Color[] newColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        newColors[i] = Custom.Desaturate(colors[i], darkness);
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.5f);
                         newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
                     }
                     self.allEffectColorsTexture.SetPixels(newColors);
@@ -61,7 +62,7 @@ class RainPalette
                     Color[] newColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        newColors[i] = Custom.Desaturate(colors[i], darkness);
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.5f);
                         newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
                     }
                     self.allEffectColorsTexture.SetPixels(newColors);
@@ -79,7 +80,7 @@ class RainPalette
     //Main room palette changes
     public static void RoomCamera_LoadPalette(On.RoomCamera.orig_LoadPalette orig, RoomCamera self, int pal, ref Texture2D texture)
     {
-        if (self.game.session is StoryGameSession)
+        if (self.game.session is StoryGameSession && paletteChange)
         {
             darkness = RainFall.rainIntensity * 0.5f;
             if (self.room == null)
@@ -120,7 +121,7 @@ class RainPalette
                 Color[] newColors = new Color[colors.Length];
                 for (int i = 0; i < colors.Length; i++)
                 {
-                    newColors[i] = Custom.Desaturate(colors[i], darkness);
+                    newColors[i] = Custom.Desaturate(colors[i], darkness * 0.5f);
                     newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
                 }
                 texture.SetPixels(newColors);

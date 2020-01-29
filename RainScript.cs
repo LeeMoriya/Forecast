@@ -4,7 +4,6 @@ using System.Text;
 using System.Linq;
 using UnityEngine;
 
-//Change color to somewhat match palette, possibly with fog color
 //Have rain fall even when not in the room
 //Tie rain fall spawn radius to player position
 //Have rain intensity be variable
