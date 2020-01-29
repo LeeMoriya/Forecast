@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29424.173
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Downpour", "Downpour.csproj", "{F07910A9-1A89-4EA9-9986-7F66B46E3642}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F07910A9-1A89-4EA9-9986-7F66B46E3642}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F07910A9-1A89-4EA9-9986-7F66B46E3642}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F07910A9-1A89-4EA9-9986-7F66B46E3642}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F07910A9-1A89-4EA9-9986-7F66B46E3642}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {82E507EC-3B44-4CEF-835B-594B7CAA19E1}
+	EndGlobalSection
+EndGlobal
