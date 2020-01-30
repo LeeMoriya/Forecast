@@ -15,17 +15,5 @@ using UnityEngine;
     //Enable or Disable palette darkening
     //Enable debug controls (Change intensity on the fly, enable or disable rain)
 
-public class RainScript : MonoBehaviour
-{
-    public static Downpour mod;
-    public void Initialize()
-    {
-        RainFall.Patch();
-        RainPalette.Patch();
-    }
-    public void Update()
-    {
 
-    }
-}
 

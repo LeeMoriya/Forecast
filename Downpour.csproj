@@ -57,11 +57,9 @@
   <ItemGroup>
     <Compile Include="Downpour.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RainConfig.cs" />
     <Compile Include="RainDrop.cs" />
     <Compile Include="RainFall.cs" />
     <Compile Include="RainPalette.cs" />
-    <Compile Include="RainScript.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
