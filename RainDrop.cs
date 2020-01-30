@@ -118,23 +118,23 @@ public class RainDrop : CosmeticSprite
         if (this.foreground)
         {
             this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
-            sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.1f;
-        }
-        if (rCam.PositionCurrentlyVisible(new Vector2(this.pos.x, rCam.pos.y), 800f, true) == false)
-        {
-            this.Destroy();
+            sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.07f;
         }
         //Delete raindrop if it falls a certain distance below the current camera
         if (this.pos.y < (rCam.pos.y - 300f))
         {
             this.Destroy();
         }
-        //Delete raindrop if it falls a certain distance left and right of the current screen
+        if(sLeaser.sprites[0].alpha < 0f)
+        {
+            this.Destroy();
+        }
         base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
     }
 
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
+
     }
 
     public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)

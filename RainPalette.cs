@@ -49,8 +49,8 @@ class RainPalette
                     Color[] newColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.005f);
-                        newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
+                        newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.5f);
                     }
                     self.allEffectColorsTexture.SetPixels(newColors);
                     texture.SetPixels(30, 4, 2, 2, self.allEffectColorsTexture.GetPixels(color1 * 2, 0, 2, 2, 0), 0);
@@ -62,8 +62,8 @@ class RainPalette
                     Color[] newColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.005f);
-                        newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
+                        newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.5f);
                     }
                     self.allEffectColorsTexture.SetPixels(newColors);
                     texture.SetPixels(30, 2, 2, 2, self.allEffectColorsTexture.GetPixels(color2 * 2, 0, 2, 2, 0), 0);
@@ -121,8 +121,8 @@ class RainPalette
                 Color[] newColors = new Color[colors.Length];
                 for (int i = 0; i < colors.Length; i++)
                 {
-                    newColors[i] = Custom.Desaturate(colors[i], darkness * 0.005f);
-                    newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
+                    newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
+                    newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.5f);
                 }
                 texture.SetPixels(newColors);
             }
