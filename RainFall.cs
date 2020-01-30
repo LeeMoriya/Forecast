@@ -10,7 +10,7 @@ public class RainFall
     public static List<RainDrop> raindrops = new List<RainDrop>();
     public static float rainIntensity;
     public static bool dynamic;
-    public static bool debug;
+    public static bool debug = true;
 
     public static void Patch()
     {

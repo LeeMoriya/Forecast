@@ -126,11 +126,11 @@ public class RainConfig : OptionInterface
         }
         if (config["Lightning"] == "0")
         {
-            RainPalette.paletteChange = false;
+            RainFall.lightning = false;
         }
         else
         {
-            RainPalette.paletteChange = true;
+            RainFall.lightning = true;
         }
         if (config["Setting"] == "0")
         {

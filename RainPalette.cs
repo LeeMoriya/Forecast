@@ -49,7 +49,7 @@ class RainPalette
                     Color[] newColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.5f);
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.2f);
                         newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
                     }
                     self.allEffectColorsTexture.SetPixels(newColors);
@@ -62,7 +62,7 @@ class RainPalette
                     Color[] newColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.5f);
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.2f);
                         newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
                     }
                     self.allEffectColorsTexture.SetPixels(newColors);
@@ -121,7 +121,7 @@ class RainPalette
                 Color[] newColors = new Color[colors.Length];
                 for (int i = 0; i < colors.Length; i++)
                 {
-                    newColors[i] = Custom.Desaturate(colors[i], darkness * 0.5f);
+                    newColors[i] = Custom.Desaturate(colors[i], darkness * 0.2f);
                     newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
                 }
                 texture.SetPixels(newColors);
