@@ -20,11 +20,12 @@ public class RainDrop : CosmeticSprite
 
     public RainDrop(Vector2 pos, Vector2 vel, Color color, int standardLifeTime, int exceptionalLifeTime, Room room)
     {
+        Player player = room.game.Players[0].realizedCreature as Player;
         this.life = 1f;
         this.foreground = false;
         this.lastLife = 1f;
         this.color = color;
-        this.pos = room.MiddleOfTile(UnityEngine.Random.Range(0, room.TileWidth + 15), (UnityEngine.Random.Range(room.TileHeight + 10, room.TileHeight + 30)));
+        this.pos = pos;
         this.lastPos = this.pos;
         this.lastLastPos = this.pos;
         this.lastLastLastPos = this.pos;
@@ -96,9 +97,8 @@ public class RainDrop : CosmeticSprite
         };
         TriangleMesh triangleMesh = new TriangleMesh("Futile_White", tris, false, false);
         sLeaser.sprites[0] = triangleMesh;
-        sLeaser.sprites[0].alpha = 0.8f;
+        sLeaser.sprites[0].alpha = UnityEngine.Random.Range(0.7f, 1f);
         sLeaser.sprites[0].color = color;
-        //sLeaser.sprites[0].shader = rCam.room.game.rainWorld.Shaders["GoldenGlow"];
         this.AddToContainer(sLeaser, rCam, null);
     }
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -118,6 +118,7 @@ public class RainDrop : CosmeticSprite
         if (this.foreground)
         {
             this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
+            sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.1f;
         }
         if (rCam.PositionCurrentlyVisible(new Vector2(this.pos.x, rCam.pos.y), 800f, true) == false)
         {

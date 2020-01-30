@@ -17,7 +17,18 @@ public class RainFall
         On.Room.Update += Room_Update;
         On.Room.Loaded += Room_Loaded;
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
+        On.Player.Update += Player_Update;
     }
+
+    private static void Player_Update(On.Player.orig_Update orig, Player self, bool eu)
+    {
+        orig.Invoke(self, eu);
+        if (self.room.abstractRoom.firstTimeRealized)
+        {
+
+        }
+    }
+
     public static int intensity = 0;
     private static void StoryGameSession_AddPlayer(On.StoryGameSession.orig_AddPlayer orig, StoryGameSession self, AbstractCreature player)
     {
@@ -78,10 +89,10 @@ public class RainFall
             }
         }
     }
-
     private static void Room_Update(On.Room.orig_Update orig, Room self)
     {
         orig.Invoke(self);
+        Player player = (self.game.Players.Count <= 0) ? null : (self.game.Players[0].realizedCreature as Player);
         if (debug)
         {
             if (Input.GetKey(KeyCode.Alpha1))
@@ -105,18 +116,37 @@ public class RainFall
             {
                 if (self.roomRain.dangerType == RoomRain.DangerType.Rain && rainIntensity > 0.7f)
                 {
-                    if (raindrops.Count < 2000)
+                    if (player != null) 
                     {
-                        for (int m = 0; m < 25; m++)
+                        if (raindrops.Count < 2000)
                         {
-                            raindrops.Add(new RainDrop(new Vector2(0, 0), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -3f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self));
-                            self.AddObject(raindrops[raindrops.Count - 1]);
+                            for (int m = 0; m < 30; m++)
+                            {
+                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -3f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self));
+                                self.AddObject(raindrops[raindrops.Count - 1]);
+                            }
+                        }
+                        else
+                        {
+                            raindrops.RemoveRange(0, 2000);
                         }
                     }
                     else
                     {
-                        raindrops.RemoveRange(0, 2000);
+                        if (raindrops.Count < 2000)
+                        {
+                            for (int m = 0; m < 30; m++)
+                            {
+                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left, self.RoomRect.right), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -3f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self));
+                                self.AddObject(raindrops[raindrops.Count - 1]);
+                            }
+                        }
+                        else
+                        {
+                            raindrops.RemoveRange(0, 2000);
+                        }
                     }
+                    
                 }
                 else if (self.roomRain.dangerType == RoomRain.DangerType.Rain && rainIntensity < 0.7f && rainIntensity > 0.5f)
                 {
@@ -124,7 +154,7 @@ public class RainFall
                     {
                         for (int m = 0; m < 18; m++)
                         {
-                            raindrops.Add(new RainDrop(new Vector2(0, 0), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -3f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self));
+                            raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -3f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self));
                             self.AddObject(raindrops[raindrops.Count - 1]);
                         }
                     }
@@ -139,7 +169,7 @@ public class RainFall
                     {
                         for (int m = 0; m < 6; m++)
                         {
-                            raindrops.Add(new RainDrop(new Vector2(0, 0), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -3f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self));
+                            raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -3f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self));
                             self.AddObject(raindrops[raindrops.Count - 1]);
                         }
                     }

@@ -60,11 +60,9 @@ class RainPalette
                 {
                     Color[] colors = self.allEffectColorsTexture.GetPixels();
                     Color[] newColors = new Color[colors.Length];
-                    Color[] greyColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        greyColors[i] = Custom.Desaturate(colors[i], 1f);
-                        newColors[i] = Color.Lerp(newColors[i], greyColors[i], darkness * 0.2f);
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.005f);
                         newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
                     }
                     self.allEffectColorsTexture.SetPixels(newColors);
