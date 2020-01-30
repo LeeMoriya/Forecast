@@ -22,7 +22,7 @@ class RainPalette
     {
         if (self.game.session is StoryGameSession && paletteChange)
         {
-            darkness = RainFall.rainIntensity * 0.5f;
+            darkness = RainFall.rainIntensity * 0.3f;
             self.allEffectColorsTexture = new Texture2D(40, 4, TextureFormat.ARGB32, false);
             self.allEffectColorsTexture.anisoLevel = 0;
             self.allEffectColorsTexture.filterMode = FilterMode.Point;
@@ -49,7 +49,7 @@ class RainPalette
                     Color[] newColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.2f);
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.005f);
                         newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
                     }
                     self.allEffectColorsTexture.SetPixels(newColors);
@@ -60,9 +60,11 @@ class RainPalette
                 {
                     Color[] colors = self.allEffectColorsTexture.GetPixels();
                     Color[] newColors = new Color[colors.Length];
+                    Color[] greyColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.2f);
+                        greyColors[i] = Custom.Desaturate(colors[i], 1f);
+                        newColors[i] = Color.Lerp(newColors[i], greyColors[i], darkness * 0.2f);
                         newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
                     }
                     self.allEffectColorsTexture.SetPixels(newColors);
@@ -82,7 +84,7 @@ class RainPalette
     {
         if (self.game.session is StoryGameSession && paletteChange)
         {
-            darkness = RainFall.rainIntensity * 0.5f;
+            darkness = RainFall.rainIntensity * 0.3f;
             if (self.room == null)
             {
                 //Fix for starting rooms
@@ -121,7 +123,7 @@ class RainPalette
                 Color[] newColors = new Color[colors.Length];
                 for (int i = 0; i < colors.Length; i++)
                 {
-                    newColors[i] = Custom.Desaturate(colors[i], darkness * 0.2f);
+                    newColors[i] = Custom.Desaturate(colors[i], darkness * 0.005f);
                     newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.3f);
                 }
                 texture.SetPixels(newColors);
