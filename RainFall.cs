@@ -20,7 +20,32 @@ public class RainFall
         On.Room.Loaded += Room_Loaded;
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
         On.RoomRain.Update += RoomRain_Update;
+        On.Lightning.ctor += Lightning_ctor;
     }
+
+    private static void Lightning_ctor(On.Lightning.orig_ctor orig, Lightning self, Room room, float intensity, bool bkgOnly)
+    {
+        self.room = room;
+        self.intensity = intensity;
+        self.bkgOnly = bkgOnly;
+        self.lightningSources = new Lightning.LightningSource[2];
+        for (int i = 0; i < 2; i++)
+        {
+            self.lightningSources[i] = new Lightning.LightningSource(self, i == 1);
+        }
+        self.bkgGradient = new Color[2];
+        if (room.world.region.name == "UW")
+        {
+            self.bkgGradient[0] = new Color(0.19607843f, 0.23529412f, 0.78431374f);
+            self.bkgGradient[1] = new Color(0.21176471f, 1f, 0.22352941f);
+        }
+        else
+        {
+            self.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
+            self.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f,1f,1f), rainIntensity);
+        }
+    }
+
     private static void RoomRain_Update(On.RoomRain.orig_Update orig, RoomRain self, bool eu)
     {
         //RoomRain hook has tweaks to rain sound volumes so its audible during cycles when rain intensity is high enough
