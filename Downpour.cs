@@ -26,7 +26,7 @@ public class Downpour : PartialityMod
     public Downpour()
     {
         this.ModID = "Downpour";
-        this.Version = "1.0";
+        this.Version = "Beta";
         this.author = "LeeMoriya";
     }
 
@@ -91,6 +91,7 @@ public class Downpour : PartialityMod
 
 public class DOProxy
 {
+    //Setup ConfigMachine GUI
     public static void Initialize(OptionalUI.OptionInterface self)
     {
         self.Tabs = new OpTab[1];
