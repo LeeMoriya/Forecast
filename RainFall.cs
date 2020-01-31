@@ -268,7 +268,7 @@ public class RainFall
                         {
                             for (int m = 0; m < (int)rainAmount; m++)
                             {
-                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -9f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, false));
+                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -10f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, false));
                                 self.AddObject(raindrops[raindrops.Count - 1]);
                             }
                         }
@@ -276,6 +276,14 @@ public class RainFall
                         {
                             raindrops.RemoveRange(0, 2000);
                         }
+                    }
+                    else
+                    {
+                            for (int m = 0; m < (int)rainAmount; m++)
+                            {
+                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left, self.RoomRect.right), UnityEngine.Random.Range(self.RoomRect.bottom + 100f, self.RoomRect.top * 15)), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -2f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, true));
+                                self.AddObject(raindrops[raindrops.Count - 1]);
+                            }
                     }
                 }
                 if (self.BeingViewed == false)

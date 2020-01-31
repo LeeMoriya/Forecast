@@ -44,7 +44,14 @@ public class RainDrop : CosmeticSprite
     {
         this.lastLastLastPos = this.lastLastPos;
         this.lastLastPos = this.lastPos;
-        this.vel.y = this.vel.y - (this.gravity * 2);
+        if (transitionRain == false)
+        {
+            this.vel.y = this.vel.y - (this.gravity * 2);
+        }
+        else
+        {
+            this.vel.y = this.vel.y - (this.gravity * 1.1f);
+        }
         this.lastLife = this.life;
         if (this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid && !foreground)
         {
