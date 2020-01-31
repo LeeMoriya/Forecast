@@ -15,12 +15,11 @@ class RainPalette
     }
 
     public static float darkness;
-    public static bool paletteChange = true;
 
     //Room effect color changes
     private static void RoomCamera_ApplyEffectColorsToPaletteTexture(On.RoomCamera.orig_ApplyEffectColorsToPaletteTexture orig, RoomCamera self, ref Texture2D texture, int color1, int color2)
     {
-        if (self.game.session is StoryGameSession && paletteChange)
+        if (self.game.session is StoryGameSession && Downpour.paletteChange)
         {
             darkness = RainFall.rainIntensity * 0.3f;
             self.allEffectColorsTexture = new Texture2D(40, 4, TextureFormat.ARGB32, false);
@@ -80,7 +79,7 @@ class RainPalette
     //Main room palette changes
     public static void RoomCamera_LoadPalette(On.RoomCamera.orig_LoadPalette orig, RoomCamera self, int pal, ref Texture2D texture)
     {
-        if (self.game.session is StoryGameSession && paletteChange)
+        if (self.game.session is StoryGameSession && Downpour.paletteChange)
         {
             darkness = RainFall.rainIntensity * 0.3f;
             if (self.room == null)
@@ -114,7 +113,7 @@ class RainPalette
             {
                 self.ApplyEffectColorsToPaletteTexture(ref texture, self.room.roomSettings.EffectColorA, self.room.roomSettings.EffectColorB);
             }
-            // Event active
+            //Colors from the palette texture are added to an array and desaturated and lerped towards a black color depending on rain intensity.
             if (self.room != null)
             {
                 Color[] colors = texture.GetPixels();

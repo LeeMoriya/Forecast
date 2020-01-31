@@ -31,6 +31,10 @@ public class Downpour : PartialityMod
     }
 
     public static RainScript script;
+    public static bool paletteChange = true;
+    public static bool lightning = true;
+    public static bool dynamic = true;
+    public static int intensity = 0;
 
     public override void OnEnable()
     {
@@ -162,35 +166,39 @@ public class DOProxy
     {
         if (OptionalUI.OptionInterface.config["Palette"] == "0")
         {
-            RainPalette.paletteChange = false;
+            Downpour.paletteChange = false;
         }
         else
         {
-            RainPalette.paletteChange = true;
+            Downpour.paletteChange = true;
         }
         if (OptionalUI.OptionInterface.config["Lightning"] == "0")
         {
-            RainFall.lightning = false;
+            Downpour.lightning = false;
         }
         else
         {
-            RainFall.lightning = true;
+            Downpour.lightning = true;
         }
         if (OptionalUI.OptionInterface.config["Setting"] == "0")
         {
-            RainFall.intensity = 0;
+            Downpour.intensity = 0;
+            Downpour.dynamic = true;
         }
         if (OptionalUI.OptionInterface.config["Setting"] == "1")
         {
-            RainFall.intensity = 1;
+            Downpour.intensity = 1;
+            Downpour.dynamic = false;
         }
         if (OptionalUI.OptionInterface.config["Setting"] == "2")
         {
-            RainFall.intensity = 2;
+            Downpour.intensity = 2;
+            Downpour.dynamic = false;
         }
         if (OptionalUI.OptionInterface.config["Setting"] == "3")
         {
-            RainFall.intensity = 3;
+            Downpour.intensity = 3;
+            Downpour.dynamic = false;
         }
     }
 }

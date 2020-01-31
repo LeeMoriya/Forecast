@@ -17,10 +17,12 @@ public class RainDrop : CosmeticSprite
     public float gravity;
     public bool foreground;
     public float screenXPos;
+    public bool transitionRain;
 
-    public RainDrop(Vector2 pos, Vector2 vel, Color color, int standardLifeTime, int exceptionalLifeTime, Room room)
+    public RainDrop(Vector2 pos, Vector2 vel, Color color, int standardLifeTime, int exceptionalLifeTime, Room room, bool transitionRain)
     {
         Player player = room.game.Players[0].realizedCreature as Player;
+        this.transitionRain = transitionRain;
         this.life = 1f;
         this.foreground = false;
         this.lastLife = 1f;
@@ -37,7 +39,7 @@ public class RainDrop : CosmeticSprite
         {
             this.lifeTime = UnityEngine.Random.Range(standardLifeTime, exceptionalLifeTime);
         }
-    }
+            }
     public override void Update(bool eu)
     {
         this.lastLastLastPos = this.lastLastPos;
@@ -46,6 +48,13 @@ public class RainDrop : CosmeticSprite
         this.lastLife = this.life;
         if (this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid && !foreground)
         {
+            //transitionRain (determined when called) is rain that is spawned mid-fall when entering a room.
+            //When transition rain collides with a tile it's removed
+            if (transitionRain)
+            {
+                this.Destroy();
+            }
+            //If a raindrop hits a solid surface it's velocity is forced upwards so it appears to 'bounce'.
             if (UnityEngine.Random.Range(0f, 1f) > 0.05f)
             {
                 if (this.vel.y < 0f && this.room.GetTile(this.pos + new Vector2(0f, 20f)).Terrain == Room.Tile.TerrainType.Air)
@@ -63,6 +72,7 @@ public class RainDrop : CosmeticSprite
                     this.Destroy();
                 }
             }
+            //There is a small chance when the raindrop hits a surface that it will become a part of the foreground layer, passing in front of tiles.
             else
             {
                 foreground = true;
@@ -81,6 +91,7 @@ public class RainDrop : CosmeticSprite
         {
             this.Destroy();
         }
+        //If a raindrop falls below the room's bottom its deleted.
         if (this.pos.y < -100f)
         {
             this.Destroy();
