@@ -21,7 +21,14 @@ class RainPalette
     {
         if (self.game.session is StoryGameSession && Downpour.paletteChange)
         {
-            darkness = RainFall.rainIntensity * 0.3f;
+            if(RainFall.rainIntensity > 0f)
+            {
+                darkness = RainFall.rainIntensity * 0.3f;
+            }
+            else
+            {
+                darkness = 1f * 0.3f;
+            }
             self.allEffectColorsTexture = new Texture2D(40, 4, TextureFormat.ARGB32, false);
             self.allEffectColorsTexture.anisoLevel = 0;
             self.allEffectColorsTexture.filterMode = FilterMode.Point;
@@ -81,7 +88,14 @@ class RainPalette
     {
         if (self.game.session is StoryGameSession && Downpour.paletteChange)
         {
-            darkness = RainFall.rainIntensity * 0.3f;
+            if (RainFall.rainIntensity > 0f)
+            {
+                darkness = RainFall.rainIntensity * 0.3f;
+            }
+            else
+            {
+                darkness = 1f * 0.3f;
+            }
             if (self.room == null)
             {
                 //Fix for starting rooms
