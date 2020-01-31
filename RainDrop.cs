@@ -26,7 +26,14 @@ public class RainDrop : CosmeticSprite
         this.life = 1f;
         this.foreground = false;
         this.lastLife = 1f;
-        this.color = color;
+        if (Downpour.rainbow)
+        {
+            this.color = Custom.HSL2RGB(UnityEngine.Random.Range(0f, 1f), 0.5f, 0.5f);
+        }
+        else
+        {
+            this.color = color;
+        }
         this.pos = pos;
         this.lastPos = this.pos;
         this.lastLastPos = this.pos;
@@ -51,6 +58,10 @@ public class RainDrop : CosmeticSprite
         else
         {
             this.vel.y = this.vel.y - (this.gravity * 1.1f);
+        }
+        if(vel.y < -40)
+        {
+            vel.y = -40;
         }
         this.lastLife = this.life;
         if (this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid && !foreground)

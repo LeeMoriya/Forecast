@@ -60,6 +60,7 @@
     <Compile Include="RainDrop.cs" />
     <Compile Include="RainFall.cs" />
     <Compile Include="RainPalette.cs" />
+    <Compile Include="RainSound.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

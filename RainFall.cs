@@ -14,13 +14,13 @@ public class RainFall
     public static float startingIntensity;
     public static float rainAmount = 0;
     public static int ceilingCount = 0;
+    public static DisembodiedDynamicSoundLoop rainSound;
 
     public static void Patch()
     {
         On.Room.Update += Room_Update;
         On.Room.Loaded += Room_Loaded;
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
-        On.RoomRain.Update += RoomRain_Update;
         On.Lightning.ctor += Lightning_ctor;
     }
 
@@ -45,102 +45,6 @@ public class RainFall
             self.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
             self.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), rainIntensity);
         }
-    }
-
-    private static void RoomRain_Update(On.RoomRain.orig_Update orig, RoomRain self, bool eu)
-    {
-        //RoomRain hook has tweaks to rain sound volumes so its audible during cycles when rain intensity is high enough
-        ((Action<bool>)(Activator.CreateInstance(typeof(Action<bool>), self, typeof(UpdatableAndDeletable).GetMethod("Update").MethodHandle.GetFunctionPointer())))(eu);
-        if (self.dangerType == RoomRain.DangerType.Rain || self.dangerType == RoomRain.DangerType.FloodAndRain)
-        {
-            self.intensity = Mathf.Lerp(self.intensity, self.globalRain.Intensity, 0.2f);
-        }
-        self.intensity = Mathf.Min(self.intensity, self.room.roomSettings.RainIntensity);
-        self.visibilitySetter = 0;
-        if (self.intensity == 0f && self.lastIntensity > 0f)
-        {
-            self.visibilitySetter = -1;
-        }
-        else if (self.intensity > 0f && self.lastIntensity == 0f)
-        {
-            self.visibilitySetter = 1;
-        }
-        self.lastIntensity = self.intensity;
-        if (self.globalRain.AnyPushAround)
-        {
-            self.ThrowAroundObjects();
-        }
-        if (self.bulletDrips.Count < (int)((float)self.room.TileWidth * self.globalRain.bulletRainDensity * self.room.roomSettings.RainIntensity))
-        {
-            self.bulletDrips.Add(new BulletDrip(self));
-            self.room.AddObject(self.bulletDrips[self.bulletDrips.Count - 1]);
-        }
-        else if (self.bulletDrips.Count > (int)((float)self.room.TileWidth * self.globalRain.bulletRainDensity * self.room.roomSettings.RainIntensity))
-        {
-            self.bulletDrips[0].Destroy();
-            self.bulletDrips.RemoveAt(0);
-        }
-        if (self.globalRain.flood > 0f)
-        {
-            if (self.room.waterObject != null)
-            {
-                self.room.waterObject.fWaterLevel = Mathf.Lerp(self.room.waterObject.fWaterLevel, self.FloodLevel, 0.2f);
-                self.room.waterObject.GeneralUpsetSurface(Mathf.InverseLerp(0f, 0.5f, self.globalRain.Intensity) * 4f);
-            }
-            else if (self.room.roomSettings.DangerType == RoomRain.DangerType.Flood || self.room.roomSettings.DangerType == RoomRain.DangerType.FloodAndRain)
-            {
-                self.room.AddWater();
-            }
-        }
-        if (self.dangerType != RoomRain.DangerType.Flood)
-        {
-            if (rainIntensity > 0.3f)
-            {
-                self.normalRainSound.Volume = 1.2f;
-            }
-            else
-            {
-                self.normalRainSound.Volume = ((self.intensity <= 0f) ? 0f : (0.1f + 0.9f * Mathf.Pow(Mathf.Clamp01(Mathf.Sin(Mathf.InverseLerp(0.001f, 0.7f, self.intensity) * 3.14159274f)), 1.5f)));
-            }
-            self.normalRainSound.Update();
-            if (rainIntensity > 0.7f)
-            {
-                self.heavyRainSound.Volume = 0.3f;
-            }
-            else
-            {
-                self.heavyRainSound.Volume = Mathf.Pow(Mathf.InverseLerp(0.12f, 0.5f, self.intensity), 0.85f) * Mathf.Pow(1f - self.deathRainSound.Volume, 0.3f);
-            }
-            self.heavyRainSound.Update();
-        }
-        else
-        {
-            if (rainIntensity > 0.3f)
-            {
-                self.floodingSound.Volume = 1f;
-                self.floodingSound.Update();
-            }
-        }
-        self.deathRainSound.Volume = Mathf.Pow(Mathf.InverseLerp(0.35f, 0.75f, self.intensity), 0.8f);
-        self.deathRainSound.Update();
-        self.rumbleSound.Volume = self.globalRain.RumbleSound * self.room.roomSettings.RumbleIntensity;
-        self.rumbleSound.Update();
-        self.distantDeathRainSound.Volume = Mathf.InverseLerp(1400f, 0f, (float)self.room.world.rainCycle.TimeUntilRain) * self.room.roomSettings.RainIntensity;
-        self.distantDeathRainSound.Update();
-        if (self.dangerType != RoomRain.DangerType.Rain && rainIntensity < 0.3f)
-        {
-            self.floodingSound.Volume = Mathf.InverseLerp(0.01f, 0.5f, self.globalRain.floodSpeed);
-            self.floodingSound.Update();
-        }
-        if (self.room.game.cameras[0].room == self.room)
-        {
-            self.SCREENSHAKESOUND.Volume = self.room.game.cameras[0].ScreenShake * (1f - self.rumbleSound.Volume);
-        }
-        else
-        {
-            self.SCREENSHAKESOUND.Volume = 0f;
-        }
-        self.SCREENSHAKESOUND.Update();
     }
     private static void StoryGameSession_AddPlayer(On.StoryGameSession.orig_AddPlayer orig, StoryGameSession self, AbstractCreature player)
     {
@@ -205,11 +109,15 @@ public class RainFall
                 self.AddObject(self.lightning);
             }
         }
+        if (self.game != null)
+        {
+            self.AddObject(new RainSound(self));
+        }
     }
     private static void Room_Update(On.Room.orig_Update orig, Room self)
     {
         orig.Invoke(self);
-        rainAmount = Mathf.Lerp(0, 60, rainIntensity);
+        rainAmount = Mathf.Lerp(0, 40, rainIntensity);
         Player player = (self.game.Players.Count <= 0) ? null : (self.game.Players[0].realizedCreature as Player);
         if (debug)
         {
@@ -228,7 +136,7 @@ public class RainFall
                 Debug.Log(rainIntensity.ToString() + " & " + rainAmount.ToString());
             }
         }
-        if (self != null && self.game.session is StoryGameSession && self.fullyLoaded && self.roomRain != null && self.world.rainCycle.TimeUntilRain > 0)
+        if (self != null && self.game.session is StoryGameSession && self.roomRain != null && self.world.rainCycle.TimeUntilRain > 0)
         {
             for (int r = 0; r < self.TileWidth; r++)
             {
@@ -248,23 +156,10 @@ public class RainFall
                     {
                         rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
                     }
-                    //Add rain that is mid-fall when entering a room to mask the start of the rainfall
-                    if (self != null && self.BeingViewed && self.abstractRoom.shelter == false && roomRainList.Contains(self.abstractRoom.name) == false)
-                    {
-                        for (int m = 0; m < (int)rainAmount * 7; m++)
-                        {
-                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left, self.RoomRect.right), UnityEngine.Random.Range(self.RoomRect.bottom + 100f, self.RoomRect.top + 100f)), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -10f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, true));
-                            roomRainList.Add(self.abstractRoom.name);
-                        }
-                    }
-                    if (!self.BeingViewed && roomRainList.Contains(self.abstractRoom.name))
-                    {
-                        roomRainList.Remove(self.abstractRoom.name);
-                    }
                     //Rainfall follows player pos
                     if (player != null && player.inShortcut == false)
                     {
-                        if (raindrops.Count < 2000)
+                        if (raindrops.Count < 1000)
                         {
                             for (int m = 0; m < (int)rainAmount; m++)
                             {
@@ -274,16 +169,23 @@ public class RainFall
                         }
                         else
                         {
-                            raindrops.RemoveRange(0, 2000);
+                            raindrops.RemoveRange(0, 1000);
                         }
                     }
                     else
                     {
-                            for (int m = 0; m < (int)rainAmount; m++)
+                        if (raindrops.Count < 1000)
+                        {
+                            for (int m = 0; m < (int)rainAmount * 2; m++)
                             {
-                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left, self.RoomRect.right), UnityEngine.Random.Range(self.RoomRect.bottom + 100f, self.RoomRect.top * 15)), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -2f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, true));
+                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left - 200f, self.RoomRect.right + 200f), UnityEngine.Random.Range(self.RoomRect.top, self.RoomRect.top + 100f)), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -4f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, true));
                                 self.AddObject(raindrops[raindrops.Count - 1]);
                             }
+                        }
+                        else
+                        {
+                            raindrops.RemoveRange(0, 1000);
+                        }
                     }
                 }
                 if (self.BeingViewed == false)
