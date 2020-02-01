@@ -15,6 +15,8 @@ public class RainFall
     public static float rainAmount = 0;
     public static int ceilingCount = 0;
     public static Vector2 lastPlayerPos = new Vector2();
+    public static bool rainHeight = false;
+    public static List<string> rainList = new List<string>();
 
     public static void Patch()
     {
@@ -50,7 +52,6 @@ public class RainFall
     {
         //Starting rain intensity determined at the start of the cycle
         orig.Invoke(self, player);
-        roomRainList = new List<string>();
         if (!Downpour.dynamic)
         {
             if (Downpour.intensity == 1)
@@ -119,78 +120,51 @@ public class RainFall
         orig.Invoke(self);
         rainAmount = Mathf.Lerp(0, 40, rainIntensity);
         Player player = (self.game.Players.Count <= 0) ? null : (self.game.Players[0].realizedCreature as Player);
-        if (debug)
+        //Rain intensity increases with cycle duration if in dynamic mode
+        if (startingIntensity > 0.3f && Downpour.dynamic)
         {
-            if (Input.GetKey(KeyCode.Alpha1))
-            {
-                rainIntensity -= 0.001f;
-                Debug.Log(rainIntensity);
-            }
-            if (Input.GetKey(KeyCode.Alpha2))
-            {
-                rainIntensity += 0.001f;
-                Debug.Log(rainIntensity);
-            }
-            if (Input.GetKey(KeyCode.Alpha3))
-            {
-                Debug.Log(rainIntensity.ToString() + " & " + rainAmount.ToString());
-            }
+            rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
         }
         if (self != null && self.game.session is StoryGameSession && self.roomRain != null && self.world.rainCycle.TimeUntilRain > 0)
         {
-            for (int r = 0; r < self.TileWidth; r++)
+            if (!self.abstractRoom.shelter || self.roomRain.dangerType == RoomRain.DangerType.Flood && rainList.Contains(self.abstractRoom.name) == false)
             {
-                if (self.Tiles[r, self.TileHeight - 1].Solid)
+                //Count the top row of tiles in a room, if a certain percentage are air, add the room to list of rooms that can contain rain.
+                for (int r = 0; r < self.TileWidth; r++)
                 {
-                    ceilingCount++;
+                    if (self.Tiles[r, self.TileHeight - 1].Solid)
+                    {
+                        ceilingCount++;
+                    }
                 }
+                if (ceilingCount < (self.Width * 0.65))
+                {
+                    rainList.Add(self.abstractRoom.name);
+                }
+                ceilingCount = 0;
             }
             //No rainfall in UW (above clouds), SS (interior) or SB (all underground)
             if (self.world.region.name != "UW" || self.world.region.name != "SS" || self.world.region.name != "SB")
             {
-                //if less than 60% of the room's ceiling is solid tiles, spawn rain in it
-                if (ceilingCount < (self.Width * 0.6) && rainIntensity > 0.3f)
+                //If the room is present in the list of rooms that can contain rain, spawn rainfall
+                if (rainList.Contains(self.abstractRoom.name) && rainIntensity > 0.3f)
                 {
-                    //Rain intensity increases with cycle duration if in dynamic mode
-                    if (startingIntensity > 0.3f && Downpour.dynamic)
-                    {
-                        rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
-                    }
-                    if (player == null || !player.inShortcut)
-                    {
-                        if (raindrops.Count < 1000)
-                        {
-                            for (int m = 0; m < (int)rainAmount; m++)
-                            {
-                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left - 100f, self.RoomRect.right + 100f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -10f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, true));
-                                self.AddObject(raindrops[raindrops.Count - 1]);
-                            }
-                        }
-                        else
-                        {
-                            raindrops.RemoveRange(0, 1000);
-                        }
-                    }
                     //Rainfall follows player pos
+                    if (player != null && player.inShortcut == false)
+                    {
+                        for (int m = 0; m < (int)rainAmount; m++)
+                        {
+                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -10f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, false));
+                        }
+                    }
+                    //Rainfall randomly placed
                     else
                     {
-                        if (raindrops.Count < 1000)
+                        for (int m = 0; m < (int)rainAmount; m++)
                         {
-                            for (int m = 0; m < (int)rainAmount; m++)
-                            {
-                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -10f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, false));
-                                self.AddObject(raindrops[raindrops.Count - 1]);
-                            }
-                        }
-                        else
-                        {
-                            raindrops.RemoveRange(0, 1000);
+                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left - 100f, self.RoomRect.right + 100f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -10f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, true));
                         }
                     }
-                }
-                if (self.BeingViewed == false)
-                {
-                    ceilingCount = 0;
                 }
             }
         }
