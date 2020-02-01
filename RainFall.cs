@@ -14,7 +14,7 @@ public class RainFall
     public static float startingIntensity;
     public static float rainAmount = 0;
     public static int ceilingCount = 0;
-    public static DisembodiedDynamicSoundLoop rainSound;
+    public static Vector2 lastPlayerPos = new Vector2();
 
     public static void Patch()
     {
@@ -156,14 +156,13 @@ public class RainFall
                     {
                         rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
                     }
-                    //Rainfall follows player pos
-                    if (player != null && player.inShortcut == false)
+                    if (player == null || !player.inShortcut)
                     {
                         if (raindrops.Count < 1000)
                         {
                             for (int m = 0; m < (int)rainAmount; m++)
                             {
-                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -10f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, false));
+                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left - 100f, self.RoomRect.right + 100f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -10f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, true));
                                 self.AddObject(raindrops[raindrops.Count - 1]);
                             }
                         }
@@ -172,13 +171,14 @@ public class RainFall
                             raindrops.RemoveRange(0, 1000);
                         }
                     }
+                    //Rainfall follows player pos
                     else
                     {
                         if (raindrops.Count < 1000)
                         {
-                            for (int m = 0; m < (int)rainAmount * 2; m++)
+                            for (int m = 0; m < (int)rainAmount; m++)
                             {
-                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left - 200f, self.RoomRect.right + 200f), UnityEngine.Random.Range(self.RoomRect.top, self.RoomRect.top + 100f)), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -4f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, true));
+                                raindrops.Add(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -10f), self.game.cameras[0].currentPalette.skyColor, 10, 10, self, false));
                                 self.AddObject(raindrops[raindrops.Count - 1]);
                             }
                         }

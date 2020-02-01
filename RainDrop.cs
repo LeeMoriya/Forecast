@@ -51,14 +51,7 @@ public class RainDrop : CosmeticSprite
     {
         this.lastLastLastPos = this.lastLastPos;
         this.lastLastPos = this.lastPos;
-        if (transitionRain == false)
-        {
-            this.vel.y = this.vel.y - (this.gravity * 2);
-        }
-        else
-        {
-            this.vel.y = this.vel.y - (this.gravity * 1.1f);
-        }
+        this.vel.y = this.vel.y - (this.gravity * 2);
         if(vel.y < -40)
         {
             vel.y = -40;
@@ -150,7 +143,7 @@ public class RainDrop : CosmeticSprite
             sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.07f;
         }
         //Delete raindrop if it falls a certain distance below the current camera
-        if (this.pos.y < (rCam.pos.y - 300f))
+        if (rCam.room.BeingViewed && this.pos.y < (rCam.pos.y - 300f))
         {
             this.Destroy();
         }
