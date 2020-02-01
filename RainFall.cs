@@ -134,7 +134,7 @@ public class RainFall
                         ceilingCount++;
                     }
                 }
-                if (ceilingCount < (self.Width * 0.65) || self.roomRain.dangerType == RoomRain.DangerType.Rain)
+                if (ceilingCount < (self.Width * 0.65) || self.roomRain.dangerType == RoomRain.DangerType.Rain && self.world.region.name != "UW" && self.world.region.name != "SB" && self.world.region.name != "SS")
                 {
                     rainList.Add(self.abstractRoom.name);
                 }
