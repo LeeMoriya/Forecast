@@ -18,14 +18,18 @@ public class RainDrop : CosmeticSprite
     public bool foreground;
     public float screenXPos;
     public bool transitionRain;
+    public float splashCounter;
+    public bool timeToDie;
 
     public RainDrop(Vector2 pos, Vector2 vel, Color color, int standardLifeTime, int exceptionalLifeTime, Room room, bool transitionRain)
     {
         Player player = room.game.Players[0].realizedCreature as Player;
+        this.timeToDie = false;
         this.transitionRain = transitionRain;
         this.life = 1f;
         this.foreground = false;
         this.lastLife = 1f;
+        this.splashCounter = 0;
         if (Downpour.rainbow)
         {
             this.color = Custom.HSL2RGB(UnityEngine.Random.Range(0f, 1f), 0.5f, 0.5f);
@@ -51,10 +55,15 @@ public class RainDrop : CosmeticSprite
     {
         this.lastLastLastPos = this.lastLastPos;
         this.lastLastPos = this.lastPos;
-        this.vel.y = this.vel.y - (this.gravity * 2);
-        if(vel.y < -40)
+        this.vel.y = this.vel.y - (this.gravity * 2.5f);
+        this.splashCounter = this.splashCounter - 0.1f;
+        if(splashCounter < 0f)
         {
-            vel.y = -40;
+            splashCounter = 0f;
+        }
+        if(this.vel.y < -50f)
+        {
+            this.vel.y = -50f;
         }
         this.lastLife = this.life;
         if (this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid && !foreground)
@@ -66,7 +75,7 @@ public class RainDrop : CosmeticSprite
                 this.Destroy();
             }
             //If a raindrop hits a solid surface it's velocity is forced upwards so it appears to 'bounce'.
-            if (UnityEngine.Random.Range(0f, 1f) > 0.05f)
+            if (UnityEngine.Random.Range(0f, 1f) > 0.1f)
             {
                 if (this.vel.y < 0f && this.room.GetTile(this.pos + new Vector2(0f, 20f)).Terrain == Room.Tile.TerrainType.Air)
                 {
@@ -77,6 +86,8 @@ public class RainDrop : CosmeticSprite
                     {
                         this.life -= 0.083333343f;
                     }
+                    timeToDie = true;
+                    splashCounter = 0.25f;
                 }
                 else
                 {
@@ -89,9 +100,9 @@ public class RainDrop : CosmeticSprite
                 foreground = true;
             }
         }
-        if (this.vel.y < 0.2f)
+        if (splashCounter <= 0f && timeToDie)
         {
-            this.life -= 0.00433343f;
+            this.Destroy();
         }
         this.life -= 0.000383343f;
         if (this.vel.y == 0f)
@@ -112,15 +123,16 @@ public class RainDrop : CosmeticSprite
 
     public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        sLeaser.sprites = new FSprite[1];
+        sLeaser.sprites = new FSprite[2];
         TriangleMesh.Triangle[] tris = new TriangleMesh.Triangle[]
         {
             new TriangleMesh.Triangle(0, 1, 2)
         };
         TriangleMesh triangleMesh = new TriangleMesh("Futile_White", tris, false, false);
         sLeaser.sprites[0] = triangleMesh;
-        sLeaser.sprites[0].alpha = UnityEngine.Random.Range(0.7f, 1f);
+        sLeaser.sprites[0].alpha = UnityEngine.Random.Range(0.5f, 1f);
         sLeaser.sprites[0].color = color;
+        sLeaser.sprites[1] = new FSprite("RainSplash", true);
         this.AddToContainer(sLeaser, rCam, null);
     }
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -137,6 +149,13 @@ public class RainDrop : CosmeticSprite
         (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, vector - a * 1f - camPos);
         (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, vector2 - camPos);
         sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.0003f;
+        sLeaser.sprites[1].x = vector.x - camPos.x;
+        sLeaser.sprites[1].y = vector.y - camPos.y;
+        sLeaser.sprites[1].scale = splashCounter;
+        sLeaser.sprites[1].color = color;
+        sLeaser.sprites[1].rotation = UnityEngine.Random.value * 360f;
+        sLeaser.sprites[1].alpha = 1f;
+
         if (this.foreground)
         {
             this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
@@ -162,6 +181,7 @@ public class RainDrop : CosmeticSprite
     public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
         base.AddToContainer(sLeaser, rCam, newContatiner);
+        rCam.ReturnFContainer("Items").AddChild(sLeaser.sprites[1]);
     }
 }
 

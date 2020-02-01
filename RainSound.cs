@@ -24,7 +24,7 @@ class RainSound : UpdatableAndDeletable
         }
         if (RainFall.rainIntensity > 0.3f)
         {
-            if (ceiling < (owner.Width * 0.6) && owner.regionGate == null)
+            if (ceiling < (owner.Width * 0.65) && owner.regionGate == null)
             {
                 normalRainSound = new DisembodiedDynamicSoundLoop(this);
                 normalRainSound.sound = SoundID.Normal_Rain_LOOP;

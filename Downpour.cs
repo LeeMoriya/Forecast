@@ -107,7 +107,7 @@ public class DOProxy
         OptionalUI.OpRadioButtonGroup paletteGroup = new OpRadioButtonGroup("Palette", 1);
         OptionalUI.OpRadioButtonGroup rainbowGroup = new OpRadioButtonGroup("Rainbow", 0);
         OptionalUI.OpRadioButton intensityDynamic = new OpRadioButton(new Vector2(30f, 500f));
-        intensityDynamic.description = "Intensity of the rain is randomly determined and affected by karma level.";
+        intensityDynamic.description = "Intensity of the rain is randomly determined and affected by karma level, there can also be no rain at all.";
         self.Tabs[0].AddItem(intensityDynamic);
         OptionalUI.OpLabel dynamicLabel = new OpLabel(new Vector2(60f, 495f), new Vector2(400f, 40f), "Dynamic", FLabelAlignment.Left, false);
         self.Tabs[0].AddItem(dynamicLabel);
