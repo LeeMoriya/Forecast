@@ -9,8 +9,8 @@ A mod for Rain World that adds dynamic and configurable rainfall.
 - Configurable options
 
 ## Requirements
-- PublicityStunt
-- ConfigMachine (Optional)
+- [PublicityStunt](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
+- [ConfigMachine](https://cdn.discordapp.com/attachments/305139167300550666/530462441432416266/PublicityStunt.dll) (Optional)
 
 This mod can be used with and without ConfigMachine. If ConfigMachine is not present the mod will use default dynamic settings for rainfall and other features. If ConfigMachine is present then the following settings can be changed:
 - Rain Intensity (Dynamic, Low, Med, High)
