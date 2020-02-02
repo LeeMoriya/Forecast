@@ -1,6 +1,8 @@
 # Rain World - Downpour Mod
 A mod for Rain World that adds dynamic and configurable rainfall.
 
+![Downpour](https://i.imgur.com/hPblP6q.gif)
+
 ## Features
 - Adds a rain effect during cycles to outdoor rooms
 - Rain intensity increases as the cycle progresses
