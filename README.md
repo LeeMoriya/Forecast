@@ -12,8 +12,7 @@ A mod for Rain World that adds dynamic and configurable rainfall.
 - PublicityStunt
 - ConfigMachine (Optional)
 
-When not using ConfigMachine the mod will use dynamic settings for rainfall.
-When used alongside ConfigMachine you can change the following settings:
+This mod can be used with and without ConfigMachine. If ConfigMachine is not present the mod will use default dynamic settings for rainfall and other features. If ConfigMachine is present then the following settings can be changed:
 - Rain Intensity (Dynamic, Low, Med, High)
 - Lightning (On, Off)
 - Darkening (On, Off)
