@@ -23,6 +23,9 @@ When used alongside ConfigMachine you can change the following settings:
 2. Drop Downpour.dll into your Mods folder.
 3. Tick the mod in the Partiality Launcher and click 'Apply Mods'.
 
+## Download
+Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases)
+
 ## Bugs
 If you encounter any bugs or oddities when using Downpour please let me know by DMing me on Discord:
 **LeeMoriya#0257**
