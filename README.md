@@ -26,6 +26,9 @@ When used alongside ConfigMachine you can change the following settings:
 ## Download
 Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases)
 
+## Credits
+Special thanks to Slime_Cubed and Bee/Pastebin for helping with optional ConfigMachine support.
+
 ## Bugs
 If you encounter any bugs or oddities when using Downpour please let me know by DMing me on Discord:
 **LeeMoriya#0257**
