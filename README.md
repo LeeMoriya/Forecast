@@ -17,6 +17,7 @@ When used alongside ConfigMachine you can change the following settings:
 - Rain Intensity (Dynamic, Low, Med, High)
 - Lightning (On, Off)
 - Darkening (On, Off)
+- Skittle Mode (On, Off)
 
 ## Installation
 1. Install Partiality for Rain World.
