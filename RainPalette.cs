@@ -19,9 +19,9 @@ class RainPalette
     //Room effect color changes
     private static void RoomCamera_ApplyEffectColorsToPaletteTexture(On.RoomCamera.orig_ApplyEffectColorsToPaletteTexture orig, RoomCamera self, ref Texture2D texture, int color1, int color2)
     {
-        if (self.game.session is StoryGameSession && Downpour.paletteChange)
+        if (Downpour.paletteChange && !RainFall.noRain)
         {
-            if(RainFall.rainIntensity > 0f)
+            if (RainFall.rainIntensity > 0f)
             {
                 darkness = RainFall.rainIntensity * 0.3f;
             }
@@ -86,7 +86,7 @@ class RainPalette
     //Main room palette changes
     public static void RoomCamera_LoadPalette(On.RoomCamera.orig_LoadPalette orig, RoomCamera self, int pal, ref Texture2D texture)
     {
-        if (self.game.session is StoryGameSession && Downpour.paletteChange)
+        if (Downpour.paletteChange && !RainFall.noRain)
         {
             if (RainFall.rainIntensity > 0f)
             {
