@@ -205,12 +205,12 @@ public class DOProxy
         Downpour.rainRegions = new List<string>();
         for (int i = 0; i < regionList.Length; i++)
         {
-            if (OptionalUI.OptionInterface.config[regionList[i]] == "1")
+            if (OptionalUI.OptionInterface.config[regionList[i]] == "true")
             {
                 Downpour.rainRegions.Add(regionList[i]);
             }
         }
-        if (OptionalUI.OptionInterface.config["Palette"] == "0")
+        if (OptionalUI.OptionInterface.config["Palette"] == "false")
         {
             Downpour.paletteChange = false;
         }
@@ -218,7 +218,7 @@ public class DOProxy
         {
             Downpour.paletteChange = true;
         }
-        if (OptionalUI.OptionInterface.config["Lightning"] == "0")
+        if (OptionalUI.OptionInterface.config["Lightning"] == "false")
         {
             Downpour.lightning = false;
         }
@@ -226,7 +226,7 @@ public class DOProxy
         {
             Downpour.lightning = true;
         }
-        if (OptionalUI.OptionInterface.config["Rainbow"] == "0")
+        if (OptionalUI.OptionInterface.config["Rainbow"] == "false")
         {
             Downpour.rainbow = false;
         }
