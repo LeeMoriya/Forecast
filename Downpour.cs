@@ -7,6 +7,8 @@ using UnityEngine;
 using OptionalUI;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.IO;
+using RWCustom;
 
 public class RainScript : MonoBehaviour
 {
@@ -95,8 +97,10 @@ public class DOProxy
     //Setup ConfigMachine GUI
     public static void Initialize(OptionalUI.OptionInterface self)
     {
-        self.Tabs = new OpTab[1];
+        string[] regionList = File.ReadAllLines(Custom.RootFolderDirectory() + "/World/Regions/regions.txt");
+        self.Tabs = new OpTab[2];
         self.Tabs[0] = new OpTab("Options");
+        self.Tabs[1] = new OpTab("Regions");
         //Rain
         OptionalUI.OpLabel rainIntensity = new OpLabel(new Vector2(30f, 560f), new Vector2(400f, 40f), "Rain Intensity", FLabelAlignment.Left, true);
         self.Tabs[0].AddItem(rainIntensity);
@@ -179,6 +183,50 @@ public class DOProxy
         self.Tabs[0].AddItem(onrainbowLabel);
         rainbowGroup.SetButtons(new OpRadioButton[] { rainbowOff, rainbowOn });
         self.Tabs[0].AddItem(rainbowGroup);
+        //---End of First Tab---
+
+        //---Regions Tab---
+        if(regionList != null)
+        {
+            OptionalUI.OpRadioButtonGroup[] regionGroup = new OpRadioButtonGroup[regionList.Length];
+            OptionalUI.OpRadioButton[] regionOnButtons = new OpRadioButton[regionList.Length];
+            OptionalUI.OpRadioButton[] regionOffButtons = new OpRadioButton[regionList.Length];
+            OptionalUI.OpLabel[] regionOffLabels = new OpLabel[regionList.Length];
+            OptionalUI.OpLabel[] regionOnLabels = new OpLabel[regionList.Length];
+            OptionalUI.OpLabel[] regionLabelList = new OpLabel[regionList.Length];
+            OptionalUI.OpLabel regionLabel = new OpLabel(new Vector2(30f, 560f), new Vector2(400f, 40f), "Region Settings", FLabelAlignment.Left, true);
+            OptionalUI.OpLabel regionDescription  = new OpLabel(new Vector2(30f, 535f), new Vector2(400f, 40f), "Enable and Disable rainfall on a per-region basis.", FLabelAlignment.Left, false);
+            self.Tabs[1].AddItem(regionLabel);
+            self.Tabs[1].AddItem(regionDescription);
+
+            for (int i = 0; i < regionList.Length; i++)
+            {
+                regionGroup[i] = new OpRadioButtonGroup(regionList[i], 1);
+                if (100f * i < 700f)
+                {
+                    regionLabelList[i] = new OpLabel(new Vector2(30f, 490f - (75f * i)), new Vector2(400f, 40f), regionList[i], FLabelAlignment.Left, true);
+                    regionOffButtons[i] = new OpRadioButton(new Vector2(30f, 470f - (75f * i)));
+                    regionOnButtons[i] = new OpRadioButton(new Vector2(100f, 470f - (75f * i)));
+                    regionOffLabels[i] = new OpLabel(new Vector2(60f, 460f - (75f * i)), new Vector2(400f, 40f), "Off", FLabelAlignment.Left, false);
+                    regionOnLabels[i] = new OpLabel(new Vector2(130f, 460f - (75f * i)), new Vector2(400f, 40f), "On", FLabelAlignment.Left, false);
+                }
+                else
+                {
+                    regionLabelList[i] = new OpLabel(new Vector2(250f, 1015f - (75f * i)), new Vector2(400f, 40f), regionList[i], FLabelAlignment.Left, true);
+                    regionOffButtons[i] = new OpRadioButton(new Vector2(250f, 995f - (75f * i)));
+                    regionOnButtons[i] = new OpRadioButton(new Vector2(320f, 995f - (75f * i)));
+                    regionOffLabels[i] = new OpLabel(new Vector2(280f, 985f - (75f * i)), new Vector2(400f, 40f), "Off", FLabelAlignment.Left, false);
+                    regionOnLabels[i] = new OpLabel(new Vector2(350f, 985f - (75f * i)), new Vector2(400f, 40f), "On", FLabelAlignment.Left, false);
+                }
+                regionGroup[i].SetButtons(new OpRadioButton[] { regionOffButtons[i], regionOnButtons[i] });
+                self.Tabs[1].AddItem(regionLabelList[i]);
+                self.Tabs[1].AddItem(regionOffButtons[i]);
+                self.Tabs[1].AddItem(regionOnButtons[i]);
+                self.Tabs[1].AddItem(regionOffLabels[i]);
+                self.Tabs[1].AddItem(regionOnLabels[i]);
+                self.Tabs[1].AddItem(regionGroup[i]);
+            }
+        }
     }
 
     // Apply changes to the mod
