@@ -20,10 +20,14 @@ public class RainDrop : CosmeticSprite
     public bool isSnow;
     public float splashCounter;
     public bool timeToDie;
+    public Vector2 dir;
+    public bool invert;
+    public float dirCounter;
 
     public RainDrop(Vector2 pos, Vector2 vel, Color color, int standardLifeTime, int exceptionalLifeTime, Room room, bool isSnow, float rainIntensity)
     {
         this.timeToDie = false;
+        invert = false;
         this.isSnow = isSnow;
         this.life = 1f;
         this.foreground = false;
@@ -64,6 +68,7 @@ public class RainDrop : CosmeticSprite
         }
         this.pos += vel * 3f;
         this.lifeTime = UnityEngine.Random.Range(0, standardLifeTime);
+        this.dir = (this.vel + Custom.RNV() * 0.2f).normalized;
     }
     public override void Update(bool eu)
     {
@@ -72,9 +77,9 @@ public class RainDrop : CosmeticSprite
         if (isSnow)
         {
             this.vel.y = this.vel.y - (this.gravity);
-            if (this.vel.y < -4f)
+            if (this.vel.y < -3f)
             {
-                this.vel.y = -4f;
+                this.vel.y = -3f;
             }
             if (this.vel.x < -20f)
             {
@@ -83,6 +88,19 @@ public class RainDrop : CosmeticSprite
             if (this.vel.x > 20f)
             {
                 this.vel.x = 20f;
+            }
+            if ((vel.x > 5f || vel.x < -5f) && dirCounter <= 0f)
+            {
+                this.dir = new Vector2(-this.dir.x, this.dir.y);
+                dirCounter = UnityEngine.Random.Range(1f,4f);
+            }
+            if(dirCounter > 0f)
+            {
+                this.vel += this.dir * 0.12f;
+            }
+            else
+            {
+                this.vel += this.dir * 0.02f;
             }
         }
         else
@@ -98,6 +116,11 @@ public class RainDrop : CosmeticSprite
         {
             splashCounter = 0f;
         }
+        this.dirCounter = this.dirCounter - 0.1f;
+        if (dirCounter < 0f)
+        {
+            dirCounter = 0;
+        }
 
         this.lastLife = this.life;
 
@@ -106,7 +129,8 @@ public class RainDrop : CosmeticSprite
         {
             if (isSnow)
             {
-                this.Destroy();
+                this.dir = new Vector2(-this.dir.x, this.dir.y);
+                //this.Destroy();
             }
             //If a raindrop hits a solid surface it's velocity is forced upwards so it appears to 'bounce'.
             if (UnityEngine.Random.Range(0f, 1f) > 0.01f)
@@ -148,6 +172,10 @@ public class RainDrop : CosmeticSprite
         this.life -= 0.000383343f;
         if (this.vel.y == 0f)
         {
+            if (isSnow)
+            {
+                this.Destroy();
+            }
             this.life = 0.01f;
         }
         if (this.life <= 0f)
@@ -168,7 +196,7 @@ public class RainDrop : CosmeticSprite
         {
             sLeaser.sprites = new FSprite[1];
             sLeaser.sprites[0] = new FSprite("pixel", true);
-            sLeaser.sprites[0].scale = 1f;
+            sLeaser.sprites[0].scale = 1.8f;
         }
         else
         {
@@ -189,21 +217,7 @@ public class RainDrop : CosmeticSprite
     {
         if (isSnow)
         {
-            if(this.vel.x < -5f)
-            {
-                Vector2 dir = (this.vel + Custom.RNV() * 0.2f).normalized; sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
-                this.vel += dir * 0.2f;
-            }
-            else if(this.vel.x > 5f)
-            {
-                Vector2 dir = (this.vel - Custom.RNV() * 0.2f).normalized; sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
-                this.vel += dir * 0.2f;
-            }
-            else
-            {
-                Vector2 dir = (this.vel += Custom.RNV() * 0.2f).normalized; sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
-                this.vel += dir * 0.2f;
-            }
+            sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
             sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, timeStacker) - camPos.y;
             sLeaser.sprites[0].rotation = Custom.AimFromOneVectorToAnother(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker));
             sLeaser.sprites[0].scaleY = Mathf.Max(2f, 2f + 0.5f * Vector2.Distance(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker)));
@@ -228,8 +242,6 @@ public class RainDrop : CosmeticSprite
             sLeaser.sprites[1].rotation = UnityEngine.Random.value * 360f;
             sLeaser.sprites[1].alpha = 1f;
         }
-        sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.0003f;
-
 
         if (this.foreground)
         {

@@ -24,23 +24,37 @@ class RainSound : UpdatableAndDeletable
         }
         if (RainFall.rainIntensity > 0.3f || room.game.IsArenaSession)
         {
-            if (ceiling < (owner.Width * 0.65) && owner.regionGate == null)
+            if (!Downpour.snow)
             {
-                normalRainSound = new DisembodiedDynamicSoundLoop(this);
-                normalRainSound.sound = SoundID.Normal_Rain_LOOP;
-                normalRainSound.Volume = 1f;
-                heavyRainSound = new DisembodiedDynamicSoundLoop(this);
-                heavyRainSound.sound = SoundID.Heavy_Rain_LOOP;
-                heavyRainSound.Volume = 0.3f;
+                if (ceiling < (owner.Width * 0.65) && owner.regionGate == null)
+                {
+                    normalRainSound = new DisembodiedDynamicSoundLoop(this);
+                    normalRainSound.sound = SoundID.Normal_Rain_LOOP;
+                    normalRainSound.Volume = 1f;
+                    heavyRainSound = new DisembodiedDynamicSoundLoop(this);
+                    heavyRainSound.sound = SoundID.Heavy_Rain_LOOP;
+                    heavyRainSound.Volume = 0.3f;
+                }
+                else
+                {
+                    interiorRainSound = new DisembodiedDynamicSoundLoop(this);
+                    interiorRainSound.sound = SoundID.Flash_Flood_LOOP;
+                    interiorRainSound.Volume = 0.7f;
+                    rumbleSound = new DisembodiedDynamicSoundLoop(this);
+                    rumbleSound.sound = SoundID.Death_Rain_Heard_From_Underground_LOOP;
+                    rumbleSound.Volume = 0.2f;
+                }
             }
             else
             {
-                interiorRainSound = new DisembodiedDynamicSoundLoop(this);
-                interiorRainSound.sound = SoundID.Flash_Flood_LOOP;
-                interiorRainSound.Volume = 0.7f;
-                rumbleSound = new DisembodiedDynamicSoundLoop(this);
-                rumbleSound.sound = SoundID.Death_Rain_Heard_From_Underground_LOOP;
-                rumbleSound.Volume = 0.2f;
+                if (ceiling < (owner.Width * 0.65) && owner.regionGate == null)
+                {
+
+                }
+                else
+                {
+
+                }
             }
         }
     }

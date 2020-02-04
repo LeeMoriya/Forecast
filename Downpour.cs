@@ -41,6 +41,7 @@ public class Downpour : PartialityMod
     public static bool rainbow = false;
     public static bool configLoaded = false;
     public static bool debug = true;
+    public static bool snow = false;
     public static List<string> rainRegions = new List<string>();
     public static int rainAmount;
 
@@ -139,9 +140,14 @@ public class DOProxy
         self.Tabs[0].AddItems(paletteLabel,paletteCheck);
         //Rainbow
         OptionalUI.OpCheckBox rainbowOn = new OpCheckBox(new Vector2(30f, 355f), "Rainbow", false);
-        rainbowOn.description = "Raindrop colors will be randomized";
+        rainbowOn.description = "Raindrop colors will be randomized.";
         OptionalUI.OpLabel onrainbowLabel = new OpLabel(new Vector2(60f, 348f), new Vector2(400f, 40f), "Taste the rainbow", FLabelAlignment.Left, false);
         self.Tabs[0].AddItems(onrainbowLabel,rainbowOn);
+        //Snow
+        OptionalUI.OpCheckBox snowOn = new OpCheckBox(new Vector2(230f, 415f), "Snow", false);
+        rainbowOn.description = "Replace rain with snow.";
+        OptionalUI.OpLabel snowLabel = new OpLabel(new Vector2(260f, 408f), new Vector2(400f, 40f), "Snow", FLabelAlignment.Left, false);
+        self.Tabs[0].AddItems(snowOn, snowLabel);
         //Raindrops
         OptionalUI.OpLabel rainOption = new OpLabel(new Vector2(30f, 308f), new Vector2(400f, 40f), "Raindrops", FLabelAlignment.Left, true);
         OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 288f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned each frame.", FLabelAlignment.Left, false);
@@ -208,6 +214,14 @@ public class DOProxy
         else
         {
             Downpour.paletteChange = true;
+        }
+        if (OptionalUI.OptionInterface.config["Snow"] == "false")
+        {
+            Downpour.snow = false;
+        }
+        else
+        {
+            Downpour.snow = true;
         }
         if (OptionalUI.OptionInterface.config["Lightning"] == "false")
         {
