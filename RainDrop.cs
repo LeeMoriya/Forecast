@@ -196,12 +196,12 @@ public class RainDrop : CosmeticSprite
             }
             else if(this.vel.x > 5f)
             {
-                Vector2 dir = (this.vel + Custom.RNV() * 0.2f).normalized; sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
-                this.vel -= dir * 0.2f;
+                Vector2 dir = (this.vel - Custom.RNV() * 0.2f).normalized; sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
+                this.vel += dir * 0.2f;
             }
             else
             {
-                Vector2 dir = (this.vel + Custom.RNV() * 0.002f).normalized; sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
+                Vector2 dir = (this.vel += Custom.RNV() * 0.2f).normalized; sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
                 this.vel += dir * 0.2f;
             }
             sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, timeStacker) - camPos.y;
