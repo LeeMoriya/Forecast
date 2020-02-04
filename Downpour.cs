@@ -38,6 +38,8 @@ public class Downpour : PartialityMod
     public static bool dynamic = true;
     public static int intensity = 0;
     public static bool rainbow = false;
+    public static bool configLoaded = false;
+    public static List<string> rainRegions = new List<string>();
 
     public override void OnEnable()
     {
@@ -55,7 +57,7 @@ public class Downpour : PartialityMod
         return (OptionalUI.OptionInterface)Activator.CreateInstance(oiType, new object[] { this });
     }
 
-    private Type oiType = null;
+    public static Type oiType = null;
     private void MakeOIType()
     {
         Debug.Log("Loading DownpourOptions...");
@@ -88,6 +90,7 @@ public class Downpour : PartialityMod
         ccmbILG.Emit(OpCodes.Ret);
 
         oiType = tb.CreateType();
+        configLoaded = true;
         Debug.Log("Loaded DownpourOptions");
     }
 }
@@ -98,9 +101,8 @@ public class DOProxy
     public static void Initialize(OptionalUI.OptionInterface self)
     {
         string[] regionList = File.ReadAllLines(Custom.RootFolderDirectory() + "/World/Regions/regions.txt");
-        self.Tabs = new OpTab[2];
+        self.Tabs = new OpTab[1];
         self.Tabs[0] = new OpTab("Options");
-        self.Tabs[1] = new OpTab("Regions");
         //Rain
         OptionalUI.OpLabel rainIntensity = new OpLabel(new Vector2(30f, 560f), new Vector2(400f, 40f), "Rain Intensity", FLabelAlignment.Left, true);
         self.Tabs[0].AddItem(rainIntensity);
@@ -134,65 +136,64 @@ public class DOProxy
         self.Tabs[0].AddItem(environmentOption);
         OptionalUI.OpLabel lightningOptionDescription = new OpLabel(new Vector2(30f, 437f), new Vector2(400f, 40f), "Configure which effects are added to the environment during heavy rain.", FLabelAlignment.Left, false);
         self.Tabs[0].AddItem(lightningOptionDescription);
-        OptionalUI.OpCheckBox lightningCheck = new OpCheckBox(new Vector2(30f, 410f),"Lightning",true);
+        OptionalUI.OpCheckBox lightningCheck = new OpCheckBox(new Vector2(30f, 410f), "Lightning", true);
         lightningCheck.description = "Lightning will appear in regions when rain intensity is high enough.";
         self.Tabs[0].AddItem(lightningCheck);
         OptionalUI.OpLabel lightningLabel = new OpLabel(new Vector2(60f, 403f), new Vector2(400f, 40f), "Lightning storms", FLabelAlignment.Left, false);
         self.Tabs[0].AddItem(lightningLabel);
         //Palette
-        OptionalUI.OpCheckBox paletteCheck = new OpCheckBox(new Vector2(30f, 380f),"Palette",true);
+        OptionalUI.OpCheckBox paletteCheck = new OpCheckBox(new Vector2(30f, 380f), "Palette", true);
         paletteCheck.description = "The region will become darker with higher rain intensity.";
         self.Tabs[0].AddItem(paletteCheck);
         OptionalUI.OpLabel paletteLabel = new OpLabel(new Vector2(60f, 373f), new Vector2(400f, 40f), "Regions become darker", FLabelAlignment.Left, false);
         self.Tabs[0].AddItem(paletteLabel);
         //Rainbow
-        OptionalUI.OpCheckBox rainbowOn = new OpCheckBox(new Vector2(30f, 350f),"Rainbow",false);
+        OptionalUI.OpCheckBox rainbowOn = new OpCheckBox(new Vector2(30f, 350f), "Rainbow", false);
         rainbowOn.description = "Raindrop colors will be randomized";
         self.Tabs[0].AddItem(rainbowOn);
         OptionalUI.OpLabel onrainbowLabel = new OpLabel(new Vector2(60f, 343f), new Vector2(400f, 40f), "Taste the rainbow", FLabelAlignment.Left, false);
         self.Tabs[0].AddItem(onrainbowLabel);
-        //---End of First Tab---
+        //Volume
 
-        //---Regions Tab---
-        if(regionList != null)
+
+
+        //Regions 
+        if (regionList != null)
         {
-            OptionalUI.OpRadioButtonGroup[] regionGroup = new OpRadioButtonGroup[regionList.Length];
-            OptionalUI.OpRadioButton[] regionOnButtons = new OpRadioButton[regionList.Length];
-            OptionalUI.OpRadioButton[] regionOffButtons = new OpRadioButton[regionList.Length];
-            OptionalUI.OpLabel[] regionOffLabels = new OpLabel[regionList.Length];
-            OptionalUI.OpLabel[] regionOnLabels = new OpLabel[regionList.Length];
             OptionalUI.OpLabel[] regionLabelList = new OpLabel[regionList.Length];
-            OptionalUI.OpLabel regionLabel = new OpLabel(new Vector2(30f, 560f), new Vector2(400f, 40f), "Region Settings", FLabelAlignment.Left, true);
-            OptionalUI.OpLabel regionDescription  = new OpLabel(new Vector2(30f, 535f), new Vector2(400f, 40f), "Enable and Disable rainfall on a per-region basis.", FLabelAlignment.Left, false);
-            self.Tabs[1].AddItem(regionLabel);
-            self.Tabs[1].AddItem(regionDescription);
-
+            OptionalUI.OpCheckBox[] regionChecks = new OpCheckBox[regionList.Length];
+            OptionalUI.OpLabel regionLabel = new OpLabel(new Vector2(30f, 200f), new Vector2(400f, 40f), "Region Settings", FLabelAlignment.Left, true);
+            OptionalUI.OpLabel regionDescription = new OpLabel(new Vector2(30f, 175f), new Vector2(400f, 40f), "Enable and Disable rainfall on a per-region basis.", FLabelAlignment.Left, false);
+            self.Tabs[0].AddItem(regionLabel);
+            self.Tabs[0].AddItem(regionDescription);
             for (int i = 0; i < regionList.Length; i++)
             {
-                regionGroup[i] = new OpRadioButtonGroup(regionList[i], 1);
-                if (100f * i < 700f)
+                if (i < 6)
                 {
-                    regionLabelList[i] = new OpLabel(new Vector2(30f, 490f - (75f * i)), new Vector2(400f, 40f), regionList[i], FLabelAlignment.Left, true);
-                    regionOffButtons[i] = new OpRadioButton(new Vector2(30f, 470f - (75f * i)));
-                    regionOnButtons[i] = new OpRadioButton(new Vector2(100f, 470f - (75f * i)));
-                    regionOffLabels[i] = new OpLabel(new Vector2(60f, 460f - (75f * i)), new Vector2(400f, 40f), "Off", FLabelAlignment.Left, false);
-                    regionOnLabels[i] = new OpLabel(new Vector2(130f, 460f - (75f * i)), new Vector2(400f, 40f), "On", FLabelAlignment.Left, false);
+                    regionChecks[i] = new OpCheckBox(new Vector2(30f + (95f * i), 150f), regionList[i], true);
+                    regionLabelList[i] = new OpLabel(new Vector2(60f + (95f * i), 145f), new Vector2(400f, 40f), "-" + regionList[i], FLabelAlignment.Left, true);
                 }
-                else
+                else if (i >=6 && i < 12)
                 {
-                    regionLabelList[i] = new OpLabel(new Vector2(250f, 1015f - (75f * i)), new Vector2(400f, 40f), regionList[i], FLabelAlignment.Left, true);
-                    regionOffButtons[i] = new OpRadioButton(new Vector2(250f, 995f - (75f * i)));
-                    regionOnButtons[i] = new OpRadioButton(new Vector2(320f, 995f - (75f * i)));
-                    regionOffLabels[i] = new OpLabel(new Vector2(280f, 985f - (75f * i)), new Vector2(400f, 40f), "Off", FLabelAlignment.Left, false);
-                    regionOnLabels[i] = new OpLabel(new Vector2(350f, 985f - (75f * i)), new Vector2(400f, 40f), "On", FLabelAlignment.Left, false);
+                    regionChecks[i] = new OpCheckBox(new Vector2(-540f + (95f * i), 105f), regionList[i], true);
+                    regionLabelList[i] = new OpLabel(new Vector2(-510f + (95f * i), 100f), new Vector2(400f, 40f), "-" + regionList[i], FLabelAlignment.Left, true);
                 }
-                regionGroup[i].SetButtons(new OpRadioButton[] { regionOffButtons[i], regionOnButtons[i] });
-                self.Tabs[1].AddItem(regionLabelList[i]);
-                self.Tabs[1].AddItem(regionOffButtons[i]);
-                self.Tabs[1].AddItem(regionOnButtons[i]);
-                self.Tabs[1].AddItem(regionOffLabels[i]);
-                self.Tabs[1].AddItem(regionOnLabels[i]);
-                self.Tabs[1].AddItem(regionGroup[i]);
+                else if (i >= 12 && i < 18)
+                {
+                    regionChecks[i] = new OpCheckBox(new Vector2(-1110f + (95f * i), 60f), regionList[i], true);
+                    regionLabelList[i] = new OpLabel(new Vector2(-1080f + (95f * i), 55f), new Vector2(400f, 40f), "-" + regionList[i], FLabelAlignment.Left, true);
+                }
+                else if (i >= 18)
+                {
+                    regionChecks[i] = new OpCheckBox(new Vector2(-1680f + (95f * i), 15f), regionList[i], true);
+                    regionLabelList[i] = new OpLabel(new Vector2(-1650f + (95f * i), 10f), new Vector2(400f, 40f), "-" + regionList[i], FLabelAlignment.Left, true);
+                }
+                self.Tabs[0].AddItem(regionLabelList[i]);
+                self.Tabs[0].AddItem(regionChecks[i]);
+                if (regionList[i] == "UW" || regionList[i] == "SB" || regionList[i] == "SS")
+                {
+                    //regionChecks[i].valueBool = false;
+                }
             }
         }
     }
@@ -200,7 +201,16 @@ public class DOProxy
     // Apply changes to the mod
     public static void ConfigOnChange(OptionalUI.OptionInterface self)
     {
-        if (OptionalUI.OptionInterface.config["Palette"] == "0")
+        string[] regionList = File.ReadAllLines(Custom.RootFolderDirectory() + "/World/Regions/regions.txt");
+        Downpour.rainRegions = new List<string>();
+        for (int i = 0; i < regionList.Length; i++)
+        {
+            if (OptionalUI.OptionInterface.config[regionList[i]] == "true")
+            {
+                Downpour.rainRegions.Add(regionList[i]);
+            }
+        }
+        if (OptionalUI.OptionInterface.config["Palette"] == "false")
         {
             Downpour.paletteChange = false;
         }
@@ -208,7 +218,7 @@ public class DOProxy
         {
             Downpour.paletteChange = true;
         }
-        if (OptionalUI.OptionInterface.config["Lightning"] == "0")
+        if (OptionalUI.OptionInterface.config["Lightning"] == "false")
         {
             Downpour.lightning = false;
         }
@@ -216,7 +226,7 @@ public class DOProxy
         {
             Downpour.lightning = true;
         }
-        if (OptionalUI.OptionInterface.config["Rainbow"] == "0")
+        if (OptionalUI.OptionInterface.config["Rainbow"] == "false")
         {
             Downpour.rainbow = false;
         }

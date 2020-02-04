@@ -22,7 +22,7 @@ class RainSound : UpdatableAndDeletable
                 ceiling++;
             }
         }
-        if (RainFall.rainIntensity > 0.3f)
+        if (RainFall.rainIntensity > 0.3f || room.game.IsArenaSession)
         {
             if (ceiling < (owner.Width * 0.65) && owner.regionGate == null)
             {

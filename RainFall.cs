@@ -12,7 +12,7 @@ public class RainFall
     public static float rainAmount = 0;
     public static int ceilingCount = 0;
     public static Vector2 lastPlayerPos = new Vector2();
-    public static bool rainHeight = false;
+    public static bool noRain = false;
     public static List<string> rainList = new List<string>();
 
     public static void Patch()
@@ -21,8 +21,38 @@ public class RainFall
         On.Room.Loaded += Room_Loaded;
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
         On.Lightning.ctor += Lightning_ctor;
+        On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
     }
 
+    private static void ArenaGameSession_SpawnPlayers(On.ArenaGameSession.orig_SpawnPlayers orig, ArenaGameSession self, Room room, List<int> suggestedDens)
+    {
+        orig.Invoke(self, room, suggestedDens);
+        if (!Downpour.dynamic)
+        {
+            if (Downpour.intensity == 1)
+            {
+                rainIntensity = 0.31f;
+                Downpour.dynamic = false;
+            }
+            if (Downpour.intensity == 2)
+            {
+                rainIntensity = 0.6f;
+                Downpour.dynamic = false;
+            }
+            if (Downpour.intensity == 3)
+            {
+                rainIntensity = 1f;
+                Downpour.dynamic = false;
+            }
+        }
+        else
+        {
+            Downpour.dynamic = true;
+            rainIntensity = UnityEngine.Random.Range(0.3f, 1f);
+        }
+        startingIntensity = rainIntensity;
+        Debug.Log("Current rain intensity: " + rainIntensity);
+    }
     private static void Lightning_ctor(On.Lightning.orig_ctor orig, Lightning self, Room room, float intensity, bool bkgOnly)
     {
         self.room = room;
@@ -34,7 +64,7 @@ public class RainFall
             self.lightningSources[i] = new Lightning.LightningSource(self, i == 1);
         }
         self.bkgGradient = new Color[2];
-        if (room.world.region.name == "UW")
+        if (!room.game.IsArenaSession && room.world.region.name == "UW")
         {
             self.bkgGradient[0] = new Color(0.19607843f, 0.23529412f, 0.78431374f);
             self.bkgGradient[1] = new Color(0.21176471f, 1f, 0.22352941f);
@@ -49,6 +79,19 @@ public class RainFall
     {
         //Starting rain intensity determined at the start of the cycle
         orig.Invoke(self, player);
+        if (Downpour.configLoaded == false)
+        {
+            Downpour.rainRegions = new List<string>();
+            Downpour.rainRegions.Add("CC");
+            Downpour.rainRegions.Add("DS");
+            Downpour.rainRegions.Add("HI");
+            Downpour.rainRegions.Add("GW");
+            Downpour.rainRegions.Add("SI");
+            Downpour.rainRegions.Add("SU");
+            Downpour.rainRegions.Add("SH");
+            Downpour.rainRegions.Add("SL");
+            Downpour.rainRegions.Add("LF");
+        }
         if (!Downpour.dynamic)
         {
             if (Downpour.intensity == 1)
@@ -93,23 +136,55 @@ public class RainFall
     private static void Room_Loaded(On.Room.orig_Loaded orig, Room self)
     {
         orig.Invoke(self);
-        //Add lightning effect to rooms.
-        if (self.game != null && !self.abstractRoom.shelter && Downpour.lightning)
+        if (self.game != null && !self.game.IsArenaSession)
         {
-            if (self.roomRain.dangerType == RoomRain.DangerType.Rain && rainIntensity > 0.5f)
+            if (Downpour.configLoaded == false)
             {
-                self.lightning = new Lightning(self, 1f, false);
-                self.AddObject(self.lightning);
+                if (self.world.region.name == "UW" || self.world.region.name == "SB" || self.world.region.name == "SS")
+                {
+                    noRain = true;
+                }
+                else
+                {
+                    noRain = false;
+                }
             }
-            if (self.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && rainIntensity > 0.5f)
+            else
             {
-                self.lightning = new Lightning(self, 1f, false);
-                self.AddObject(self.lightning);
+                if(Downpour.rainRegions.Contains(self.world.region.name))
+                {
+                    noRain = false;
+                }
+                else
+                {
+                    noRain = true;
+                }
             }
         }
-        if (self.game != null)
+        else
         {
-            self.AddObject(new RainSound(self));
+            noRain = false;
+        }
+        //Add lightning effect to rooms.
+        if (!noRain)
+        {
+            if (self.game != null && !self.abstractRoom.shelter && Downpour.lightning && self.roomRain != null)
+            {
+                if (self.roomRain.dangerType == RoomRain.DangerType.Rain && rainIntensity > 0.5f)
+                {
+                    self.lightning = new Lightning(self, 1f, false);
+                    self.AddObject(self.lightning);
+                }
+                if (self.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && rainIntensity > 0.5f)
+                {
+                    self.lightning = new Lightning(self, 1f, false);
+                    self.AddObject(self.lightning);
+                }
+            }
+            if (self.game != null)
+            {
+                self.AddObject(new RainSound(self));
+            }
         }
     }
     private static void Room_Update(On.Room.orig_Update orig, Room self)
@@ -122,9 +197,9 @@ public class RainFall
         {
             rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
         }
-        if (self != null && self.game.session is StoryGameSession && self.roomRain != null && self.world.rainCycle.TimeUntilRain > 0)
+        if (self != null && self.roomRain != null && self.world.rainCycle.TimeUntilRain > 0 && !noRain)
         {
-            if (!self.abstractRoom.shelter || self.roomRain.dangerType == RoomRain.DangerType.Flood && rainList.Contains(self.abstractRoom.name) == false)
+            if (!self.abstractRoom.shelter && self.roomRain.dangerType != RoomRain.DangerType.Flood)
             {
                 //Count the top row of tiles in a room, if a certain percentage are air, add the room to list of rooms that can contain rain.
                 for (int r = 0; r < self.TileWidth; r++)
@@ -134,7 +209,7 @@ public class RainFall
                         ceilingCount++;
                     }
                 }
-                if (ceilingCount < (self.Width * 0.65) || self.roomRain.dangerType == RoomRain.DangerType.Rain && self.world.region.name != "UW" && self.world.region.name != "SB" && self.world.region.name != "SS")
+                if (ceilingCount < (self.Width * 0.65) && !noRain)
                 {
                     rainList.Add(self.abstractRoom.name);
                 }
@@ -148,7 +223,7 @@ public class RainFall
                 {
                     for (int m = 0; m < (int)rainAmount; m++)
                     {
-                        self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f,1f,1f), 0.12f), 10, 10, self, false));
+                        self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, false));
                     }
                 }
                 //Rainfall randomly placed

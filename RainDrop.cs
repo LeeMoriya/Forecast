@@ -23,7 +23,6 @@ public class RainDrop : CosmeticSprite
 
     public RainDrop(Vector2 pos, Vector2 vel, Color color, int standardLifeTime, int exceptionalLifeTime, Room room, bool transitionRain)
     {
-        Player player = room.game.Players[0].realizedCreature as Player;
         this.timeToDie = false;
         this.transitionRain = transitionRain;
         this.life = 1f;
