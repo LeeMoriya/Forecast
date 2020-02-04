@@ -21,7 +21,7 @@ public class RainDrop : CosmeticSprite
     public float splashCounter;
     public bool timeToDie;
 
-    public RainDrop(Vector2 pos, Vector2 vel, Color color, int standardLifeTime, int exceptionalLifeTime, Room room, bool transitionRain)
+    public RainDrop(Vector2 pos, Vector2 vel, Color color, int standardLifeTime, int exceptionalLifeTime, Room room, bool transitionRain, float rainIntensity)
     {
         this.timeToDie = false;
         this.transitionRain = transitionRain;
@@ -42,6 +42,7 @@ public class RainDrop : CosmeticSprite
         this.lastLastPos = this.pos;
         this.lastLastLastPos = this.pos;
         this.vel = vel;
+        this.vel.x = this.vel.x + (UnityEngine.Random.Range(rainIntensity * -12, 1f));
         this.pos += vel * 3f;
         this.gravity = Mathf.Lerp(0.4f, 0.9f, UnityEngine.Random.value);
         this.lifeTime = UnityEngine.Random.Range(0, standardLifeTime);
@@ -65,7 +66,9 @@ public class RainDrop : CosmeticSprite
             this.vel.y = -50f;
         }
         this.lastLife = this.life;
-        if (this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid && !foreground)
+
+        //Raindrop hits floor
+        if ((this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid || this.room.GetTile(this.pos).Solid || this.room.GetTile(this.pos).AnyWater) && !foreground)
         {
             //transitionRain (determined when called) is rain that is spawned mid-fall when entering a room.
             //When transition rain collides with a tile it's removed
@@ -74,11 +77,18 @@ public class RainDrop : CosmeticSprite
                 this.Destroy();
             }
             //If a raindrop hits a solid surface it's velocity is forced upwards so it appears to 'bounce'.
-            if (UnityEngine.Random.Range(0f, 1f) > 0.1f)
+            if (UnityEngine.Random.Range(0f, 1f) > 0.01f)
             {
                 if (this.vel.y < 0f && this.room.GetTile(this.pos + new Vector2(0f, 20f)).Terrain == Room.Tile.TerrainType.Air)
                 {
-                    this.pos.y = this.room.MiddleOfTile(this.pos).y + 10f;
+                    if (this.room.GetTile(this.pos).AnyWater)
+                    {
+                        this.pos.y = this.room.MiddleOfTile(this.pos).y + UnityEngine.Random.Range(-2f,6f);
+                    }
+                    else
+                    {
+                        this.pos.y = this.room.MiddleOfTile(this.pos).y + 9f;
+                    }
                     this.vel.y = this.vel.y * -0.1f;
                     this.life -= 0.083333343f;
                     if (Mathf.Abs(this.vel.y) < 2f)
@@ -86,7 +96,7 @@ public class RainDrop : CosmeticSprite
                         this.life -= 0.083333343f;
                     }
                     timeToDie = true;
-                    splashCounter = 0.25f;
+                    splashCounter = 0.4f;
                 }
                 else
                 {
@@ -129,7 +139,7 @@ public class RainDrop : CosmeticSprite
         };
         TriangleMesh triangleMesh = new TriangleMesh("Futile_White", tris, false, false);
         sLeaser.sprites[0] = triangleMesh;
-        sLeaser.sprites[0].alpha = UnityEngine.Random.Range(0.5f, 1f);
+        sLeaser.sprites[0].alpha = UnityEngine.Random.Range(0.7f, 1f);
         sLeaser.sprites[0].color = color;
         sLeaser.sprites[1] = new FSprite("RainSplash", true);
         this.AddToContainer(sLeaser, rCam, null);
@@ -161,7 +171,7 @@ public class RainDrop : CosmeticSprite
             sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.07f;
         }
         //Delete raindrop if it falls a certain distance below the current camera
-        if (rCam.room.BeingViewed && this.pos.y < (rCam.pos.y - 300f))
+        if (rCam.room.BeingViewed && this.pos.y < (rCam.pos.y - 200f))
         {
             this.Destroy();
         }

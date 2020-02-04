@@ -36,7 +36,7 @@
     </Reference>
     <Reference Include="ConfigMachine, Version=0.9.8.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Steam Games\steamapps\common\Rain World\Mods\ConfigMachine.dll</HintPath>
+      <HintPath>..\..\..\Downloads\ConfigMachine.dll</HintPath>
     </Reference>
     <Reference Include="HOOKS-Assembly-CSharp">
       <HintPath>D:\Steam Games\steamapps\common\Rain World\Mods\HOOKS-Assembly-CSharp.dll</HintPath>
