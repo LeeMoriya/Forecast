@@ -144,9 +144,9 @@ public class DOProxy
         OptionalUI.OpLabel onrainbowLabel = new OpLabel(new Vector2(60f, 348f), new Vector2(400f, 40f), "Taste the rainbow", FLabelAlignment.Left, false);
         self.Tabs[0].AddItems(onrainbowLabel,rainbowOn);
         //Snow
-        OptionalUI.OpCheckBox snowOn = new OpCheckBox(new Vector2(230f, 415f), "Snow", false);
+        OptionalUI.OpCheckBox snowOn = new OpCheckBox(new Vector2(200f, 415f), "Snow", false);
         rainbowOn.description = "Replace rain with snow.";
-        OptionalUI.OpLabel snowLabel = new OpLabel(new Vector2(260f, 408f), new Vector2(400f, 40f), "Snow", FLabelAlignment.Left, false);
+        OptionalUI.OpLabel snowLabel = new OpLabel(new Vector2(230f, 408f), new Vector2(400f, 40f), "Snow", FLabelAlignment.Left, false);
         self.Tabs[0].AddItems(snowOn, snowLabel);
         //Raindrops
         OptionalUI.OpLabel rainOption = new OpLabel(new Vector2(30f, 308f), new Vector2(400f, 40f), "Raindrops", FLabelAlignment.Left, true);

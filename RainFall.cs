@@ -14,6 +14,7 @@ public class RainFall
     public static Vector2 lastPlayerPos = new Vector2();
     public static bool noRain = false;
     public static List<string> rainList = new List<string>();
+    public static List<Vector2> spawnPositions = new List<Vector2>();
 
     public static void Patch()
     {
@@ -127,7 +128,7 @@ public class RainFall
             }
             if (self.saveState.deathPersistentSaveData.karma > 2)
             {
-                rainIntensity = UnityEngine.Random.Range(0.2f, 0.7f);
+                rainIntensity = UnityEngine.Random.Range(0f, 0.7f);
             }
         }
         startingIntensity = rainIntensity;
@@ -238,6 +239,7 @@ public class RainFall
                 {
                     if (self.Tiles[r, self.TileHeight - 1].Solid)
                     {
+                        spawnPositions.Add(RWCustom.Custom.IntVector2ToVector2(new RWCustom.IntVector2(self.Tiles[r, self.TileHeight - 1].X, self.Tiles[r, self.TileHeight - 1].Y)));
                         ceilingCount++;
                     }
                 }
@@ -253,17 +255,37 @@ public class RainFall
                 //Rainfall follows player pos
                 if (player != null && player.inShortcut == false)
                 {
-                    for (int m = 0; m < (int)rainAmount; m++)
+                    if (!Downpour.snow)
                     {
-                        self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-1f, 1f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, Downpour.snow, rainIntensity));
+                        for (int m = 0; m < (int)rainAmount; m++)
+                        {
+                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-1f, 1f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, false, rainIntensity));
+                        }
+                    }
+                    else
+                    {
+                        for (int m = 0; m < (int)rainAmount * 0.6f; m++)
+                        {
+                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-1f, 1f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, true, rainIntensity));
+                        }
                     }
                 }
                 //Rainfall randomly placed
                 else
                 {
-                    for (int m = 0; m < (int)rainAmount; m++)
+                    if (!Downpour.snow)
                     {
-                        self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left - 100f, self.RoomRect.right + 100f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, Downpour.snow, rainIntensity));
+                        for (int m = 0; m < (int)rainAmount; m++)
+                        {
+                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left - 100f, self.RoomRect.right + 100f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, false, rainIntensity));
+                        }
+                    }
+                    else
+                    {
+                        for (int m = 0; m < (int)rainAmount * 0.5f; m++)
+                        {
+                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left - 100f, self.RoomRect.right + 100f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, true, rainIntensity));
+                        }
                     }
                 }
             }
