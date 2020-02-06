@@ -41,7 +41,7 @@ public class Preciptator : UpdatableAndDeletable
         IntVector2 tilePos = room.GetTilePosition(spawn);
         if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
         {
-            RainDrop rainDrop =  new RainDrop(new Vector2(spawn.x, spawn.y + 200f), new Vector2(UnityEngine.Random.Range(-1f, 1f), -20f), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, this.room, isSnow, RainFall.rainIntensity);
+            RainDrop rainDrop =  new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(150f,250f)), new Vector2(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-15f, -25f)), Color.Lerp(room.game.cameras[0].currentPalette.waterSurfaceColor1, new Color(1f, 1f, 1f), 0.12f), 10, 10, this.room, isSnow, RainFall.rainIntensity);
             this.room.AddObject(rainDrop);
             this.rainDrops.Add(rainDrop);
         }
@@ -51,7 +51,7 @@ public class Preciptator : UpdatableAndDeletable
     {
         base.Update(eu);
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
-        if (this.player != null && room != null)
+        if (room != null)
         {
             for (int i = this.rainDrops.Count - 1; i >= 0; i--)
             {
@@ -60,11 +60,21 @@ public class Preciptator : UpdatableAndDeletable
                     this.rainDrops.RemoveAt(i);
                 }
             }
-            if (this.rainDrops.Count < 700)
+            if (this.rainDrops.Count < 700 * (RainFall.rainIntensity * 1.1f))
             {
-                for(int i = 0; i < this.rainAmount; i++)
+                if (isSnow)
                 {
-                    this.AddRaindrop();
+                    for (int i = 0; i < this.rainAmount * 1.5f; i++)
+                    {
+                        this.AddRaindrop();
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < this.rainAmount * RainFall.rainIntensity; i++)
+                    {
+                        this.AddRaindrop();
+                    }
                 }
             }
         }
@@ -99,7 +109,7 @@ public class RainDrop : CosmeticSprite
         this.foreground = false;
         this.lastLife = 1f;
         this.splashCounter = 0;
-        if (UnityEngine.Random.Range(0f, 1f) > 0.98f && !isSnow)
+        if (UnityEngine.Random.Range(0f, 1f) > 0.93f && !isSnow)
         {
             backgroundDrop = true;
         }
@@ -140,6 +150,10 @@ public class RainDrop : CosmeticSprite
     }
     public override void Update(bool eu)
     {
+        if (slatedForDeletetion)
+        {
+            this.Destroy();
+        }
         this.lastLastLastPos = this.lastLastPos;
         this.lastLastPos = this.lastPos;
         if (isSnow)
@@ -173,7 +187,7 @@ public class RainDrop : CosmeticSprite
         {
             if (backgroundDrop)
             {
-                this.vel.y = this.vel.y - (this.gravity * 1.9f);
+                this.vel.y = this.vel.y - (this.gravity * 3.9f);
                 if (this.vel.y < -35f)
                 {
                     this.vel.y = -35f;
@@ -181,10 +195,10 @@ public class RainDrop : CosmeticSprite
             }
             else
             {
-                this.vel.y = this.vel.y - (this.gravity * 2.5f);
-                if (this.vel.y < -50f)
+                this.vel.y = this.vel.y - (this.gravity * 9.5f);
+                if (this.vel.y < Mathf.Lerp(-30,-55,RainFall.rainIntensity))
                 {
-                    this.vel.y = -50f;
+                    this.vel.y = Mathf.Lerp(-30, -55, RainFall.rainIntensity);
                 }
             }
         }
@@ -210,9 +224,9 @@ public class RainDrop : CosmeticSprite
             {
                 this.pos.y = this.room.MiddleOfTile(this.pos).y + UnityEngine.Random.Range(4f, 14f);
                 this.vel.y = 0f;
-                this.vel.x = 0f;
+                this.vel.x = this.vel.x * 0.1f;
                 timeToDie = true;
-                splashCounter = 0.4f;
+                splashCounter = 0.6f;
             }
         }
         //Raindrop hits floor
@@ -236,7 +250,7 @@ public class RainDrop : CosmeticSprite
                 {
                     if (this.room.GetTile(this.pos).AnyWater)
                     {
-                        this.pos.y = this.room.MiddleOfTile(this.pos).y + UnityEngine.Random.Range(-2f, 6f);
+                        this.pos.y = this.room.MiddleOfTile(this.pos).y + UnityEngine.Random.Range(-4f, 3f);
                     }
                     else
                     {
@@ -250,7 +264,7 @@ public class RainDrop : CosmeticSprite
                         this.life -= 0.083333343f;
                     }
                     timeToDie = true;
-                    splashCounter = 0.4f;
+                    splashCounter = UnityEngine.Random.Range(0.1f, 0.45f);
                 }
                 else
                 {
@@ -270,10 +284,6 @@ public class RainDrop : CosmeticSprite
         if (this.life <= 0f || (this.vel.y == 0f && !backgroundDrop) || this.pos.y < -100f || RainFall.rainIntensity == 0f)
         {
             this.slatedForDeletetion = true;
-        }
-        if (slatedForDeletetion)
-        {
-            this.Destroy();
         }
         base.Update(eu);
     }
@@ -307,11 +317,9 @@ public class RainDrop : CosmeticSprite
                 sLeaser.sprites[0] = triangleMesh;
                 sLeaser.sprites[0].scale = 0.7f;
                 sLeaser.sprites[1] = new FSprite("RainSplash", true);
-                sLeaser.sprites[0].color = Color.Lerp(color, new Color(0f, 0f, 0f), 0.33f);
-                sLeaser.sprites[0].shader = rCam.room.game.rainWorld.Shaders["CustomDepth"];
+                sLeaser.sprites[0].color = Color.Lerp(color, new Color(0f, 0f, 0f), 0.23f);
                 sLeaser.sprites[1].alpha = 1f;
-                sLeaser.sprites[1].color = Color.Lerp(color, new Color(0f, 0f, 0f), 0.2f);
-                sLeaser.sprites[1].shader = rCam.room.game.rainWorld.Shaders["CustomDepth"];
+                sLeaser.sprites[1].color = Color.Lerp(color, new Color(0f, 0f, 0f), 0.1f);
             }
             else
             {
@@ -359,7 +367,7 @@ public class RainDrop : CosmeticSprite
                 sLeaser.sprites[1].y = vector.y - camPos.y;
                 if (backgroundDrop)
                 {
-                    sLeaser.sprites[1].scale = splashCounter * 0.8f;
+                    sLeaser.sprites[1].scale = splashCounter * 0.7f;
                 }
                 else
                 {

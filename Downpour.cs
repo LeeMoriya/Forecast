@@ -152,7 +152,7 @@ public class DOProxy
         OptionalUI.OpLabel rainOption = new OpLabel(new Vector2(30f, 308f), new Vector2(400f, 40f), "Raindrops", FLabelAlignment.Left, true);
         OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 288f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned each frame.", FLabelAlignment.Left, false);
         OptionalUI.OpLabel rainOptionWarning = new OpLabel(new Vector2(30f, 273f), new Vector2(400f, 40f), "Warning: You may experience significant framedrops if this slider is set too high.", FLabelAlignment.Left, false);
-        OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 240f), "rainAmount", new IntVector2(10, 90), 3.5f, false, 60);
+        OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 240f), "rainAmount", new IntVector2(10, 80), 3.5f, false, 60);
         self.Tabs[0].AddItems(rainSlider,rainOption,rainOptionDescription, rainOptionWarning);
         //Regions 
         if (regionList != null)
