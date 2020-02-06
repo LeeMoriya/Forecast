@@ -20,7 +20,7 @@ public class Preciptator : UpdatableAndDeletable
         this.isSnow = isSnow;
         if (Downpour.rainAmount == 0)
         {
-            this.rainAmount = Mathf.Lerp(0, 60, RainFall.rainIntensity);
+            this.rainAmount = Mathf.Lerp(0, 40, RainFall.rainIntensity);
         }
         else
         {
@@ -32,7 +32,7 @@ public class Preciptator : UpdatableAndDeletable
     {
         if (player.mainBodyChunk.pos != null)
         {
-            spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), room.RoomRect.top - 5f);
+            spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top - 5f);
         }
         else
         {
@@ -41,7 +41,7 @@ public class Preciptator : UpdatableAndDeletable
         IntVector2 tilePos = room.GetTilePosition(spawn);
         if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
         {
-            RainDrop rainDrop =  new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(150f,250f)), new Vector2(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-15f, -25f)), Color.Lerp(room.game.cameras[0].currentPalette.waterSurfaceColor1, new Color(1f, 1f, 1f), 0.12f), 10, 10, this.room, isSnow, RainFall.rainIntensity);
+            RainDrop rainDrop = new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(150f, 250f)), new Vector2(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-15f, -25f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, isSnow, RainFall.rainIntensity);
             this.room.AddObject(rainDrop);
             this.rainDrops.Add(rainDrop);
         }
@@ -60,7 +60,7 @@ public class Preciptator : UpdatableAndDeletable
                     this.rainDrops.RemoveAt(i);
                 }
             }
-            if (this.rainDrops.Count < 700 * (RainFall.rainIntensity * 1.1f))
+            if (this.rainDrops.Count < 600 * (RainFall.rainIntensity * 1.1f))
             {
                 if (isSnow)
                 {
@@ -98,24 +98,27 @@ public class RainDrop : CosmeticSprite
     public bool invert;
     public float dirCounter;
     public bool backgroundDrop;
+    public float depth;
+    public bool collision;
 
-    public RainDrop(Vector2 pos, Vector2 vel, Color color, int standardLifeTime, int exceptionalLifeTime, Room room, bool isSnow, float rainIntensity)
+    public RainDrop(Vector2 pos, Vector2 vel, Color color, int standardLifeTime, bool isSnow, float rainIntensity)
     {
         this.timeToDie = false;
-
-        invert = false;
         this.isSnow = isSnow;
         this.life = 1f;
         this.foreground = false;
         this.lastLife = 1f;
         this.splashCounter = 0;
-        if (UnityEngine.Random.Range(0f, 1f) > 0.93f && !isSnow)
+        this.collision = false;
+        if (UnityEngine.Random.Range(0f, 1f) > 0.9f && !isSnow)
         {
             backgroundDrop = true;
+            this.depth = UnityEngine.Random.Range(0.2f, 1f);
         }
         else
         {
             backgroundDrop = false;
+            this.depth = 1f;
         }
         if (Downpour.rainbow)
         {
@@ -142,7 +145,7 @@ public class RainDrop : CosmeticSprite
         else
         {
             this.vel = vel;
-            this.vel.x = this.vel.x + (UnityEngine.Random.Range(rainIntensity * -12, 1f));
+            this.vel.x = this.vel.x + (UnityEngine.Random.Range(Mathf.Lerp(-3f, -15f, rainIntensity), Mathf.Lerp(-4, 2f, rainIntensity)));
             this.pos += vel * 3f;
         }
         this.gravity = Mathf.Lerp(0.4f, 0.9f, UnityEngine.Random.value);
@@ -156,6 +159,7 @@ public class RainDrop : CosmeticSprite
         }
         this.lastLastLastPos = this.lastLastPos;
         this.lastLastPos = this.lastPos;
+        //SNOW - Velocity
         if (isSnow)
         {
             //Slowly increase horizontal speed.
@@ -184,25 +188,33 @@ public class RainDrop : CosmeticSprite
             this.vel += this.dir * 0.03f;
         }
         else
+        //RAIN - Y Velocity
         {
             if (backgroundDrop)
             {
-                this.vel.y = this.vel.y - (this.gravity * 3.9f);
-                if (this.vel.y < -35f)
+                if (!collision)
                 {
-                    this.vel.y = -35f;
+                    this.vel.y = this.vel.y - (this.gravity * 3.9f);
+                    if (this.vel.y < Mathf.Lerp(-25f, -45f, RainFall.rainIntensity))
+                    {
+                        this.vel.y = Mathf.Lerp(-25f, -45f, RainFall.rainIntensity);
+                    }
+                }
+                else
+                {
+                    this.vel.y = 0f;
                 }
             }
             else
             {
                 this.vel.y = this.vel.y - (this.gravity * 9.5f);
-                if (this.vel.y < Mathf.Lerp(-30,-55,RainFall.rainIntensity))
+                if (this.vel.y < Mathf.Lerp(-30f, -45f, RainFall.rainIntensity))
                 {
-                    this.vel.y = Mathf.Lerp(-30, -55, RainFall.rainIntensity);
+                    this.vel.y = Mathf.Lerp(-30f, -45f, RainFall.rainIntensity);
                 }
             }
         }
-        this.splashCounter = this.splashCounter - 0.1f;
+        this.splashCounter = this.splashCounter - 0.25f;
         if (splashCounter < 0f)
         {
             splashCounter = 0f;
@@ -213,26 +225,10 @@ public class RainDrop : CosmeticSprite
             dirCounter = 0;
         }
         this.lastLife = this.life;
-        //Background drop hits midground
-        if (backgroundDrop && this.room.aimap != null && this.room.aimap.getAItile(this.room.GetTilePosition(this.pos)).walkable)
-        {
-            if (isSnow)
-            {
-                this.slatedForDeletetion = true;
-            }
-            else if (!timeToDie)
-            {
-                this.pos.y = this.room.MiddleOfTile(this.pos).y + UnityEngine.Random.Range(4f, 14f);
-                this.vel.y = 0f;
-                this.vel.x = this.vel.x * 0.1f;
-                timeToDie = true;
-                splashCounter = 0.6f;
-            }
-        }
         //Raindrop hits floor
         if ((this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid || this.room.GetTile(this.pos).Solid || this.room.GetTile(this.pos).AnyWater) && !foreground)
         {
-            if (isSnow && !backgroundDrop)
+            if (isSnow)
             {
                 if (UnityEngine.Random.Range(0f, 1f) < 0.1f)
                 {
@@ -243,6 +239,7 @@ public class RainDrop : CosmeticSprite
                     this.slatedForDeletetion = true;
                 }
             }
+
             //If a raindrop hits a solid surface it's velocity is forced upwards so it appears to 'bounce'.
             else if (UnityEngine.Random.Range(0f, 1f) > 0.01f)
             {
@@ -264,7 +261,7 @@ public class RainDrop : CosmeticSprite
                         this.life -= 0.083333343f;
                     }
                     timeToDie = true;
-                    splashCounter = UnityEngine.Random.Range(0.1f, 0.45f);
+                    splashCounter = 0.7f;
                 }
                 else
                 {
@@ -272,16 +269,12 @@ public class RainDrop : CosmeticSprite
                 }
             }
             //There is a small chance when the raindrop hits a surface that it will become a part of the foreground layer, passing in front of tiles.
-            else
+            else if (!backgroundDrop)
             {
                 foreground = true;
             }
         }
-        if (splashCounter <= 0f && timeToDie)
-        {
-            this.slatedForDeletetion = true;
-        }
-        if (this.life <= 0f || (this.vel.y == 0f && !backgroundDrop) || this.pos.y < -100f || RainFall.rainIntensity == 0f)
+        if (this.life <= 0f || this.pos.y < -100f || RainFall.rainIntensity == 0f)
         {
             this.slatedForDeletetion = true;
         }
@@ -306,90 +299,91 @@ public class RainDrop : CosmeticSprite
         }
         else
         {
+            sLeaser.sprites = new FSprite[2];
+            TriangleMesh.Triangle[] tris = new TriangleMesh.Triangle[]
+{
+            new TriangleMesh.Triangle(0, 1, 2)
+};
+            TriangleMesh triangleMesh = new TriangleMesh("Futile_White", tris, false, false);
+            sLeaser.sprites[0] = triangleMesh;
+            sLeaser.sprites[1] = new FSprite("RainSplash", true);
+            sLeaser.sprites[1].alpha = Mathf.Lerp(0.6f, 1f, this.depth);
+            sLeaser.sprites[0].color = Color.Lerp(new Color(color.r - 0.3f, color.g - 0.3f, color.b - 0.3f), color, this.depth);
+            sLeaser.sprites[1].color = Color.Lerp(new Color(color.r - 0.3f, color.g - 0.3f, color.b - 0.3f), color, this.depth);
             if (backgroundDrop)
             {
-                sLeaser.sprites = new FSprite[2];
-                TriangleMesh.Triangle[] tris = new TriangleMesh.Triangle[]
-                {
-            new TriangleMesh.Triangle(0, 1, 2)
-                };
-                TriangleMesh triangleMesh = new TriangleMesh("Futile_White", tris, false, false);
-                sLeaser.sprites[0] = triangleMesh;
-                sLeaser.sprites[0].scale = 0.7f;
-                sLeaser.sprites[1] = new FSprite("RainSplash", true);
-                sLeaser.sprites[0].color = Color.Lerp(color, new Color(0f, 0f, 0f), 0.23f);
-                sLeaser.sprites[1].alpha = 1f;
-                sLeaser.sprites[1].color = Color.Lerp(color, new Color(0f, 0f, 0f), 0.1f);
-            }
-            else
-            {
-                sLeaser.sprites = new FSprite[2];
-                TriangleMesh.Triangle[] tris = new TriangleMesh.Triangle[]
-                {
-            new TriangleMesh.Triangle(0, 1, 2)
-                };
-                TriangleMesh triangleMesh = new TriangleMesh("Futile_White", tris, false, false);
-                sLeaser.sprites[0] = triangleMesh;
-                sLeaser.sprites[1] = new FSprite("RainSplash", true);
-                sLeaser.sprites[0].color = color;
-                sLeaser.sprites[1].alpha = 1f;
-                sLeaser.sprites[1].color = color;
+                sLeaser.sprites[1].height = sLeaser.sprites[1].height * 0.5f;
             }
         }
-        sLeaser.sprites[0].alpha = UnityEngine.Random.Range(0.7f, 1f);
         this.AddToContainer(sLeaser, rCam, null);
     }
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        if (rCam.DistanceFromViewedScreen(this.pos) < 100f)
+        if (isSnow)
         {
-            if (isSnow)
+            sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
+            sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, timeStacker) - camPos.y;
+            sLeaser.sprites[0].rotation = Custom.AimFromOneVectorToAnother(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker));
+            sLeaser.sprites[0].scaleY = Mathf.Max(0.45f, 0.45f + 0.1f * Vector2.Distance(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker)));
+        }
+        else
+        {
+            Vector2 vector = Vector2.Lerp(this.lastPos, this.pos, timeStacker);
+            Vector2 vector2 = Vector2.Lerp(this.lastLastLastPos, this.lastLastPos, timeStacker);
+            if (Custom.DistLess(vector, vector2, 9f))
             {
-                sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
-                sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, timeStacker) - camPos.y;
-                sLeaser.sprites[0].rotation = Custom.AimFromOneVectorToAnother(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker));
-                sLeaser.sprites[0].scaleY = Mathf.Max(0.45f, 0.45f + 0.1f * Vector2.Distance(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker)));
+                vector2 = vector + Custom.DirVec(vector, vector2) * 9f;
+            }
+            vector2 = Vector2.Lerp(vector, vector2, Mathf.InverseLerp(0f, 0.1f, this.life));
+            Vector2 a = Custom.PerpendicularVector((vector - vector2).normalized);
+            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, vector + a * 1f - camPos);
+            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, vector - a * 1f - camPos);
+            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, vector2 - camPos);
+            if (backgroundDrop)
+            {
+                Vector2 vector3 = rCam.ApplyDepth(this.pos, this.depth);
+                sLeaser.sprites[1].x = vector3.x - camPos.x;
+                sLeaser.sprites[1].y = vector3.y - camPos.y;
+                sLeaser.sprites[1].sortZ = this.depth;
             }
             else
             {
-                Vector2 vector = Vector2.Lerp(this.lastPos, this.pos, timeStacker);
-                Vector2 vector2 = Vector2.Lerp(this.lastLastLastPos, this.lastLastPos, timeStacker);
-                if (Custom.DistLess(vector, vector2, 9f))
-                {
-                    vector2 = vector + Custom.DirVec(vector, vector2) * 9f;
-                }
-                vector2 = Vector2.Lerp(vector, vector2, Mathf.InverseLerp(0f, 0.1f, this.life));
-                Vector2 a = Custom.PerpendicularVector((vector - vector2).normalized);
-                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, vector + a * 1f - camPos);
-                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, vector - a * 1f - camPos);
-                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, vector2 - camPos);
                 sLeaser.sprites[1].x = vector.x - camPos.x;
                 sLeaser.sprites[1].y = vector.y - camPos.y;
-                if (backgroundDrop)
-                {
-                    sLeaser.sprites[1].scale = splashCounter * 0.7f;
-                }
-                else
-                {
-                    sLeaser.sprites[1].scale = splashCounter * 1.2f;
-                }
-                sLeaser.sprites[1].rotation = UnityEngine.Random.value * 360f;
             }
-            if (this.foreground)
+            sLeaser.sprites[1].rotation = UnityEngine.Random.value * 360f;
+            if (backgroundDrop && !slatedForDeletetion && !this.collision && rCam.IsViewedByCameraPosition(rCam.cameraNumber, this.pos) && rCam.DepthAtCoordinate(this.pos) < this.depth)
             {
-                this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
-                if (!isSnow)
-                {
-                    sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.07f;
-                }
-                else
-                {
-                    sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.02f;
-                }
+                this.vel.y = 0f;
+                this.vel.x = 0f;
+                timeToDie = true;
+                sLeaser.sprites[0].alpha = 0f;
+                splashCounter = 1f;
+                this.collision = true;
+            }
+            if (backgroundDrop)
+            {
+                sLeaser.sprites[1].scale = Mathf.Lerp(0f, this.depth * 0.4f, splashCounter);
+            }
+            else
+            {
+                sLeaser.sprites[1].scale = Mathf.Lerp(0f, this.depth * 0.27f, splashCounter);
+            }
+        }
+        if (this.foreground)
+        {
+            this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
+            if (!isSnow)
+            {
+                sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.07f;
+            }
+            else
+            {
+                sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.02f;
             }
         }
         //Delete raindrop if it falls a certain distance below the current camera
-        if (rCam.room.BeingViewed && this.pos.y < (rCam.pos.y - 200f))
+        if (rCam.room.BeingViewed && this.pos.y < (rCam.pos.y - 100f))
         {
             this.slatedForDeletetion = true;
         }
@@ -397,8 +391,15 @@ public class RainDrop : CosmeticSprite
         {
             this.slatedForDeletetion = true;
         }
+        if (splashCounter <= 0f && timeToDie)
+        {
+            this.slatedForDeletetion = true;
+        }
+        if (base.slatedForDeletetion || this.room != rCam.room)
+        {
+            sLeaser.CleanSpritesAndRemove();
+        }
         base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
-
     }
 
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
