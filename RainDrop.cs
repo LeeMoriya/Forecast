@@ -5,7 +5,63 @@ using System.Text;
 using RWCustom;
 using UnityEngine;
 
+public class Preciptator : UpdatableAndDeletable
+{
+    public Player player;
+    public bool isSnow;
+    public Room currentRoom;
+    public List<RainDrop> rainDrops = new List<RainDrop>();
+    public float rainAmount;
 
+    public Preciptator(Room room, bool isSnow)
+    {
+        this.currentRoom = room;
+        this.isSnow = isSnow;
+        if (Downpour.rainAmount == 0)
+        {
+            this.rainAmount = Mathf.Lerp(0, 60, RainFall.rainIntensity);
+        }
+        else
+        {
+            this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
+        }
+    }
+
+    public void AddRaindrop()
+    {
+        Vector2 spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), room.RoomRect.top - 5f);
+        IntVector2 tilePos = room.GetTilePosition(spawn);
+        if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 5))
+        {
+            RainDrop rainDrop =  new RainDrop(new Vector2(spawn.x, spawn.y + 200f), new Vector2(UnityEngine.Random.Range(-1f, 1f), -20f), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, this.room, false, RainFall.rainIntensity);
+            this.room.AddObject(rainDrop);
+            this.rainDrops.Add(rainDrop);
+        }
+    }
+
+    public override void Update(bool eu)
+    {
+        base.Update(eu);
+        this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
+        if (this.player != null && room != null)
+        {
+            for (int i = this.rainDrops.Count - 1; i >= 0; i--)
+            {
+                if (this.rainDrops[i].slatedForDeletetion)
+                {
+                    this.rainDrops.RemoveAt(i);
+                }
+            }
+            if (this.rainDrops.Count < 700)
+            {
+                for(int i = 0; i < this.rainAmount; i++)
+                {
+                    this.AddRaindrop();
+                }
+            }
+        }
+    }
+}
 public class RainDrop : CosmeticSprite
 {
     public float life;
@@ -35,7 +91,7 @@ public class RainDrop : CosmeticSprite
         this.foreground = false;
         this.lastLife = 1f;
         this.splashCounter = 0;
-        if (UnityEngine.Random.Range(0f, 1f) > 0.9f && !isSnow)
+        if (UnityEngine.Random.Range(0f, 1f) > 0.98f && !isSnow)
         {
             backgroundDrop = true;
         }
@@ -140,7 +196,7 @@ public class RainDrop : CosmeticSprite
         {
             if (isSnow)
             {
-                this.Destroy();
+                this.slatedForDeletetion = true;
             }
             else if (!timeToDie)
             {
@@ -162,7 +218,7 @@ public class RainDrop : CosmeticSprite
                 }
                 else
                 {
-                    this.Destroy();
+                    this.slatedForDeletetion = true;
                 }
             }
             //If a raindrop hits a solid surface it's velocity is forced upwards so it appears to 'bounce'.
@@ -190,7 +246,7 @@ public class RainDrop : CosmeticSprite
                 }
                 else
                 {
-                    this.Destroy();
+                    this.slatedForDeletetion = true;
                 }
             }
             //There is a small chance when the raindrop hits a surface that it will become a part of the foreground layer, passing in front of tiles.
@@ -201,9 +257,13 @@ public class RainDrop : CosmeticSprite
         }
         if (splashCounter <= 0f && timeToDie)
         {
-            this.Destroy();
+            this.slatedForDeletetion = true;
         }
         if (this.life <= 0f || (this.vel.y == 0f && !backgroundDrop) || this.pos.y < -100f || RainFall.rainIntensity == 0f)
+        {
+            this.slatedForDeletetion = true;
+        }
+        if (slatedForDeletetion)
         {
             this.Destroy();
         }
@@ -240,8 +300,10 @@ public class RainDrop : CosmeticSprite
                 sLeaser.sprites[0].scale = 0.7f;
                 sLeaser.sprites[1] = new FSprite("RainSplash", true);
                 sLeaser.sprites[0].color = Color.Lerp(color, new Color(0f, 0f, 0f), 0.33f);
+                sLeaser.sprites[0].shader = rCam.room.game.rainWorld.Shaders["CustomDepth"];
                 sLeaser.sprites[1].alpha = 1f;
                 sLeaser.sprites[1].color = Color.Lerp(color, new Color(0f, 0f, 0f), 0.2f);
+                sLeaser.sprites[1].shader = rCam.room.game.rainWorld.Shaders["CustomDepth"];
             }
             else
             {
@@ -263,60 +325,64 @@ public class RainDrop : CosmeticSprite
     }
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        if (isSnow)
+        if (rCam.DistanceFromViewedScreen(this.pos) < 100f)
         {
-            sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
-            sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, timeStacker) - camPos.y;
-            sLeaser.sprites[0].rotation = Custom.AimFromOneVectorToAnother(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker));
-            sLeaser.sprites[0].scaleY = Mathf.Max(0.45f, 0.45f + 0.1f * Vector2.Distance(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker)));
-        }
-        else
-        {
-            Vector2 vector = Vector2.Lerp(this.lastPos, this.pos, timeStacker);
-            Vector2 vector2 = Vector2.Lerp(this.lastLastLastPos, this.lastLastPos, timeStacker);
-            if (Custom.DistLess(vector, vector2, 9f))
+            if (isSnow)
             {
-                vector2 = vector + Custom.DirVec(vector, vector2) * 9f;
-            }
-            vector2 = Vector2.Lerp(vector, vector2, Mathf.InverseLerp(0f, 0.1f, this.life));
-            Vector2 a = Custom.PerpendicularVector((vector - vector2).normalized);
-            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, vector + a * 1f - camPos);
-            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, vector - a * 1f - camPos);
-            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, vector2 - camPos);
-            sLeaser.sprites[1].x = vector.x - camPos.x;
-            sLeaser.sprites[1].y = vector.y - camPos.y;
-            if (backgroundDrop)
-            {
-                sLeaser.sprites[1].scale = splashCounter * 0.8f;
+                sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
+                sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, timeStacker) - camPos.y;
+                sLeaser.sprites[0].rotation = Custom.AimFromOneVectorToAnother(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker));
+                sLeaser.sprites[0].scaleY = Mathf.Max(0.45f, 0.45f + 0.1f * Vector2.Distance(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker)));
             }
             else
             {
-                sLeaser.sprites[1].scale = splashCounter * 1.2f;
+                Vector2 vector = Vector2.Lerp(this.lastPos, this.pos, timeStacker);
+                Vector2 vector2 = Vector2.Lerp(this.lastLastLastPos, this.lastLastPos, timeStacker);
+                if (Custom.DistLess(vector, vector2, 9f))
+                {
+                    vector2 = vector + Custom.DirVec(vector, vector2) * 9f;
+                }
+                vector2 = Vector2.Lerp(vector, vector2, Mathf.InverseLerp(0f, 0.1f, this.life));
+                Vector2 a = Custom.PerpendicularVector((vector - vector2).normalized);
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, vector + a * 1f - camPos);
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, vector - a * 1f - camPos);
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, vector2 - camPos);
+                sLeaser.sprites[1].x = vector.x - camPos.x;
+                sLeaser.sprites[1].y = vector.y - camPos.y;
+                if (backgroundDrop)
+                {
+                    sLeaser.sprites[1].scale = splashCounter * 0.8f;
+                }
+                else
+                {
+                    sLeaser.sprites[1].scale = splashCounter * 1.2f;
+                }
+                sLeaser.sprites[1].rotation = UnityEngine.Random.value * 360f;
             }
-            sLeaser.sprites[1].rotation = UnityEngine.Random.value * 360f;
-        }
-        if (this.foreground)
-        {
-            this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
-            if (!isSnow)
+            if (this.foreground)
             {
-                sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.07f;
-            }
-            else
-            {
-                sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.02f;
+                this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
+                if (!isSnow)
+                {
+                    sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.07f;
+                }
+                else
+                {
+                    sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.02f;
+                }
             }
         }
         //Delete raindrop if it falls a certain distance below the current camera
         if (rCam.room.BeingViewed && this.pos.y < (rCam.pos.y - 200f))
         {
-            this.Destroy();
+            this.slatedForDeletetion = true;
         }
         if (sLeaser.sprites[0].alpha < 0f)
         {
-            this.Destroy();
+            this.slatedForDeletetion = true;
         }
         base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
+
     }
 
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
@@ -327,10 +393,6 @@ public class RainDrop : CosmeticSprite
     public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
         base.AddToContainer(sLeaser, rCam, newContatiner);
-        if (!isSnow)
-        {
-            rCam.ReturnFContainer("Items").AddChild(sLeaser.sprites[1]);
-        }
     }
 }
 

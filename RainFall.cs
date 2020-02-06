@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using RWCustom;
 
 public class RainFall
 {
@@ -196,7 +197,7 @@ public class RainFall
             if (Input.GetKey(KeyCode.Alpha1))
             {
                 rainIntensity -= 0.005f;
-                if(rainIntensity < 0f)
+                if (rainIntensity < 0f)
                 {
                     rainIntensity = 0f;
                 }
@@ -216,15 +217,6 @@ public class RainFall
                 Debug.Log("Rain Intensity = " + rainIntensity);
             }
         }
-        if (Downpour.rainAmount == 0)
-        {
-            rainAmount = Mathf.Lerp(0, 60, rainIntensity);
-        }
-        else
-        {
-            rainAmount = Mathf.Lerp(0, Downpour.rainAmount, rainIntensity);
-        }
-        Player player = (self.game.Players.Count <= 0) ? null : (self.game.Players[0].realizedCreature as Player);
         //Rain intensity increases with cycle duration if in dynamic mode
         if (startingIntensity > 0.3f && Downpour.dynamic)
         {
@@ -239,61 +231,16 @@ public class RainFall
                 {
                     if (self.Tiles[r, self.TileHeight - 1].Solid)
                     {
-                        spawnPositions.Add(RWCustom.Custom.IntVector2ToVector2(new RWCustom.IntVector2(self.Tiles[r, self.TileHeight - 1].X, self.Tiles[r, self.TileHeight - 1].Y)));
                         ceilingCount++;
                     }
                 }
-                if (ceilingCount < (self.Width * 0.90) && !noRain)
+                if (ceilingCount < (self.Width * 0.95) && !noRain && rainList.Contains(self.abstractRoom.name) == false)
                 {
+                    self.AddObject(new Preciptator(self, Downpour.snow));
                     rainList.Add(self.abstractRoom.name);
                 }
                 ceilingCount = 0;
             }
-            //If the room is present in the list of rooms that can contain rain, spawn rainfall
-            if (rainList.Contains(self.abstractRoom.name) && rainIntensity > 0.3f)
-            {
-                //Rainfall follows player pos
-                if (player != null && player.inShortcut == false)
-                {
-                    if (!Downpour.snow)
-                    {
-                        for (int m = 0; m < (int)rainAmount; m++)
-                        {
-                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-1f, 1f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, false, rainIntensity));
-                        }
-                    }
-                    else
-                    {
-                        for (int m = 0; m < (int)rainAmount * 0.6f; m++)
-                        {
-                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-1f, 1f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, true, rainIntensity));
-                        }
-                    }
-                }
-                //Rainfall randomly placed
-                else
-                {
-                    if (!Downpour.snow)
-                    {
-                        for (int m = 0; m < (int)rainAmount; m++)
-                        {
-                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left - 100f, self.RoomRect.right + 100f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, false, rainIntensity));
-                        }
-                    }
-                    else
-                    {
-                        for (int m = 0; m < (int)rainAmount * 0.5f; m++)
-                        {
-                            self.AddObject(new RainDrop(new Vector2(UnityEngine.Random.Range(self.RoomRect.left - 100f, self.RoomRect.right + 100f), self.RoomRect.top + 200f), new Vector2(UnityEngine.Random.Range(-3f, -0.2f), -20f), Color.Lerp(self.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, self, true, rainIntensity));
-                        }
-                    }
-                }
-            }
-        }
-        //Stop rainfall at the end of a cycle so bullet rain is visible
-        else if (self.world.rainCycle.TimeUntilRain < 0)
-        {
-            rainIntensity = 0f;
         }
     }
 }
