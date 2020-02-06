@@ -12,6 +12,7 @@ public class Preciptator : UpdatableAndDeletable
     public Room currentRoom;
     public List<RainDrop> rainDrops = new List<RainDrop>();
     public float rainAmount;
+    public Vector2 spawn;
 
     public Preciptator(Room room, bool isSnow)
     {
@@ -29,11 +30,18 @@ public class Preciptator : UpdatableAndDeletable
 
     public void AddRaindrop()
     {
-        Vector2 spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), room.RoomRect.top - 5f);
-        IntVector2 tilePos = room.GetTilePosition(spawn);
-        if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 5))
+        if (player.mainBodyChunk.pos != null)
         {
-            RainDrop rainDrop =  new RainDrop(new Vector2(spawn.x, spawn.y + 200f), new Vector2(UnityEngine.Random.Range(-1f, 1f), -20f), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, this.room, false, RainFall.rainIntensity);
+            spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1400f, player.mainBodyChunk.pos.x + 1400f), room.RoomRect.top - 5f);
+        }
+        else
+        {
+            spawn = new Vector2(UnityEngine.Random.Range(room.RoomRect.left - 100f, room.RoomRect.right + 100f), room.RoomRect.top - 5f);
+        }
+        IntVector2 tilePos = room.GetTilePosition(spawn);
+        if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
+        {
+            RainDrop rainDrop =  new RainDrop(new Vector2(spawn.x, spawn.y + 200f), new Vector2(UnityEngine.Random.Range(-1f, 1f), -20f), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.12f), 10, 10, this.room, isSnow, RainFall.rainIntensity);
             this.room.AddObject(rainDrop);
             this.rainDrops.Add(rainDrop);
         }

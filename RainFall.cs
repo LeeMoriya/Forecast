@@ -24,6 +24,16 @@ public class RainFall
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
         On.Lightning.ctor += Lightning_ctor;
         On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
+        On.AbstractRoom.Abstractize += AbstractRoom_Abstractize;
+    }
+
+    private static void AbstractRoom_Abstractize(On.AbstractRoom.orig_Abstractize orig, AbstractRoom self)
+    {
+        orig.Invoke(self);
+        if(self != null && self.realizedRoom == null && rainList.Contains(self.name))
+        {
+            rainList.Remove(self.name);
+        }
     }
 
     private static void ArenaGameSession_SpawnPlayers(On.ArenaGameSession.orig_SpawnPlayers orig, ArenaGameSession self, Room room, List<int> suggestedDens)
@@ -81,6 +91,7 @@ public class RainFall
     {
         //Starting rain intensity determined at the start of the cycle
         orig.Invoke(self, player);
+        rainList.Clear();
         if (Downpour.configLoaded == false)
         {
             Downpour.rainRegions = new List<string>();
@@ -224,7 +235,7 @@ public class RainFall
         }
         if (self != null && self.roomRain != null && self.world.rainCycle.TimeUntilRain > 0 && !noRain)
         {
-            if (!self.abstractRoom.shelter && self.roomRain.dangerType != RoomRain.DangerType.Flood)
+            if (!self.abstractRoom.shelter && self.roomRain.dangerType != RoomRain.DangerType.Flood && rainList.Contains(self.abstractRoom.name) == false)
             {
                 //Count the top row of tiles in a room, if a certain percentage are air, add the room to list of rooms that can contain rain.
                 for (int r = 0; r < self.TileWidth; r++)
@@ -234,7 +245,7 @@ public class RainFall
                         ceilingCount++;
                     }
                 }
-                if (ceilingCount < (self.Width * 0.95) && !noRain && rainList.Contains(self.abstractRoom.name) == false)
+                if (ceilingCount < (self.Width * 0.95) && !noRain)
                 {
                     self.AddObject(new Preciptator(self, Downpour.snow));
                     rainList.Add(self.abstractRoom.name);
