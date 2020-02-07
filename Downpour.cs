@@ -42,6 +42,7 @@ public class Downpour : PartialityMod
     public static bool configLoaded = false;
     public static bool debug = true;
     public static bool snow = false;
+    public static bool bg = true;
     public static List<string> rainRegions = new List<string>();
     public static int rainAmount;
 
@@ -145,14 +146,19 @@ public class DOProxy
         self.Tabs[0].AddItems(onrainbowLabel,rainbowOn);
         //Snow
         OptionalUI.OpCheckBox snowOn = new OpCheckBox(new Vector2(200f, 415f), "Snow", false);
-        rainbowOn.description = "Replace rain with snow.";
+        snowOn.description = "Replace rain with snow.";
         OptionalUI.OpLabel snowLabel = new OpLabel(new Vector2(230f, 408f), new Vector2(400f, 40f), "Snow", FLabelAlignment.Left, false);
         self.Tabs[0].AddItems(snowOn, snowLabel);
+        //Background Rain
+        OptionalUI.OpCheckBox bgOn = new OpCheckBox(new Vector2(200f, 385f), "Background", true);
+        bgOn.description = "Enable or disable collision with background elements, can improve performance if disabled.";
+        OptionalUI.OpLabel bgLabel = new OpLabel(new Vector2(230f, 378f), new Vector2(400f, 40f), "Background Collision", FLabelAlignment.Left, false);
+        self.Tabs[0].AddItems(bgOn, bgLabel);
         //Raindrops
         OptionalUI.OpLabel rainOption = new OpLabel(new Vector2(30f, 308f), new Vector2(400f, 40f), "Raindrops", FLabelAlignment.Left, true);
         OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 288f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned each frame.", FLabelAlignment.Left, false);
         OptionalUI.OpLabel rainOptionWarning = new OpLabel(new Vector2(30f, 273f), new Vector2(400f, 40f), "Warning: You may experience significant framedrops if this slider is set too high.", FLabelAlignment.Left, false);
-        OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 240f), "rainAmount", new IntVector2(10, 60), 3.5f, false, 60);
+        OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 240f), "rainAmount", new IntVector2(10, 60), 6f, false, 20);
         self.Tabs[0].AddItems(rainSlider,rainOption,rainOptionDescription, rainOptionWarning);
         //Regions 
         if (regionList != null)
@@ -222,6 +228,14 @@ public class DOProxy
         else
         {
             Downpour.snow = true;
+        }
+        if (OptionalUI.OptionInterface.config["Background"] == "false")
+        {
+            Downpour.bg = false;
+        }
+        else
+        {
+            Downpour.bg = true;
         }
         if (OptionalUI.OptionInterface.config["Lightning"] == "false")
         {

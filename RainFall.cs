@@ -15,7 +15,6 @@ public class RainFall
     public static Vector2 lastPlayerPos = new Vector2();
     public static bool noRain = false;
     public static List<string> rainList = new List<string>();
-    public static List<Vector2> spawnPositions = new List<Vector2>();
 
     public static void Patch()
     {
@@ -30,7 +29,7 @@ public class RainFall
     private static void AbstractRoom_Abstractize(On.AbstractRoom.orig_Abstractize orig, AbstractRoom self)
     {
         orig.Invoke(self);
-        if(self != null && self.realizedRoom == null && rainList.Contains(self.name))
+        if (self != null && self.realizedRoom == null && rainList.Contains(self.name))
         {
             rainList.Remove(self.name);
         }
@@ -198,6 +197,26 @@ public class RainFall
             {
                 self.AddObject(new RainSound(self));
             }
+            if (self != null && self.roomRain != null && self.world.rainCycle.TimeUntilRain > 0 && !noRain)
+            {
+                if (!self.abstractRoom.shelter && self.roomRain.dangerType != RoomRain.DangerType.Flood && rainList.Contains(self.abstractRoom.name) == false)
+                {
+                    //Count the top row of tiles in a room, if a certain percentage are air, add the room to list of rooms that can contain rain.
+                    for (int r = 0; r < self.TileWidth; r++)
+                    {
+                        if (self.Tiles[r, self.TileHeight - 1].Solid)
+                        {
+                            ceilingCount++;
+                        }
+                    }
+                    if (ceilingCount < (self.Width * 0.95) && !noRain)
+                    {
+                        self.AddObject(new Preciptator(self, Downpour.snow));
+                    }
+                    rainList.Add(self.abstractRoom.name);
+                    ceilingCount = 0;
+                }
+            }
         }
     }
     private static void Room_Update(On.Room.orig_Update orig, Room self)
@@ -232,26 +251,6 @@ public class RainFall
         if (startingIntensity > 0.3f && Downpour.dynamic)
         {
             rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
-        }
-        if (self != null && self.roomRain != null && self.world.rainCycle.TimeUntilRain > 0 && !noRain)
-        {
-            if (!self.abstractRoom.shelter && self.roomRain.dangerType != RoomRain.DangerType.Flood && rainList.Contains(self.abstractRoom.name) == false)
-            {
-                //Count the top row of tiles in a room, if a certain percentage are air, add the room to list of rooms that can contain rain.
-                for (int r = 0; r < self.TileWidth; r++)
-                {
-                    if (self.Tiles[r, self.TileHeight - 1].Solid)
-                    {
-                        ceilingCount++;
-                    }
-                }
-                if (ceilingCount < (self.Width * 0.95) && !noRain)
-                {
-                    self.AddObject(new Preciptator(self, Downpour.snow));
-                    rainList.Add(self.abstractRoom.name);
-                }
-                ceilingCount = 0;
-            }
         }
     }
 }
