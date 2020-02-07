@@ -46,9 +46,13 @@ public class Preciptator : UpdatableAndDeletable
             spawn = new Vector2(UnityEngine.Random.Range(room.RoomRect.left - 100f, room.RoomRect.right + 100f), room.RoomRect.top - 5f);
         }
         //Raindrop is added to a dictionary when spawned
-        RainDrop rainDrop = new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity);
-        this.room.AddObject(rainDrop);
-        this.rainDrops.Add(rainDrop);
+        IntVector2 tilePos = room.GetTilePosition(spawn);
+        if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
+        {
+            RainDrop rainDrop = new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity);
+            this.room.AddObject(rainDrop);
+            this.rainDrops.Add(rainDrop);
+        }
     }
 
     public override void Update(bool eu)
