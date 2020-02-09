@@ -10,86 +10,66 @@ public class Preciptator : UpdatableAndDeletable
     public Player player;
     public bool isSnow;
     public Room currentRoom;
-    public List<RainDrop> rainDrops = new List<RainDrop>();
+    public int rainDrops;
     public float rainAmount;
     public Vector2 spawn;
+    public FloatRect roomBounds;
     public int rainLimit;
 
     public Preciptator(Room room, bool isSnow)
     {
-        this.currentRoom = room;
+        this.roomBounds = room.RoomRect;
+        this.rainDrops = 0;
+        this.room = room;
         this.isSnow = isSnow;
-        //If ConfigMachine isn't present, use default rain amount values
-        if (Downpour.rainAmount == 0)
-        {
-            this.rainAmount = Mathf.Lerp(0, 30, RainFall.rainIntensity);
-        }
-        //rain amount values based on config menu slider
-        else
-        {
-            this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
-        }
-        //Maximum amount of raindrops that can be present in a room, changes based on rain amount
-        this.rainLimit = (int)Mathf.Lerp(0, this.rainAmount * 10, RainFall.rainIntensity);
     }
 
     public void AddRaindrop()
     {
-        //If player is present in the room, adjust spawn position to be a range around them
-        if (player.mainBodyChunk.pos != null && room.BeingViewed)
+        if (room != null)
         {
-            spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top - 5f);
-        }
-        //Otherwise spawn rain across the room's width
-        else
-        {
-            spawn = new Vector2(UnityEngine.Random.Range(room.RoomRect.left - 100f, room.RoomRect.right + 100f), room.RoomRect.top - 5f);
-        }
-        //Raindrop is added to a dictionary when spawned
-        IntVector2 tilePos = room.GetTilePosition(spawn);
-        if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
-        {
-            RainDrop rainDrop = new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity);
-            this.room.AddObject(rainDrop);
-            this.rainDrops.Add(rainDrop);
+            if (player != null && player.mainBodyChunk.pos != null && room.BeingViewed)
+            {
+                spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top - 5f);
+            }
+            else
+            {
+                spawn = new Vector2(UnityEngine.Random.Range(this.roomBounds.left - 100f, this.roomBounds.right + 100f), this.roomBounds.top - 5f);
+            }
+            IntVector2 tilePos = room.GetTilePosition(spawn);
+            if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
+            {
+                RainDrop rainDrop = new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity, this);
+                this.room.AddObject(rainDrop);
+                this.rainDrops++;
+            }
         }
     }
 
     public override void Update(bool eu)
     {
         base.Update(eu);
-        //Get player in room
-        this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
-        //If room is realised and isn't a gate room
-        if (room != null && !room.abstractRoom.gate)
+        if (Downpour.rainAmount == 0)
         {
-            //When a raindrop is deleted from the room, remove it from the dictionary
-            for (int i = this.rainDrops.Count - 1; i >= 0; i--)
+            this.rainAmount = Mathf.Lerp(0, 40, RainFall.rainIntensity);
+        }
+        else
+        {
+            this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
+        }
+        this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 10), RainFall.rainIntensity);
+        this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
+        if (this.room.game != null && this.room != null && !room.abstractRoom.gate && this.room.fullyLoaded)
+        {
+            while (this.rainDrops < rainLimit)
             {
-                if (this.rainDrops[i].slatedForDeletetion)
-                {
-                    this.rainDrops.RemoveAt(i);
-                }
-            }
-            //If the raindrop dictionary is less than 90% full, spawn rain normally
-            if (this.rainDrops.Count < this.rainLimit * 0.9f)
-            {
-                for (int i = 0; i < this.rainAmount * RainFall.rainIntensity; i++)
-                {
-                    this.AddRaindrop();
-                }
-            }
-            //If the raindrop dictionary is reaching its limit, spawn rain at half the rain
-            else
-            {
-                for (int i = 0; i < this.rainAmount * (RainFall.rainIntensity * 0.5f); i++)
-                {
-                    this.AddRaindrop();
-                }
+                this.AddRaindrop();
             }
         }
     }
 }
+
+//Raindrops
 public class RainDrop : CosmeticSprite
 {
     public Vector2 lastLastLastPos;
@@ -103,31 +83,39 @@ public class RainDrop : CosmeticSprite
     public bool backgroundDrop;
     public float depth;
     public bool collision;
+    public Preciptator spawner;
+    public bool reset;
+    public Vector2 resetPos;
+    public float alpha;
+    public Player player;
 
-    public RainDrop(Vector2 pos, Color color, float rainIntensity)
+    public RainDrop(Vector2 pos, Color color, float rainIntensity, Preciptator spawner)
     {
+        this.alpha = UnityEngine.Random.Range(0.9f, 1f);
+        this.spawner = spawner;
         this.timeToDie = false;
         this.splashCounter = 0;
         this.collision = false;
         //Small chance for any raindrop to be a background drop, asign it a random depth value
-        if (UnityEngine.Random.Range(0f, 1f) > 0.9f)
+        if (UnityEngine.Random.value > 0.8f)
         {
             backgroundDrop = true;
-            this.depth = UnityEngine.Random.Range(0f, 1f);
+            this.depth = UnityEngine.Random.value;
         }
         else
         {
             backgroundDrop = false;
-            this.depth = 1f;
+            this.depth = UnityEngine.Random.Range(0.7f, 1f);
         }
         if (Downpour.rainbow)
         {
-            this.color = Custom.HSL2RGB(UnityEngine.Random.Range(0f, 1f), 0.5f, 0.5f);
+            this.color = Custom.HSL2RGB(UnityEngine.Random.value, 0.5f, 0.5f);
         }
         else
         {
             this.color = color;
         }
+        this.resetPos = pos;
         this.pos = pos;
         this.lastPos = this.pos;
         this.lastLastPos = this.pos;
@@ -135,14 +123,28 @@ public class RainDrop : CosmeticSprite
         //Vary starting velocity
         this.vel.y = UnityEngine.Random.Range(-10f * rainIntensity, -20f * rainIntensity);
         //Increase spread of raindrops as rain intensity increases
-        this.vel.x = this.vel.x + (UnityEngine.Random.Range(Mathf.Lerp(2f, -2f, rainIntensity), Mathf.Lerp(2f, -10f, rainIntensity)));
+        this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-5, 1f), UnityEngine.Random.Range(-12f, 1f), rainIntensity);
         this.gravity = Mathf.Lerp(0.8f, 1f, UnityEngine.Random.value);
     }
     public override void Update(bool eu)
     {
-        if (slatedForDeletetion)
+        this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
+        if (this.reset)
         {
-            this.Destroy();
+            if (player.mainBodyChunk != null)
+            {
+                this.resetPos = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
+            }
+            this.pos = this.resetPos;
+            this.lastPos = this.resetPos;
+            this.lastLastPos = this.resetPos;
+            this.lastLastLastPos = this.resetPos;
+            this.collision = false;
+            this.timeToDie = false;
+            this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-5, 1f), UnityEngine.Random.Range(-12f, 1f), RainFall.rainIntensity);
+            this.vel.y = UnityEngine.Random.Range(-10f * RainFall.rainIntensity, -20f * RainFall.rainIntensity);
+            this.splashCounter = 0f;
+            this.reset = false;
         }
         this.lastLastLastPos = this.lastLastPos;
         this.lastLastPos = this.lastPos;
@@ -164,10 +166,25 @@ public class RainDrop : CosmeticSprite
         }
         else
         {
-            this.vel.y = this.vel.y - (this.gravity * 9.5f);
-            if (this.vel.y < Mathf.Lerp(-37f, -45f, RainFall.rainIntensity))
+            if (collision)
             {
-                this.vel.y = Mathf.Lerp(-37f, -45f, RainFall.rainIntensity);
+                this.vel.y = this.vel.y - (this.gravity * 2.5f);
+                if (this.vel.y < Mathf.Lerp(-1f, -2f, RainFall.rainIntensity))
+                {
+                    this.vel.y = Mathf.Lerp(-1f, -2f, RainFall.rainIntensity);
+                }
+                if (this.vel.x < Mathf.Lerp(-1f, -4f, RainFall.rainIntensity))
+                {
+                    this.vel.x = Mathf.Lerp(-1f, -4f, RainFall.rainIntensity);
+                }
+            }
+            else
+            {
+                this.vel.y = this.vel.y - (this.gravity * 9.5f);
+                if (this.vel.y < Mathf.Lerp(-37f, -45f, RainFall.rainIntensity))
+                {
+                    this.vel.y = Mathf.Lerp(-37f, -45f, RainFall.rainIntensity);
+                }
             }
         }
         //Decrease splash scale on hit
@@ -183,7 +200,7 @@ public class RainDrop : CosmeticSprite
         if ((this.room.GetTile(this.pos).Solid || this.room.GetTile(this.pos).AnyWater))
         {
             //Decrease velocity if raindrop hits a solid surface or water and increase splash counter
-            if (UnityEngine.Random.Range(0f, 1f) > 0.01f)
+            if (UnityEngine.Random.value > 0.01f)
             {
                 if (this.vel.y < 0f && !timeToDie)
                 {
@@ -193,24 +210,24 @@ public class RainDrop : CosmeticSprite
                     }
                     else
                     {
-                        this.pos.y = this.room.MiddleOfTile(this.pos).y + 8.3f;
+                        this.pos.y = this.room.MiddleOfTile(this.pos).y + 11f;
                     }
-                    this.vel.y = this.vel.y * -0.2f;
-                    this.vel.x = this.vel.x * -0.9f;
+                    this.vel.y = this.vel.y * -0.01f;
+                    this.vel.x = this.vel.x * 0.2f;
                     timeToDie = true;
                     splashCounter = UnityEngine.Random.Range(0.9f, 1.1f);
                     collision = true;
                 }
                 else
                 {
-                    this.slatedForDeletetion = true;
+                    this.reset = true;
                 }
             }
         }
         //If raindrop falls below room bottom, or if rain intensity is 0, remove it.
         if (this.pos.y < -100f || RainFall.rainIntensity == 0f)
         {
-            this.slatedForDeletetion = true;
+            this.reset = true;
         }
         base.Update(eu);
     }
@@ -229,32 +246,43 @@ public class RainDrop : CosmeticSprite
         {
             sLeaser.sprites[1].alpha = UnityEngine.Random.Range(0.82f, 1f);
         }
-        sLeaser.sprites[0].alpha = UnityEngine.Random.Range(0.77f, 0.94f);
+        sLeaser.sprites[0].alpha = this.alpha;
         sLeaser.sprites[0].color = Color.Lerp(rCam.currentPalette.fogColor, color, this.depth * 0.9f);
         sLeaser.sprites[1].color = Color.Lerp(rCam.currentPalette.fogColor, color, this.depth * 0.9f);
         this.AddToContainer(sLeaser, rCam, null);
     }
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
+
         Vector2 vector = Vector2.Lerp(this.lastPos, this.pos, timeStacker);
         Vector2 vector2 = Vector2.Lerp(this.lastLastLastPos, this.lastLastPos, timeStacker);
         if (Custom.DistLess(vector, vector2, 9f))
         {
-            vector2 = vector + Custom.DirVec(vector, vector2) * 9f;
+            vector2 = vector + Custom.DirVec(vector, vector2) * 12f;
         }
-        vector2 = Vector2.Lerp(vector, vector2, Mathf.InverseLerp(0f, 0.1f, this.depth));
+        vector2 = Vector2.Lerp(vector, vector2, Mathf.InverseLerp(0f, 0.1f, 1f));
         Vector2 a = Custom.PerpendicularVector((vector - vector2).normalized);
-        (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, vector + a * 1f - camPos);
-        (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, vector - a * 1f - camPos);
+        (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, vector + a * this.depth - camPos);
+        (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, vector - a * this.depth - camPos);
         (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, vector2 - camPos);
         sLeaser.sprites[1].x = vector.x - camPos.x;
         sLeaser.sprites[1].y = vector.y - camPos.y;
         sLeaser.sprites[1].rotation = UnityEngine.Random.value * 360f;
+        if (reset)
+        {
+            sLeaser.sprites[0].color = Color.Lerp(new Color(color.r + 0.35f, color.g + 0.35f, color.b + 0.35f), color, this.depth * 0.85f);
+            sLeaser.sprites[1].color = Color.Lerp(new Color(color.r + 0.35f, color.g + 0.35f, color.b + 0.35f), color, this.depth * 0.85f);
+        }
+        else
+        {
+            sLeaser.sprites[0].color = Color.Lerp(new Color(1f, 1f, 1f), Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.8f);
+        }
         //If background drops encounter a depth in the room texture lower than their own depth value, treat it as a collision.
-        if (backgroundDrop && !slatedForDeletetion && !this.collision && rCam.IsViewedByCameraPosition(rCam.cameraNumber, this.pos) && rCam.DepthAtCoordinate(this.pos) < this.depth)
+        if (backgroundDrop && !reset && !this.collision && rCam.IsViewedByCameraPosition(rCam.cameraNumber, this.pos) && rCam.DepthAtCoordinate(this.pos) < this.depth)
         {
             splashCounter = 1f;
             timeToDie = true;
+            sLeaser.sprites[1].color = Color.Lerp(color, rCam.PixelColorAtCoordinate(this.pos), 0.8f);
             this.collision = true;
         }
         if (splashCounter > 0f)
@@ -268,19 +296,19 @@ public class RainDrop : CosmeticSprite
             }
             else
             {
-                sLeaser.sprites[1].scale = Mathf.Lerp(0f, UnityEngine.Random.Range(0.3f, 0.55f), splashCounter);
+                sLeaser.sprites[1].scale = Mathf.Lerp(0f, UnityEngine.Random.Range(0.25f, 0.42f), splashCounter);
             }
             sLeaser.sprites[0].alpha = 0f;
         }
         else
         {
             sLeaser.sprites[1].scale = 0f;
+            sLeaser.sprites[0].alpha = this.alpha;
         }
         //Delete raindrop if it falls a certain distance below the currently viewed room camera
-        if (rCam.room.BeingViewed && this.pos.y < (rCam.pos.y - 100f) || sLeaser.sprites[0].alpha < 0f || (splashCounter <= 0f && timeToDie) || base.slatedForDeletetion || this.room != rCam.room)
+        if (this.pos.y < (rCam.pos.y - 100f) || (splashCounter <= 0f && timeToDie))
         {
-            this.slatedForDeletetion = true;
-            sLeaser.CleanSpritesAndRemove();
+            this.reset = true;
         }
         base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
     }
