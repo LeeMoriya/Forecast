@@ -15,6 +15,7 @@ public class RainFall
     public static Vector2 lastPlayerPos = new Vector2();
     public static bool noRain = false;
     public static List<string> rainList = new List<string>();
+    public static bool rainDirLeft = true;
 
     public static void Patch()
     {
@@ -141,6 +142,17 @@ public class RainFall
             {
                 rainIntensity = UnityEngine.Random.Range(0f, 0.7f);
             }
+        }
+        float rng = UnityEngine.Random.value;
+        if (rng > 0.5f)
+        {
+            rainDirLeft = true;
+            Debug.Log("Rain Direction: Left");
+        }
+        else
+        {
+            rainDirLeft = false;
+            Debug.Log("Rain Direction: Right");
         }
         startingIntensity = rainIntensity;
         Debug.Log("Current rain intensity: " + rainIntensity);

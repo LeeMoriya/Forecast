@@ -130,7 +130,14 @@ public class RainDrop : CosmeticSprite
         //Vary starting velocity
         this.vel.y = UnityEngine.Random.Range(-10f * rainIntensity, -20f * rainIntensity);
         //Increase spread of raindrops as rain intensity increases
-        this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-5, 1f), UnityEngine.Random.Range(-12f, 1f), rainIntensity);
+        if (RainFall.rainDirLeft)
+        {
+            this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-4, 3f), UnityEngine.Random.Range(-12f, 3f), RainFall.rainIntensity);
+        }
+        else
+        {
+            this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-3, 4f), UnityEngine.Random.Range(12f, -3f), RainFall.rainIntensity);
+        }
         this.gravity = Mathf.Lerp(0.8f, 1f, UnityEngine.Random.value);
     }
     public override void Update(bool eu)
@@ -152,7 +159,14 @@ public class RainDrop : CosmeticSprite
             this.lastLastLastPos = this.resetPos;
             this.collision = false;
             this.timeToDie = false;
-            this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-5, 1f), UnityEngine.Random.Range(-12f, 1f), RainFall.rainIntensity);
+            if (RainFall.rainDirLeft)
+            {
+                this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-4, 3f), UnityEngine.Random.Range(-12f, 3f), RainFall.rainIntensity);
+            }
+            else
+            {
+                this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-3, 4f), UnityEngine.Random.Range(12f, -3f), RainFall.rainIntensity);
+            }
             this.vel.y = UnityEngine.Random.Range(-10f * RainFall.rainIntensity, -20f * RainFall.rainIntensity);
             this.splashCounter = 0f;
             this.reset = false;
@@ -273,8 +287,8 @@ public class RainDrop : CosmeticSprite
         }
         vector2 = Vector2.Lerp(vector, vector2, Mathf.InverseLerp(0f, 0.1f, 1f));
         Vector2 a = Custom.PerpendicularVector((vector - vector2).normalized);
-        (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, vector + a * this.depth - camPos);
-        (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, vector - a * this.depth - camPos);
+        (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, vector + a * (this.depth + (this.depth * 0.1f)) - camPos);
+        (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, vector - a * (this.depth + (this.depth * 0.1f)) - camPos);
         (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, vector2 - camPos);
         sLeaser.sprites[1].x = vector.x - camPos.x;
         sLeaser.sprites[1].y = vector.y - camPos.y;
@@ -284,9 +298,13 @@ public class RainDrop : CosmeticSprite
             sLeaser.sprites[0].color = Color.Lerp(new Color(color.r + 0.35f, color.g + 0.35f, color.b + 0.35f), color, this.depth * 0.85f);
             sLeaser.sprites[1].color = Color.Lerp(new Color(color.r + 0.35f, color.g + 0.35f, color.b + 0.35f), color, this.depth * 0.85f);
         }
+        else if(Downpour.rainbow)
+        {
+            sLeaser.sprites[0].color = Color.Lerp(color, Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.36f);
+        }
         else
         {
-            sLeaser.sprites[0].color = Color.Lerp(new Color(1f, 1f, 1f), Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.76f);
+            sLeaser.sprites[0].color = Color.Lerp(new Color(1f, 1f, 1f), Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.83f);
         }
         //If background drops encounter a depth in the room texture lower than their own depth value, treat it as a collision.
         if (backgroundDrop && !reset && !this.collision && rCam.IsViewedByCameraPosition(rCam.cameraNumber, this.pos) && rCam.DepthAtCoordinate(this.pos) < this.depth)
