@@ -44,7 +44,7 @@ public class Downpour : PartialityMod
     public static bool snow = false;
     public static bool bg = true;
     public static List<string> rainRegions = new List<string>();
-    public static int rainAmount;
+    public static int rainAmount = 40;
 
     public override void OnEnable()
     {

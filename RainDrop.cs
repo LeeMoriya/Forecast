@@ -24,24 +24,27 @@ public class Preciptator : UpdatableAndDeletable
         this.isSnow = isSnow;
     }
 
-    public void AddRaindrop()
+    public void AddRaindrops(int rainDropsToSpawn)
     {
         if (room != null)
         {
-            if (player != null && player.mainBodyChunk.pos != null && room.BeingViewed)
+            for (int i = 0; i < rainDropsToSpawn; i++)
             {
-                spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top - 5f);
-            }
-            else
-            {
-                spawn = new Vector2(UnityEngine.Random.Range(this.roomBounds.left - 100f, this.roomBounds.right + 100f), this.roomBounds.top - 5f);
-            }
-            IntVector2 tilePos = room.GetTilePosition(spawn);
-            if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
-            {
-                RainDrop rainDrop = new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity, this);
-                this.room.AddObject(rainDrop);
-                this.rainDrops++;
+                if (player != null && player.mainBodyChunk.pos != null && room.BeingViewed)
+                {
+                    spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top - 5f);
+                }
+                else
+                {
+                    spawn = new Vector2(UnityEngine.Random.Range(this.roomBounds.left - 100f, this.roomBounds.right + 100f), this.roomBounds.top - 5f);
+                }
+                IntVector2 tilePos = room.GetTilePosition(spawn);
+                if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
+                {
+                    RainDrop rainDrop = new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity, this);
+                    this.room.AddObject(rainDrop);
+                    this.rainDrops++;
+                }
             }
         }
     }
@@ -49,21 +52,14 @@ public class Preciptator : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
-        if (Downpour.rainAmount == 0)
-        {
-            this.rainAmount = Mathf.Lerp(0, 40, RainFall.rainIntensity);
-        }
-        else
-        {
-            this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
-        }
+        this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
         this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 10), RainFall.rainIntensity);
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
         if (this.room.game != null && this.room != null && !room.abstractRoom.gate && this.room.fullyLoaded)
         {
-            while (this.rainDrops < rainLimit)
+            if (this.rainDrops < rainLimit)
             {
-                this.AddRaindrop();
+                 this.AddRaindrops(rainLimit - this.rainDrops);
             }
         }
     }

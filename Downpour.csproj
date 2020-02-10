@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>E:\Steam Games\steamapps\common\Rain World\Mods\</OutputPath>
+    <OutputPath>D:\Steam Games\steamapps\common\Rain World\Mods\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -34,9 +34,8 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>D:\Steam Games\steamapps\common\Rain World\Mods\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="ConfigMachine, Version=1.0.0.3, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>E:\Steam Games\steamapps\common\Rain World\Mods\ConfigMachine.dll</HintPath>
+    <Reference Include="ConfigMachine">
+      <HintPath>D:\Steam Games\steamapps\common\Rain World\Mods\ConfigMachine.dll</HintPath>
     </Reference>
     <Reference Include="HOOKS-Assembly-CSharp">
       <HintPath>D:\Steam Games\steamapps\common\Rain World\Mods\HOOKS-Assembly-CSharp.dll</HintPath>
