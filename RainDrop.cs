@@ -33,21 +33,29 @@ public class Preciptator : UpdatableAndDeletable
         {
             for (int i = 0; i < rainDropsToSpawn; i++)
             {
-                if (player != null && player.mainBodyChunk.pos != null && room.BeingViewed)
+                if (player != null && player.mainBodyChunk.pos != null && player.inShortcut == false)
                 {
                     spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top - 5f);
+                    IntVector2 tilePos = room.GetTilePosition(spawn);
+                    if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
+                    {
+                        RainDrop rainDrop = new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity, this);
+                        this.room.AddObject(rainDrop);
+                        this.rainDrops++;
+                    }
                 }
                 else
                 {
-                    spawn = new Vector2(UnityEngine.Random.Range(this.roomBounds.left - 100f, this.roomBounds.right + 100f), this.roomBounds.top - 5f);
+                    spawn = new Vector2(UnityEngine.Random.Range(this.room.RoomRect.left - 100f, this.room.RoomRect.right + 100f), this.roomBounds.top - 5f);
+                    IntVector2 tilePos = room.GetTilePosition(spawn);
+                    if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
+                    {
+                        RainDrop rainDrop = new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity, this);
+                        this.room.AddObject(rainDrop);
+                        this.rainDrops++;
+                    }
                 }
-                IntVector2 tilePos = room.GetTilePosition(spawn);
-                if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
-                {
-                    RainDrop rainDrop = new RainDrop(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity, this);
-                    this.room.AddObject(rainDrop);
-                    this.rainDrops++;
-                }
+                
             }
         }
     }
@@ -58,7 +66,7 @@ public class Preciptator : UpdatableAndDeletable
         this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
         this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 10), RainFall.rainIntensity);
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
-        if (this.room.game != null && this.room != null && !room.abstractRoom.gate && this.room.fullyLoaded)
+        if (this.room.game != null && this.room != null && !room.abstractRoom.gate && this.room.ReadyForPlayer)
         {
             if (this.rainDrops < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
             {
@@ -130,9 +138,13 @@ public class RainDrop : CosmeticSprite
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
         if (this.reset)
         {
-            if (player.mainBodyChunk != null)
+            if (player.mainBodyChunk != null && !player.inShortcut)
             {
                 this.resetPos = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
+            }
+            else
+            {
+                this.resetPos = new Vector2(UnityEngine.Random.Range(this.room.RoomRect.left - 100f, this.room.RoomRect.right + 100f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
             }
             this.pos = this.resetPos;
             this.lastPos = this.resetPos;
