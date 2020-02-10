@@ -26,7 +26,7 @@ class RainSound : UpdatableAndDeletable
         {
             if (!Downpour.snow)
             {
-                if (ceiling < (owner.Width * 0.65) && owner.regionGate == null)
+                if (ceiling < (owner.Width * 0.95) && owner.regionGate == null)
                 {
                     normalRainSound = new DisembodiedDynamicSoundLoop(this);
                     normalRainSound.sound = SoundID.Normal_Rain_LOOP;
@@ -39,10 +39,10 @@ class RainSound : UpdatableAndDeletable
                 {
                     interiorRainSound = new DisembodiedDynamicSoundLoop(this);
                     interiorRainSound.sound = SoundID.Flash_Flood_LOOP;
-                    interiorRainSound.Volume = 0.7f;
+                    interiorRainSound.Volume = 0.2f;
                     rumbleSound = new DisembodiedDynamicSoundLoop(this);
                     rumbleSound.sound = SoundID.Death_Rain_Heard_From_Underground_LOOP;
-                    rumbleSound.Volume = 0.2f;
+                    rumbleSound.Volume = 0.1f;
                 }
             }
             else

@@ -15,13 +15,16 @@ public class Preciptator : UpdatableAndDeletable
     public Vector2 spawn;
     public FloatRect roomBounds;
     public int rainLimit;
+    public float ratio;
+    public int ceilingCount;
 
-    public Preciptator(Room room, bool isSnow)
+    public Preciptator(Room room, bool isSnow, int ceilingCount)
     {
         this.roomBounds = room.RoomRect;
         this.rainDrops = 0;
         this.room = room;
         this.isSnow = isSnow;
+        this.ceilingCount = ceilingCount;
     }
 
     public void AddRaindrops(int rainDropsToSpawn)
@@ -57,7 +60,7 @@ public class Preciptator : UpdatableAndDeletable
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
         if (this.room.game != null && this.room != null && !room.abstractRoom.gate && this.room.fullyLoaded)
         {
-            if (this.rainDrops < rainLimit)
+            if (this.rainDrops < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
             {
                  this.AddRaindrops(rainLimit - this.rainDrops);
             }
@@ -92,7 +95,7 @@ public class RainDrop : CosmeticSprite
         this.timeToDie = false;
         this.splashCounter = 0;
         this.collision = false;
-        //Small chance for any raindrop to be a background drop, asign it a random depth value
+        //Small chance for any raindrop to be a background drop, assign it a random depth value
         if (UnityEngine.Random.value > 0.8f)
         {
             backgroundDrop = true;
@@ -271,14 +274,14 @@ public class RainDrop : CosmeticSprite
         }
         else
         {
-            sLeaser.sprites[0].color = Color.Lerp(new Color(1f, 1f, 1f), Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.8f);
+            sLeaser.sprites[0].color = Color.Lerp(new Color(1f, 1f, 1f), Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.76f);
         }
         //If background drops encounter a depth in the room texture lower than their own depth value, treat it as a collision.
         if (backgroundDrop && !reset && !this.collision && rCam.IsViewedByCameraPosition(rCam.cameraNumber, this.pos) && rCam.DepthAtCoordinate(this.pos) < this.depth)
         {
             splashCounter = 1f;
             timeToDie = true;
-            sLeaser.sprites[1].color = Color.Lerp(color, rCam.PixelColorAtCoordinate(this.pos), 0.8f);
+            sLeaser.sprites[1].color = Color.Lerp(color, rCam.PixelColorAtCoordinate(this.pos), 0.7f);
             this.collision = true;
         }
         if (splashCounter > 0f)
