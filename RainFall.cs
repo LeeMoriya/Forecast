@@ -15,7 +15,7 @@ public class RainFall
     public static Vector2 lastPlayerPos = new Vector2();
     public static bool noRain = false;
     public static List<string> rainList = new List<string>();
-    public static bool rainDirLeft = true;
+    public static int direction;
 
     public static void Patch()
     {
@@ -143,19 +143,22 @@ public class RainFall
                 rainIntensity = UnityEngine.Random.Range(0f, 0.7f);
             }
         }
-        float rng = UnityEngine.Random.value;
-        if (rng > 0.5f)
+        switch (Downpour.direction)
         {
-            rainDirLeft = true;
-            Debug.Log("Rain Direction: Left");
-        }
-        else
-        {
-            rainDirLeft = false;
-            Debug.Log("Rain Direction: Right");
+            case 0:
+                direction = UnityEngine.Random.Range(1,3);
+                break;
+            case 1:
+                direction = 1;
+                break;
+            case 2:
+                direction = 2;
+                break;
+            case 3:
+                direction = 3;
+                break;
         }
         startingIntensity = rainIntensity;
-        Debug.Log("Current rain intensity: " + rainIntensity);
     }
     private static void Room_Loaded(On.Room.orig_Loaded orig, Room self)
     {
@@ -258,6 +261,11 @@ public class RainFall
             {
                 Debug.Log("Rain Intensity = " + rainIntensity);
             }
+            if (Input.GetKey(KeyCode.Alpha5))
+            {
+                self.world.rainCycle.timer += 10;
+            }
+
         }
         //Rain intensity increases with cycle duration if in dynamic mode
         if (startingIntensity > 0.3f && Downpour.dynamic)

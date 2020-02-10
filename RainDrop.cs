@@ -17,6 +17,7 @@ public class Preciptator : UpdatableAndDeletable
     public int rainLimit;
     public float ratio;
     public int ceilingCount;
+    public float direction;
 
     public Preciptator(Room room, bool isSnow, int ceilingCount)
     {
@@ -25,6 +26,7 @@ public class Preciptator : UpdatableAndDeletable
         this.room = room;
         this.isSnow = isSnow;
         this.ceilingCount = ceilingCount;
+        this.direction = RainFall.direction;
     }
 
     public void AddRaindrops(int rainDropsToSpawn)
@@ -55,7 +57,7 @@ public class Preciptator : UpdatableAndDeletable
                         this.rainDrops++;
                     }
                 }
-                
+
             }
         }
     }
@@ -70,7 +72,7 @@ public class Preciptator : UpdatableAndDeletable
         {
             if (this.rainDrops < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
             {
-                 this.AddRaindrops(rainLimit - this.rainDrops);
+                this.AddRaindrops(rainLimit - this.rainDrops);
             }
         }
     }
@@ -130,14 +132,7 @@ public class RainDrop : CosmeticSprite
         //Vary starting velocity
         this.vel.y = UnityEngine.Random.Range(-10f * rainIntensity, -20f * rainIntensity);
         //Increase spread of raindrops as rain intensity increases
-        if (RainFall.rainDirLeft)
-        {
-            this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-4, 3f), UnityEngine.Random.Range(-12f, 3f), RainFall.rainIntensity);
-        }
-        else
-        {
-            this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-3, 4f), UnityEngine.Random.Range(12f, -3f), RainFall.rainIntensity);
-        }
+        this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-4, 3f), UnityEngine.Random.Range(-12f, 3f), RainFall.rainIntensity);
         this.gravity = Mathf.Lerp(0.8f, 1f, UnityEngine.Random.value);
     }
     public override void Update(bool eu)
@@ -159,15 +154,19 @@ public class RainDrop : CosmeticSprite
             this.lastLastLastPos = this.resetPos;
             this.collision = false;
             this.timeToDie = false;
-            if (RainFall.rainDirLeft)
+            if(this.spawner.direction == 1)
             {
-                this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-4, 3f), UnityEngine.Random.Range(-12f, 3f), RainFall.rainIntensity);
+                this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(5f, -2f), UnityEngine.Random.Range(-15f, -2f), RainFall.rainIntensity);
             }
-            else
+            else if (this.spawner.direction == 2)
             {
-                this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-3, 4f), UnityEngine.Random.Range(12f, -3f), RainFall.rainIntensity);
+                this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(2f, -2f), UnityEngine.Random.Range(-7f, 7f), RainFall.rainIntensity);
             }
-            this.vel.y = UnityEngine.Random.Range(-10f * RainFall.rainIntensity, -20f * RainFall.rainIntensity);
+            else if (this.spawner.direction == 3)
+            {
+                this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(-5f, 2f), UnityEngine.Random.Range(2f, 15f), RainFall.rainIntensity);
+            }
+            this.vel.y = UnityEngine.Random.Range(-10f * RainFall.rainIntensity, -18f * RainFall.rainIntensity);
             this.splashCounter = 0f;
             this.reset = false;
         }
@@ -206,9 +205,9 @@ public class RainDrop : CosmeticSprite
             else
             {
                 this.vel.y = this.vel.y - (this.gravity * 9.5f);
-                if (this.vel.y < Mathf.Lerp(-37f, -45f, RainFall.rainIntensity))
+                if (this.vel.y < Mathf.Lerp(-32f, -40f, RainFall.rainIntensity))
                 {
-                    this.vel.y = Mathf.Lerp(-37f, -45f, RainFall.rainIntensity);
+                    this.vel.y = Mathf.Lerp(-32f, -40f, RainFall.rainIntensity);
                 }
             }
         }
@@ -298,7 +297,7 @@ public class RainDrop : CosmeticSprite
             sLeaser.sprites[0].color = Color.Lerp(new Color(color.r + 0.35f, color.g + 0.35f, color.b + 0.35f), color, this.depth * 0.85f);
             sLeaser.sprites[1].color = Color.Lerp(new Color(color.r + 0.35f, color.g + 0.35f, color.b + 0.35f), color, this.depth * 0.85f);
         }
-        else if(Downpour.rainbow)
+        else if (Downpour.rainbow)
         {
             sLeaser.sprites[0].color = Color.Lerp(color, Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.36f);
         }
