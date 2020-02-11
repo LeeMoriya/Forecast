@@ -76,6 +76,10 @@ public class Preciptator : UpdatableAndDeletable
                 Debug.Log("Rain Limit: " + this.rainLimit);
                 Debug.Log("Rain Chance: " + Downpour.rainChance + "%");
             }
+            if (Input.GetKey(KeyCode.Alpha6))
+            {
+                this.room.roomRain.globalRain.flood += 0.1f;
+            }
         }
         this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
         this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 10), RainFall.rainIntensity);
@@ -153,7 +157,7 @@ public class RainDrop : CosmeticSprite
         if (this.reset)
         {
             float rng = UnityEngine.Random.value;
-            if (rng < 0.15f)
+            if (rng < 0.05f && this.room.world.rainCycle.RainDarkPalette > 0)
             {
                 this.Destroy();
             }

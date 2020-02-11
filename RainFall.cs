@@ -222,6 +222,7 @@ public class RainFall
                 if (self.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && rainIntensity > 0.5f)
                 {
                     self.lightning = new Lightning(self, 1f, false);
+                    self.lightning.bkgOnly = true;
                     self.AddObject(self.lightning);
                 }
             }

@@ -47,6 +47,7 @@ public class Downpour : PartialityMod
     public static int rainAmount = 40;
     public static int direction = 0;
     public static int rainChance = 75;
+    public static bool interiorRain = true;
 
     public override void OnEnable()
     {

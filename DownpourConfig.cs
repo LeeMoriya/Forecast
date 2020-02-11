@@ -60,12 +60,11 @@ public class DownpourConfig : OptionInterface
         rainbowOn.description = "Raindrop colors will be randomized.";
         OptionalUI.OpLabel onrainbowLabel = new OpLabel(new Vector2(230f, 408f), new Vector2(400f, 40f), "Taste the rainbow", FLabelAlignment.Left, false);
         this.Tabs[0].AddItems(onrainbowLabel, rainbowOn);
-        //Snow
-        OptionalUI.OpCheckBox snowOn = new OpCheckBox(new Vector2(200f, 385f), "Snow", false);
-        //snowOn.description = "Replace rain with snow.";
-        OptionalUI.OpLabel snowLabel = new OpLabel(new Vector2(230f, 378f), new Vector2(400f, 40f), "Coming Soon", FLabelAlignment.Left, false);
-        snowOn.greyedOut = true;
-        this.Tabs[0].AddItems(snowOn, snowLabel);
+        //Interior Rain Sound
+        OptionalUI.OpCheckBox muteCheck = new OpCheckBox(new Vector2(200f, 385f), "Mute", false);
+        muteCheck.description = "Mute the sound effect added to interiors when its raining outside.";
+        OptionalUI.OpLabel muteLabel = new OpLabel(new Vector2(230f, 378f), new Vector2(400f, 40f), "Mute interior rain sound", FLabelAlignment.Left, false);
+        this.Tabs[0].AddItems(muteCheck, muteLabel);
         //Coming soon
         OptionalUI.OpCheckBox placeholder = new OpCheckBox(new Vector2(200f, 355f), "placeholder", false);
         //snowOn.description = "Replace rain with snow.";
@@ -75,7 +74,7 @@ public class DownpourConfig : OptionInterface
         //Background Rain
         OptionalUI.OpCheckBox bgOn = new OpCheckBox(new Vector2(30f, 355f), "Background", true);
         bgOn.description = "Enable or disable collision with background elements.";
-        OptionalUI.OpLabel bgLabel = new OpLabel(new Vector2(60f, 348f), new Vector2(400f, 40f), "Background Collision", FLabelAlignment.Left, false);
+        OptionalUI.OpLabel bgLabel = new OpLabel(new Vector2(60f, 348f), new Vector2(400f, 40f), "Background collision", FLabelAlignment.Left, false);
         this.Tabs[0].AddItems(bgOn, bgLabel);
 
         //Direction
@@ -95,13 +94,13 @@ public class DownpourConfig : OptionInterface
 
         //Raindrops
         OptionalUI.OpLabel rainOption = new OpLabel(new Vector2(30f, 208f), new Vector2(400f, 40f), "Raindrops", FLabelAlignment.Left, true);
-        OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 188f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned a single room (x10).", FLabelAlignment.Left, false);
+        OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 188f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned in a single room. x10", FLabelAlignment.Left, false);
         OptionalUI.OpLabel rainOptionWarning = new OpLabel(new Vector2(30f, 173f), new Vector2(400f, 40f), "Warning: You may experience significant framedrops if this slider is set too high.", FLabelAlignment.Left, false);
         OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 140f), "rainAmount", new IntVector2(10, 80), 4.235f, false, 50);
         this.Tabs[0].AddItems(rainSlider, rainOption, rainOptionDescription, rainOptionWarning);
         //Rain Chance
         OptionalUI.OpLabel rainChance = new OpLabel(new Vector2(30f, 108f), new Vector2(400f, 40f), "Rain Chance", FLabelAlignment.Left, true);
-        OptionalUI.OpLabel rainChanceDescription = new OpLabel(new Vector2(30f, 88f), new Vector2(400f, 40f), "Configure the chance rain will occur.", FLabelAlignment.Left, false);
+        OptionalUI.OpLabel rainChanceDescription = new OpLabel(new Vector2(30f, 88f), new Vector2(400f, 40f), "Configure the probability that rain will occur.", FLabelAlignment.Left, false);
         OptionalUI.OpSlider rainChanceSlider = new OpSlider(new Vector2(30f, 55f), "rainChance", new IntVector2(0, 100), 3f, false, 75);
         this.Tabs[0].AddItems(rainChance, rainChanceDescription, rainChanceSlider);
         //Regions 
@@ -165,13 +164,13 @@ public class DownpourConfig : OptionInterface
         {
             Downpour.paletteChange = true;
         }
-        if (OptionalUI.OptionInterface.config["Snow"] == "false")
+        if (OptionalUI.OptionInterface.config["Mute"] == "false")
         {
-            Downpour.snow = false;
+            Downpour.interiorRain = false;
         }
         else
         {
-            Downpour.snow = true;
+            Downpour.interiorRain = true;
         }
         if (OptionalUI.OptionInterface.config["Background"] == "false")
         {
