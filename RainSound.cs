@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 class RainSound : UpdatableAndDeletable
 {
@@ -22,39 +23,25 @@ class RainSound : UpdatableAndDeletable
                 ceiling++;
             }
         }
-        if (RainFall.rainIntensity > 0.3f || room.game.IsArenaSession)
+        if (!Downpour.snow)
         {
-            if (!Downpour.snow)
+            if (ceiling < (owner.Width * 0.95) && owner.regionGate == null)
             {
-                if (ceiling < (owner.Width * 0.95) && owner.regionGate == null)
-                {
-                    normalRainSound = new DisembodiedDynamicSoundLoop(this);
-                    normalRainSound.sound = SoundID.Normal_Rain_LOOP;
-                    normalRainSound.Volume = 1f;
-                    heavyRainSound = new DisembodiedDynamicSoundLoop(this);
-                    heavyRainSound.sound = SoundID.Heavy_Rain_LOOP;
-                    heavyRainSound.Volume = 0.3f;
-                }
-                else if (!Downpour.interiorRain)
-                {
-                    interiorRainSound = new DisembodiedDynamicSoundLoop(this);
-                    interiorRainSound.sound = SoundID.Flash_Flood_LOOP;
-                    interiorRainSound.Volume = 0.2f;
-                    rumbleSound = new DisembodiedDynamicSoundLoop(this);
-                    rumbleSound.sound = SoundID.Death_Rain_Heard_From_Underground_LOOP;
-                    rumbleSound.Volume = 0.4f;
-                }
+                normalRainSound = new DisembodiedDynamicSoundLoop(this);
+                normalRainSound.sound = SoundID.Normal_Rain_LOOP;
+                normalRainSound.Volume = Mathf.Lerp(0f, 1.2f, RainFall.rainIntensity);
+                heavyRainSound = new DisembodiedDynamicSoundLoop(this);
+                heavyRainSound.sound = SoundID.Heavy_Rain_LOOP;
+                heavyRainSound.Volume = Mathf.Lerp(0f, 0.6f, RainFall.rainIntensity);
             }
-            else
+            else if (!Downpour.interiorRain)
             {
-                if (ceiling < (owner.Width * 0.65) && owner.regionGate == null)
-                {
-
-                }
-                else
-                {
-
-                }
+                interiorRainSound = new DisembodiedDynamicSoundLoop(this);
+                interiorRainSound.sound = SoundID.Flash_Flood_LOOP;
+                interiorRainSound.Volume = Mathf.Lerp(0f, 0.35f, RainFall.rainIntensity);
+                rumbleSound = new DisembodiedDynamicSoundLoop(this);
+                rumbleSound.sound = SoundID.Death_Rain_Heard_From_Underground_LOOP;
+                rumbleSound.Volume = Mathf.Lerp(0f, 0.18f, RainFall.rainIntensity);
             }
         }
     }
@@ -69,18 +56,22 @@ class RainSound : UpdatableAndDeletable
         {
             if (interiorRainSound != null)
             {
+                interiorRainSound.Volume = Mathf.Lerp(0f, 0.3f, RainFall.rainIntensity);
                 interiorRainSound.Update();
             }
             if (normalRainSound != null)
             {
+                normalRainSound.Volume = Mathf.Lerp(0f, 1f, RainFall.rainIntensity);
                 normalRainSound.Update();
             }
             if (heavyRainSound != null)
             {
+                heavyRainSound.Volume = Mathf.Lerp(0f, 0.4f, RainFall.rainIntensity);
                 heavyRainSound.Update();
             }
             if (rumbleSound != null)
             {
+                rumbleSound.Volume = Mathf.Lerp(0f, 0.4f, RainFall.rainIntensity);
                 rumbleSound.Update();
             }
         }

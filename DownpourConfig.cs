@@ -47,7 +47,7 @@ public class DownpourConfig : OptionInterface
         OptionalUI.OpLabel environmentOption = new OpLabel(new Vector2(30f, 460f), new Vector2(400f, 40f), "Environment", FLabelAlignment.Left, true);
         OptionalUI.OpLabel lightningOptionDescription = new OpLabel(new Vector2(30f, 437f), new Vector2(400f, 40f), "Configure which effects are added to the environment during heavy rain.", FLabelAlignment.Left, false);
         OptionalUI.OpCheckBox lightningCheck = new OpCheckBox(new Vector2(30f, 415f), "Lightning", true);
-        lightningCheck.description = "Lightning will appear in regions when rain intensity is high enough.";
+        lightningCheck.description = "Lightning will have a chance of appearing if the starting intensity is high enough.";
         OptionalUI.OpLabel lightningLabel = new OpLabel(new Vector2(60f, 408f), new Vector2(400f, 40f), "Lightning storms", FLabelAlignment.Left, false);
         this.Tabs[0].AddItems(lightningLabel, lightningCheck, lightningOptionDescription, environmentOption);
         //Palette
@@ -76,7 +76,6 @@ public class DownpourConfig : OptionInterface
         bgOn.description = "Enable or disable collision with background elements.";
         OptionalUI.OpLabel bgLabel = new OpLabel(new Vector2(60f, 348f), new Vector2(400f, 40f), "Background collision", FLabelAlignment.Left, false);
         this.Tabs[0].AddItems(bgOn, bgLabel);
-
         //Direction
         OptionalUI.OpLabel rainDirection = new OpLabel(new Vector2(30f, 310f), new Vector2(400f, 40f), "Rain Direction", FLabelAlignment.Left, true);
         OptionalUI.OpLabel rainDirectionDescription = new OpLabel(new Vector2(30f, 287f), new Vector2(400f, 40f), "Change the direction rain falls as intensity increases.", FLabelAlignment.Left, false);
@@ -91,13 +90,13 @@ public class DownpourConfig : OptionInterface
         OptionalUI.OpLabel rightLabel = new OpLabel(new Vector2(320, 253f), new Vector2(400f, 40f), "Right", FLabelAlignment.Left, false);
         rainDirectionGroup.SetButtons(new OpRadioButton[] { rainDirectionRandom, rainDirectionLeft, rainDirectionCenter, rainDirectionRight });
         this.Tabs[0].AddItems(rainDirection, rainDirectionDescription, rainDirectionGroup, rainDirectionLeft, leftLabel, rainDirectionRandom, randomLabel, rainDirectionRight, rightLabel, rainDirectionCenter, centerLabel);
-
         //Raindrops
         OptionalUI.OpLabel rainOption = new OpLabel(new Vector2(30f, 208f), new Vector2(400f, 40f), "Raindrops", FLabelAlignment.Left, true);
-        OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 188f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned in a single room. x10", FLabelAlignment.Left, false);
+        OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 188f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned in a single room.", FLabelAlignment.Left, false);
         OptionalUI.OpLabel rainOptionWarning = new OpLabel(new Vector2(30f, 173f), new Vector2(400f, 40f), "Warning: You may experience significant framedrops if this slider is set too high.", FLabelAlignment.Left, false);
-        OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 140f), "rainAmount", new IntVector2(10, 80), 4.235f, false, 50);
-        this.Tabs[0].AddItems(rainSlider, rainOption, rainOptionDescription, rainOptionWarning);
+        OptionalUI.OpLabel multiplierLabel = new OpLabel(new Vector2(342f, 137f), new Vector2(400f, 40f), "x10", FLabelAlignment.Left, false);
+        OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 140f), "rainAmount", new IntVector2(10, 80), 4.24f, false, 50);
+        this.Tabs[0].AddItems(rainSlider, rainOption, rainOptionDescription, rainOptionWarning, multiplierLabel);
         //Rain Chance
         OptionalUI.OpLabel rainChance = new OpLabel(new Vector2(30f, 108f), new Vector2(400f, 40f), "Rain Chance", FLabelAlignment.Left, true);
         OptionalUI.OpLabel rainChanceDescription = new OpLabel(new Vector2(30f, 88f), new Vector2(400f, 40f), "Configure the probability that rain will occur.", FLabelAlignment.Left, false);
@@ -142,7 +141,6 @@ public class DownpourConfig : OptionInterface
         }
         Downpour.configLoaded = true;
     }
-    // Apply changes to the mod
     public override void ConfigOnChange()
     {
         string[] regionList = File.ReadAllLines(Custom.RootFolderDirectory() + "/World/Regions/regions.txt");

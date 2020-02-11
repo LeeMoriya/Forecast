@@ -149,7 +149,7 @@ public class RainFall
             }
             if (self.saveState.deathPersistentSaveData.karma > 2)
             {
-                rainIntensity = UnityEngine.Random.Range(-1.75f, 0.7f);
+                rainIntensity = UnityEngine.Random.Range(-2f, 0.7f);
             }
         }
         switch (Downpour.direction)
@@ -214,12 +214,13 @@ public class RainFall
         {
             if (self.game != null && !self.abstractRoom.shelter && Downpour.lightning && self.roomRain != null)
             {
-                if (self.roomRain.dangerType == RoomRain.DangerType.Rain && rainIntensity > 0.5f)
+                if (self.roomRain.dangerType == RoomRain.DangerType.Rain && startingIntensity > 0.5f)
                 {
                     self.lightning = new Lightning(self, 1f, false);
+                    self.lightning.bkgOnly = true;
                     self.AddObject(self.lightning);
                 }
-                if (self.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && rainIntensity > 0.5f)
+                if (self.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && startingIntensity > 0.5f)
                 {
                     self.lightning = new Lightning(self, 1f, false);
                     self.lightning.bkgOnly = true;
@@ -291,7 +292,14 @@ public class RainFall
         //Rain intensity increases with cycle duration if in dynamic mode
         if (Downpour.dynamic && !noRainThisCycle)
         {
-            rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
+            if (self.world.rainCycle.RainDarkPalette <= 0)
+            {
+                rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
+            }
+            else
+            {
+                rainIntensity = Mathf.Lerp(0.9f, 0f, self.world.rainCycle.RainDarkPalette);
+            }
         }
     }
 }
