@@ -55,10 +55,26 @@ class RainPalette
                     Color[] newColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
-                        newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.5f);
+                        if (!Downpour.snow)
+                        {
+                            newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
+                            newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.5f);
+                            self.allEffectColorsTexture.SetPixels(newColors);
+                        }
+                        else
+                        {
+                            if (!RainFall.noRain)
+                            {
+                                newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
+                                newColors[i] = Color.Lerp(newColors[i], new Color(1f, 1f, 1f), darkness * 1.5f);
+                                self.allEffectColorsTexture.SetPixels(newColors);
+                            }
+                            else
+                            {
+                                self.allEffectColorsTexture.SetPixels(colors);
+                            }
+                        }
                     }
-                    self.allEffectColorsTexture.SetPixels(newColors);
                     texture.SetPixels(30, 4, 2, 2, self.allEffectColorsTexture.GetPixels(color1 * 2, 0, 2, 2, 0), 0);
                     texture.SetPixels(30, 12, 2, 2, self.allEffectColorsTexture.GetPixels(color1 * 2, 2, 2, 2, 0), 0);
                 }
@@ -68,8 +84,25 @@ class RainPalette
                     Color[] newColors = new Color[colors.Length];
                     for (int i = 0; i < colors.Length; i++)
                     {
-                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
-                        newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.5f);
+                        if (!Downpour.snow)
+                        {
+                            newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
+                            newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 0.5f);
+                            self.allEffectColorsTexture.SetPixels(newColors);
+                        }
+                        else
+                        {
+                            if (!RainFall.noRain)
+                            {
+                                newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
+                                newColors[i] = Color.Lerp(newColors[i], new Color(1f, 1f, 1f), darkness * 0.5f);
+                                self.allEffectColorsTexture.SetPixels(newColors);
+                            }
+                            else
+                            {
+                                self.allEffectColorsTexture.SetPixels(colors);
+                            }
+                        }
                     }
                     self.allEffectColorsTexture.SetPixels(newColors);
                     texture.SetPixels(30, 2, 2, 2, self.allEffectColorsTexture.GetPixels(color2 * 2, 0, 2, 2, 0), 0);
@@ -134,10 +167,25 @@ class RainPalette
                 Color[] newColors = new Color[colors.Length];
                 for (int i = 0; i < colors.Length; i++)
                 {
-                    newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
-                    newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 1.5f);
+                    if (!Downpour.snow)
+                    {
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
+                        newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 0.05f);
+                        texture.SetPixels(newColors);
+                    }
+                    else
+                    {
+                        if (!RainFall.noRain)
+                        {
+                            newColors[i] = Color.Lerp(colors[i], new Color(1f, 1f, 1f), darkness * 0.2f);
+                            texture.SetPixels(newColors);
+                        }
+                        else
+                        {
+                            texture.SetPixels(colors);
+                        }
+                    }
                 }
-                texture.SetPixels(newColors);
             }
             texture.Apply(true);
         }
