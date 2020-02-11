@@ -65,6 +65,18 @@ public class Preciptator : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
+        if (Downpour.debug)
+        {
+            if (Input.GetKey(KeyCode.Alpha4))
+            {
+                Debug.Log("-----Downpour Details-----");
+                Debug.Log("Rain Intensity: " + RainFall.rainIntensity);
+                Debug.Log("Rain Direction: " + RainFall.direction);
+                Debug.Log("Rain Amount: " + Downpour.rainAmount);
+                Debug.Log("Rain Limit: " + this.rainLimit);
+                Debug.Log("Rain Chance: " + Downpour.rainChance + "%");
+            }
+        }
         this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
         this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 10), RainFall.rainIntensity);
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);

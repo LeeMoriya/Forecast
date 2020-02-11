@@ -46,6 +46,7 @@ public class Downpour : PartialityMod
     public static List<string> rainRegions = new List<string>();
     public static int rainAmount = 40;
     public static int direction = 0;
+    public static int rainChance = 75;
 
     public override void OnEnable()
     {

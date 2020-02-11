@@ -16,6 +16,7 @@ public class RainFall
     public static bool noRain = false;
     public static List<string> rainList = new List<string>();
     public static int direction;
+    public static bool noRainThisCycle = false;
 
     public static void Patch()
     {
@@ -105,6 +106,14 @@ public class RainFall
             Downpour.rainRegions.Add("SL");
             Downpour.rainRegions.Add("LF");
         }
+        if (UnityEngine.Random.Range(0, 100) < Downpour.rainChance)
+        {
+            noRainThisCycle = false;
+        }
+        else
+        {
+            noRainThisCycle = true;
+        }
         if (!Downpour.dynamic)
         {
             if (Downpour.intensity == 1)
@@ -129,24 +138,24 @@ public class RainFall
             switch (self.saveState.deathPersistentSaveData.karma)
             {
                 case 0:
-                    rainIntensity = UnityEngine.Random.Range(0.6f, 0.7f);
+                    rainIntensity = UnityEngine.Random.Range(-0.3f, 0.7f);
                     break;
                 case 1:
-                    rainIntensity = UnityEngine.Random.Range(0.45f, 0.7f);
+                    rainIntensity = UnityEngine.Random.Range(-0.4f, 0.7f);
                     break;
                 case 2:
-                    rainIntensity = UnityEngine.Random.Range(0.3f, 0.7f);
+                    rainIntensity = UnityEngine.Random.Range(-0.5f, 0.7f);
                     break;
             }
             if (self.saveState.deathPersistentSaveData.karma > 2)
             {
-                rainIntensity = UnityEngine.Random.Range(0f, 0.7f);
+                rainIntensity = UnityEngine.Random.Range(-1.75f, 0.7f);
             }
         }
         switch (Downpour.direction)
         {
             case 0:
-                direction = UnityEngine.Random.Range(1,3);
+                direction = UnityEngine.Random.Range(1, 3);
                 break;
             case 1:
                 direction = 1;
@@ -158,7 +167,15 @@ public class RainFall
                 direction = 3;
                 break;
         }
-        startingIntensity = rainIntensity;
+        if (!noRainThisCycle)
+        {
+            startingIntensity = rainIntensity;
+        }
+        else
+        {
+            startingIntensity = 0;
+            rainIntensity = 0;
+        }
     }
     private static void Room_Loaded(On.Room.orig_Loaded orig, Room self)
     {
@@ -216,7 +233,6 @@ public class RainFall
             {
                 if (!self.abstractRoom.shelter && self.roomRain.dangerType != RoomRain.DangerType.Flood && rainList.Contains(self.abstractRoom.name) == false)
                 {
-                    //Count the top row of tiles in a room, if a certain percentage are air, add the room to list of rooms that can contain rain.
                     for (int r = 0; r < self.TileWidth; r++)
                     {
                         if (self.Tiles[r, self.TileHeight - 1].Solid)
@@ -261,6 +277,10 @@ public class RainFall
             {
                 Debug.Log("Rain Intensity = " + rainIntensity);
             }
+            if (Input.GetKey(KeyCode.Alpha4))
+            {
+                Debug.Log("Rain Disabled: " + noRainThisCycle);
+            }
             if (Input.GetKey(KeyCode.Alpha5))
             {
                 self.world.rainCycle.timer += 10;
@@ -268,7 +288,7 @@ public class RainFall
 
         }
         //Rain intensity increases with cycle duration if in dynamic mode
-        if (startingIntensity > 0.3f && Downpour.dynamic)
+        if (Downpour.dynamic && !noRainThisCycle)
         {
             rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
         }

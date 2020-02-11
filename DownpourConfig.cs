@@ -30,7 +30,7 @@ public class DownpourConfig : OptionInterface
         OptionalUI.OpLabel rainIntensityDescription = new OpLabel(new Vector2(30f, 537f), new Vector2(400f, 40f), "Change the intensity of the rainfall to be dynamic, or a fixed value.", FLabelAlignment.Left, false);
         OptionalUI.OpRadioButtonGroup intensityGroup = new OpRadioButtonGroup("Setting", 0);
         OptionalUI.OpRadioButton intensityDynamic = new OpRadioButton(new Vector2(30f, 510f));
-        intensityDynamic.description = "Intensity of the rain will increase as the cycle progresses, there can also be cycles without rain.";
+        intensityDynamic.description = "Rain intensity can vary at the start of a cycle and may start mid-way through it, it will then increase as the cycle progresses.";
         OptionalUI.OpLabel dynamicLabel = new OpLabel(new Vector2(60f, 503f), new Vector2(400f, 40f), "Dynamic", FLabelAlignment.Left, false);
         OptionalUI.OpRadioButton intensityLow = new OpRadioButton(new Vector2(130f, 510f));
         intensityLow.description = "Intensity of the rain will be fixed to Low intensity.";
@@ -68,7 +68,7 @@ public class DownpourConfig : OptionInterface
         this.Tabs[0].AddItems(snowOn, snowLabel);
         //Coming soon
         OptionalUI.OpCheckBox placeholder = new OpCheckBox(new Vector2(200f, 355f), "placeholder", false);
-        snowOn.description = "Replace rain with snow.";
+        //snowOn.description = "Replace rain with snow.";
         OptionalUI.OpLabel placeholderLabel = new OpLabel(new Vector2(230f, 348f), new Vector2(400f, 40f), "Coming Soon", FLabelAlignment.Left, false);
         placeholder.greyedOut = true;
         this.Tabs[0].AddItems(placeholder, placeholderLabel);
@@ -95,10 +95,15 @@ public class DownpourConfig : OptionInterface
 
         //Raindrops
         OptionalUI.OpLabel rainOption = new OpLabel(new Vector2(30f, 208f), new Vector2(400f, 40f), "Raindrops", FLabelAlignment.Left, true);
-        OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 188f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned each frame.", FLabelAlignment.Left, false);
+        OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 188f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned a single room.", FLabelAlignment.Left, false);
         OptionalUI.OpLabel rainOptionWarning = new OpLabel(new Vector2(30f, 173f), new Vector2(400f, 40f), "Warning: You may experience significant framedrops if this slider is set too high.", FLabelAlignment.Left, false);
-        OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 140f), "rainAmount", new IntVector2(10, 80), 4f, false, 50);
+        OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 140f), "rainAmount", new IntVector2(10, 80), 4.22f, false, 50);
         this.Tabs[0].AddItems(rainSlider, rainOption, rainOptionDescription, rainOptionWarning);
+        //Rain Chance
+        OptionalUI.OpLabel rainChance = new OpLabel(new Vector2(30f, 108f), new Vector2(400f, 40f), "Rain Chance", FLabelAlignment.Left, true);
+        OptionalUI.OpLabel rainChanceDescription = new OpLabel(new Vector2(30f, 88f), new Vector2(400f, 40f), "Configure the chance rain will occur.", FLabelAlignment.Left, false);
+        OptionalUI.OpSlider rainChanceSlider = new OpSlider(new Vector2(30f, 55f), "rainChance", new IntVector2(0, 100), 3f, false, 75);
+        this.Tabs[0].AddItems(rainChance, rainChanceDescription, rainChanceSlider);
         //Regions 
         if (regionList != null)
         {
@@ -212,21 +217,7 @@ public class DownpourConfig : OptionInterface
             Downpour.intensity = 3;
             Downpour.dynamic = false;
         }
-        if (OptionalUI.OptionInterface.config["Direction"] == "0")
-        {
-            Downpour.direction = 0;
-        }
-        if (OptionalUI.OptionInterface.config["Direction"] == "1")
-        {
-            Downpour.direction = 1;
-        }
-        if (OptionalUI.OptionInterface.config["Direction"] == "2")
-        {
-            Downpour.direction = 2;
-        }
-        if (OptionalUI.OptionInterface.config["Direction"] == "3")
-        {
-            Downpour.direction = 3;
-        }
+        Downpour.direction = int.Parse(OptionalUI.OptionInterface.config["Direction"]);
+        Downpour.rainChance = int.Parse(OptionalUI.OptionInterface.config["rainChance"]);
     }
 }
