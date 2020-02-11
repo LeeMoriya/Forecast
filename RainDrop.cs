@@ -182,10 +182,10 @@ public class RainDrop : CosmeticSprite
             this.splashCounter = 0f;
             this.reset = false;
         }
-        if (this.room.world.rainCycle.RainDarkPalette > 0f)
+        if (this.room.world.rainCycle.RainDarkPalette > 0f && reset)
         {
             float rng = UnityEngine.Random.value;
-            if(rng < 0.0005f)
+            if(rng < 0.15f)
             {
                 this.Destroy();
             }
