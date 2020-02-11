@@ -95,9 +95,9 @@ public class DownpourConfig : OptionInterface
 
         //Raindrops
         OptionalUI.OpLabel rainOption = new OpLabel(new Vector2(30f, 208f), new Vector2(400f, 40f), "Raindrops", FLabelAlignment.Left, true);
-        OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 188f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned a single room.", FLabelAlignment.Left, false);
+        OptionalUI.OpLabel rainOptionDescription = new OpLabel(new Vector2(30f, 188f), new Vector2(400f, 40f), "Configure the maximum amount of raindrops that can be spawned a single room (x10).", FLabelAlignment.Left, false);
         OptionalUI.OpLabel rainOptionWarning = new OpLabel(new Vector2(30f, 173f), new Vector2(400f, 40f), "Warning: You may experience significant framedrops if this slider is set too high.", FLabelAlignment.Left, false);
-        OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 140f), "rainAmount", new IntVector2(10, 80), 4.22f, false, 50);
+        OptionalUI.OpSlider rainSlider = new OpSlider(new Vector2(30f, 140f), "rainAmount", new IntVector2(10, 80), 4.235f, false, 50);
         this.Tabs[0].AddItems(rainSlider, rainOption, rainOptionDescription, rainOptionWarning);
         //Rain Chance
         OptionalUI.OpLabel rainChance = new OpLabel(new Vector2(30f, 108f), new Vector2(400f, 40f), "Rain Chance", FLabelAlignment.Left, true);

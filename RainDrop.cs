@@ -166,7 +166,7 @@ public class RainDrop : CosmeticSprite
             this.lastLastLastPos = this.resetPos;
             this.collision = false;
             this.timeToDie = false;
-            if(this.spawner.direction == 1)
+            if (this.spawner.direction == 1)
             {
                 this.vel.x = Mathf.Lerp(UnityEngine.Random.Range(5f, -2f), UnityEngine.Random.Range(-15f, -2f), RainFall.rainIntensity);
             }
@@ -181,6 +181,14 @@ public class RainDrop : CosmeticSprite
             this.vel.y = UnityEngine.Random.Range(-10f * RainFall.rainIntensity, -18f * RainFall.rainIntensity);
             this.splashCounter = 0f;
             this.reset = false;
+        }
+        if (this.room.world.rainCycle.RainDarkPalette > 0f)
+        {
+            float rng = UnityEngine.Random.value;
+            if(rng < 0.0005f)
+            {
+                this.Destroy();
+            }
         }
         this.lastLastLastPos = this.lastLastPos;
         this.lastLastPos = this.lastPos;

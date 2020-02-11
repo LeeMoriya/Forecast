@@ -42,7 +42,7 @@ class RainSound : UpdatableAndDeletable
                     interiorRainSound.Volume = 0.2f;
                     rumbleSound = new DisembodiedDynamicSoundLoop(this);
                     rumbleSound.sound = SoundID.Death_Rain_Heard_From_Underground_LOOP;
-                    rumbleSound.Volume = 0.1f;
+                    rumbleSound.Volume = 0.4f;
                 }
             }
             else
