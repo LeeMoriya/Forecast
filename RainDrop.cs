@@ -152,6 +152,11 @@ public class RainDrop : CosmeticSprite
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
         if (this.reset)
         {
+            float rng = UnityEngine.Random.value;
+            if (rng < 0.15f)
+            {
+                this.Destroy();
+            }
             if (player.mainBodyChunk != null && !player.inShortcut)
             {
                 this.resetPos = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
@@ -181,14 +186,6 @@ public class RainDrop : CosmeticSprite
             this.vel.y = UnityEngine.Random.Range(-10f * RainFall.rainIntensity, -18f * RainFall.rainIntensity);
             this.splashCounter = 0f;
             this.reset = false;
-        }
-        if (this.room.world.rainCycle.RainDarkPalette > 0f && reset)
-        {
-            float rng = UnityEngine.Random.value;
-            if(rng < 0.15f)
-            {
-                this.Destroy();
-            }
         }
         this.lastLastLastPos = this.lastLastPos;
         this.lastLastPos = this.lastPos;
