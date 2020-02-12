@@ -48,7 +48,7 @@ public class SnowFlake : CosmeticSprite
             this.color = Color.Lerp(color, new Color(1f, 1f, 1f), 0.7f);
         }
         this.resetPos = pos;
-        this.pos = pos;
+        this.pos = new Vector2(pos.x, pos.y - UnityEngine.Random.Range(100f, 600f));
         this.lastPos = this.pos;
         this.lastLastPos = this.pos;
         this.lastLastLastPos = this.pos;
