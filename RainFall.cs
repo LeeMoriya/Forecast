@@ -214,13 +214,13 @@ public class RainFall
         {
             if (self.game != null && !self.abstractRoom.shelter && Downpour.lightning && self.roomRain != null)
             {
-                if (self.roomRain.dangerType == RoomRain.DangerType.Rain && startingIntensity > 0.5f)
+                if (self.roomRain.dangerType == RoomRain.DangerType.Rain && startingIntensity > 0.5f && self.world.region.name != "UW")
                 {
                     self.lightning = new Lightning(self, 1f, false);
                     self.lightning.bkgOnly = true;
                     self.AddObject(self.lightning);
                 }
-                if (self.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && startingIntensity > 0.5f)
+                if (self.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && startingIntensity > 0.5f && self.world.region.name != "UW")
                 {
                     self.lightning = new Lightning(self, 1f, false);
                     self.lightning.bkgOnly = true;

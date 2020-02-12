@@ -242,16 +242,25 @@ public class RainDrop : CosmeticSprite
             }
         }
         //Raindrop hits floor or water
-        if ((this.room.GetTile(this.pos).Solid || this.room.GetTile(this.pos).AnyWater))
+        bool hitWater = this.room.GetTile(this.pos).AnyWater;
+        if (hitWater && Downpour.water)
+        {
+            if (room.water && UnityEngine.Random.value > 0.98)
+            {
+                room.waterObject?.Explosion(this.pos, 0.45f, 0.89f);
+            }
+        }
+        //Raindrop hits floor or water
+        if (this.room.GetTile(this.pos).Solid || hitWater)
         {
             //Decrease velocity if raindrop hits a solid surface or water and increase splash counter
             if (UnityEngine.Random.value > 0.01f)
             {
                 if (this.vel.y < 0f && !timeToDie)
                 {
-                    if (this.room.GetTile(this.pos).AnyWater)
+                    if (hitWater)
                     {
-                        this.pos.y = this.room.MiddleOfTile(this.pos).y + UnityEngine.Random.Range(-4f, 3f);
+                        this.pos.y = this.room.MiddleOfTile(this.pos).y + UnityEngine.Random.Range(2f, 9f);
                     }
                     else
                     {
@@ -313,18 +322,13 @@ public class RainDrop : CosmeticSprite
         sLeaser.sprites[1].x = vector.x - camPos.x;
         sLeaser.sprites[1].y = vector.y - camPos.y;
         sLeaser.sprites[1].rotation = UnityEngine.Random.value * 360f;
-        if (reset)
-        {
-            sLeaser.sprites[0].color = Color.Lerp(new Color(color.r + 0.35f, color.g + 0.35f, color.b + 0.35f), color, this.depth * 0.85f);
-            sLeaser.sprites[1].color = Color.Lerp(new Color(color.r + 0.35f, color.g + 0.35f, color.b + 0.35f), color, this.depth * 0.85f);
-        }
-        else if (Downpour.rainbow)
+        if (Downpour.rainbow)
         {
             sLeaser.sprites[0].color = Color.Lerp(color, Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.36f);
         }
         else
         {
-            sLeaser.sprites[0].color = Color.Lerp(new Color(1f, 1f, 1f), Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.83f);
+            sLeaser.sprites[0].color = Color.Lerp(new Color(1f,1f,1f), Color.Lerp(rCam.currentPalette.fogColor, Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.83f),0.95f);
         }
         //If background drops encounter a depth in the room texture lower than their own depth value, treat it as a collision.
         if (backgroundDrop && !reset && !this.collision && rCam.IsViewedByCameraPosition(rCam.cameraNumber, this.pos) && rCam.DepthAtCoordinate(this.pos) < this.depth)

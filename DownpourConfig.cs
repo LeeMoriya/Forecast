@@ -45,7 +45,7 @@ public class DownpourConfig : OptionInterface
         this.Tabs[0].AddItems(intensityGroup, highLabel, intensityDynamic, intensityHigh, intensityMed, intensityLow, rainIntensity, rainIntensityDescription, medLabel, lowLabel, dynamicLabel);
         //Lightning
         OptionalUI.OpLabel environmentOption = new OpLabel(new Vector2(30f, 460f), new Vector2(400f, 40f), "Environment", FLabelAlignment.Left, true);
-        OptionalUI.OpLabel lightningOptionDescription = new OpLabel(new Vector2(30f, 437f), new Vector2(400f, 40f), "Configure which effects are added to the environment during heavy rain.", FLabelAlignment.Left, false);
+        OptionalUI.OpLabel lightningOptionDescription = new OpLabel(new Vector2(30f, 437f), new Vector2(400f, 40f), "Enable or disable different environmental settings:", FLabelAlignment.Left, false);
         OptionalUI.OpCheckBox lightningCheck = new OpCheckBox(new Vector2(30f, 415f), "Lightning", true);
         lightningCheck.description = "Lightning will have a chance of appearing if the starting intensity is high enough.";
         OptionalUI.OpLabel lightningLabel = new OpLabel(new Vector2(60f, 408f), new Vector2(400f, 40f), "Lightning storms", FLabelAlignment.Left, false);
@@ -66,11 +66,10 @@ public class DownpourConfig : OptionInterface
         OptionalUI.OpLabel muteLabel = new OpLabel(new Vector2(230f, 378f), new Vector2(400f, 40f), "Mute interior rain sound", FLabelAlignment.Left, false);
         this.Tabs[0].AddItems(muteCheck, muteLabel);
         //Coming soon
-        OptionalUI.OpCheckBox placeholder = new OpCheckBox(new Vector2(200f, 355f), "placeholder", false);
-        //snowOn.description = "Replace rain with snow.";
-        OptionalUI.OpLabel placeholderLabel = new OpLabel(new Vector2(230f, 348f), new Vector2(400f, 40f), "Coming Soon", FLabelAlignment.Left, false);
-        placeholder.greyedOut = true;
-        this.Tabs[0].AddItems(placeholder, placeholderLabel);
+        OptionalUI.OpCheckBox waterCheck = new OpCheckBox(new Vector2(200f, 355f), "Water", true);
+        waterCheck.description = "Rain drops can interact with water surfaces and cause ripples, may impact performance.";
+        OptionalUI.OpLabel waterLabel = new OpLabel(new Vector2(230f, 348f), new Vector2(400f, 40f), "Water ripples", FLabelAlignment.Left, false);
+        this.Tabs[0].AddItems(waterCheck, waterLabel);
         //Background Rain
         OptionalUI.OpCheckBox bgOn = new OpCheckBox(new Vector2(30f, 355f), "Background", true);
         bgOn.description = "Enable or disable collision with background elements.";
@@ -169,6 +168,14 @@ public class DownpourConfig : OptionInterface
         else
         {
             Downpour.interiorRain = true;
+        }
+        if (OptionalUI.OptionInterface.config["Water"] == "false")
+        {
+            Downpour.water = false;
+        }
+        else
+        {
+            Downpour.water = true;
         }
         if (OptionalUI.OptionInterface.config["Background"] == "false")
         {
