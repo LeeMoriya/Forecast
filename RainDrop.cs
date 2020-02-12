@@ -11,6 +11,7 @@ public class Preciptator : UpdatableAndDeletable
     public bool isSnow;
     public Room currentRoom;
     public int rainDrops;
+    public int snowFlakes;
     public float rainAmount;
     public Vector2 spawn;
     public FloatRect roomBounds;
@@ -23,6 +24,7 @@ public class Preciptator : UpdatableAndDeletable
     {
         this.roomBounds = room.RoomRect;
         this.rainDrops = 0;
+        this.snowFlakes = 0;
         this.room = room;
         this.isSnow = isSnow;
         this.ceilingCount = ceilingCount;
@@ -57,7 +59,38 @@ public class Preciptator : UpdatableAndDeletable
                         this.rainDrops++;
                     }
                 }
+            }
+        }
+    }
 
+    public void AddSnowflakes(int snowFlakesToSpawn)
+    {
+        if (room != null)
+        {
+            for (int i = 0; i < snowFlakesToSpawn; i++)
+            {
+                if (player != null && player.mainBodyChunk.pos != null && player.inShortcut == false)
+                {
+                    spawn = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top - 5f);
+                    IntVector2 tilePos = room.GetTilePosition(spawn);
+                    if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
+                    {
+                        SnowFlake snowFlake = new SnowFlake(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity, this);
+                        this.room.AddObject(snowFlake);
+                        this.snowFlakes++;
+                    }
+                }
+                else
+                {
+                    spawn = new Vector2(UnityEngine.Random.Range(this.room.RoomRect.left - 100f, this.room.RoomRect.right + 100f), this.roomBounds.top - 5f);
+                    IntVector2 tilePos = room.GetTilePosition(spawn);
+                    if (room.RayTraceTilesForTerrain(tilePos.x, tilePos.y, tilePos.x, tilePos.y - 3))
+                    {
+                        SnowFlake snowFlake = new SnowFlake(new Vector2(spawn.x, spawn.y + UnityEngine.Random.Range(70f, 250f)), Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity, this);
+                        this.room.AddObject(snowFlake);
+                        this.snowFlakes++;
+                    }
+                }
             }
         }
     }
@@ -82,13 +115,30 @@ public class Preciptator : UpdatableAndDeletable
             }
         }
         this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
-        this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 10), RainFall.rainIntensity);
+        if (isSnow)
+        {
+            this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 30), RainFall.rainIntensity);
+        }
+        else
+        {
+            this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 10), RainFall.rainIntensity);
+        }
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
         if (this.room.game != null && this.room != null && !room.abstractRoom.gate && this.room.ReadyForPlayer)
         {
-            if (this.rainDrops < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
+            if (!isSnow)
             {
-                this.AddRaindrops(rainLimit - this.rainDrops);
+                if (this.rainDrops < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
+                {
+                    this.AddRaindrops(rainLimit - this.rainDrops);
+                }
+            }
+            else
+            {
+                if (this.snowFlakes < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
+                {
+                    this.AddSnowflakes(rainLimit - this.snowFlakes);
+                }
             }
         }
     }

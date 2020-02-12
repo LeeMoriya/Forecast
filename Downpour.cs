@@ -41,7 +41,7 @@ public class Downpour : PartialityMod
     public static bool rainbow = false;
     public static bool configLoaded = false;
     public static bool debug = true;
-    public static bool snow = false;
+    public static bool snow = true;
     public static bool bg = true;
     public static bool water = true;
     public static List<string> rainRegions = new List<string>();
