@@ -138,6 +138,7 @@ class RainPalette
             texture.anisoLevel = 0;
             texture.filterMode = FilterMode.Point;
             {
+                //Load regular palette texture
                 self.www = new WWW(string.Concat(new object[]
                 {
                 "file:///",
@@ -164,7 +165,9 @@ class RainPalette
             if (self.room != null)
             {
                 Color[] colors = texture.GetPixels();
+                Color[] surfaceColors = Downpour.snowTex.GetPixels(0, 2, 29, 1);
                 Color[] newColors = new Color[colors.Length];
+                Color[] snowColors = Downpour.snowTex.GetPixels();
                 for (int i = 0; i < colors.Length; i++)
                 {
                     if (!Downpour.snow)
@@ -177,7 +180,7 @@ class RainPalette
                     {
                         if (!RainFall.noRain)
                         {
-                            newColors[i] = Color.Lerp(colors[i], new Color(1f, 1f, 1f), darkness * 0.2f);
+                            newColors[i] = Color.Lerp(colors[i], snowColors[i], RainFall.rainIntensity);
                             texture.SetPixels(newColors);
                         }
                         else

@@ -98,6 +98,7 @@ public class Preciptator : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
+        this.isSnow = Downpour.snow;
         if (Downpour.debug)
         {
             if (Input.GetKey(KeyCode.Alpha4))
@@ -117,7 +118,7 @@ public class Preciptator : UpdatableAndDeletable
         this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
         if (isSnow)
         {
-            this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 30), RainFall.rainIntensity);
+            this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 15), RainFall.rainIntensity);
         }
         else
         {
@@ -128,6 +129,7 @@ public class Preciptator : UpdatableAndDeletable
         {
             if (!isSnow)
             {
+                this.snowFlakes = 0;
                 if (this.rainDrops < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
                 {
                     this.AddRaindrops(rainLimit - this.rainDrops);
@@ -135,6 +137,7 @@ public class Preciptator : UpdatableAndDeletable
             }
             else
             {
+                this.rainDrops = 0;
                 if (this.snowFlakes < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
                 {
                     this.AddSnowflakes(rainLimit - this.snowFlakes);
@@ -208,6 +211,10 @@ public class RainDrop : CosmeticSprite
         {
             float rng = UnityEngine.Random.value;
             if (rng < 0.05f && this.room.world.rainCycle.RainDarkPalette > 0)
+            {
+                this.Destroy();
+            }
+            if (Downpour.snow)
             {
                 this.Destroy();
             }
@@ -292,13 +299,19 @@ public class RainDrop : CosmeticSprite
             }
         }
         //Raindrop hits floor or water
-        bool hitWater = this.room.GetTile(this.pos).AnyWater;
+        bool hitWater = this.room.GetTile(this.pos).WaterSurface;
         if (hitWater && Downpour.water)
         {
             if (room.water && UnityEngine.Random.value > 0.98)
             {
                 room.waterObject?.Explosion(this.pos, 0.45f, 0.89f);
             }
+            this.pos.y = this.room.MiddleOfTile(this.pos).y + UnityEngine.Random.Range(2f, 9f);
+            this.vel.y = this.vel.y * -0.01f;
+            this.vel.x = this.vel.x * 0.2f;
+            timeToDie = true;
+            splashCounter = UnityEngine.Random.Range(0.9f, 1.1f);
+            collision = true;
         }
         //Raindrop hits floor or water
         if (this.room.GetTile(this.pos).Solid || hitWater)
@@ -308,14 +321,7 @@ public class RainDrop : CosmeticSprite
             {
                 if (this.vel.y < 0f && !timeToDie)
                 {
-                    if (hitWater)
-                    {
-                        this.pos.y = this.room.MiddleOfTile(this.pos).y + UnityEngine.Random.Range(2f, 9f);
-                    }
-                    else
-                    {
-                        this.pos.y = this.room.MiddleOfTile(this.pos).y + 11f;
-                    }
+                    this.pos.y = this.room.MiddleOfTile(this.pos).y + 11f;
                     this.vel.y = this.vel.y * -0.01f;
                     this.vel.x = this.vel.x * 0.2f;
                     timeToDie = true;

@@ -17,6 +17,8 @@ public class RainFall
     public static List<string> rainList = new List<string>();
     public static int direction;
     public static bool noRainThisCycle = false;
+    public static float floodLevel = 0;
+    public static bool flooding = false;
 
     public static void Patch()
     {
@@ -285,7 +287,7 @@ public class RainFall
             }
             if (Input.GetKey(KeyCode.Alpha5))
             {
-                self.world.rainCycle.timer += 10;
+                self.world.rainCycle.timer += 20;
             }
 
         }
@@ -298,8 +300,18 @@ public class RainFall
             }
             else
             {
-                rainIntensity = Mathf.Lerp(0.9f, 0f, self.world.rainCycle.RainDarkPalette);
+                rainIntensity = Mathf.Lerp(0.95f, 0f, self.world.rainCycle.RainDarkPalette);
             }
+        }
+        //Flooding tests
+        if(self.waterObject != null && rainIntensity > 0.7f)
+        {
+            //flooding = true;
+            //self.waterObject.fWaterLevel = self.waterObject.originalWaterLevel + floodLevel;
+        }
+        else
+        {
+            flooding = false;
         }
     }
 }
