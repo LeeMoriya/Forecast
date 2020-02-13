@@ -28,6 +28,16 @@ public class RainFall
         On.Lightning.ctor += Lightning_ctor;
         On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize;
+        On.ProcessManager.UpdateFade += ProcessManager_UpdateFade;
+    }
+
+    private static void ProcessManager_UpdateFade(On.ProcessManager.orig_UpdateFade orig, ProcessManager self)
+    {
+        orig.Invoke(self);
+        if(self.fadeSprite != null && Downpour.snow)
+        {
+            self.fadeSprite.color = new Color(0.75f, 0.75f, 0.75f);
+        }
     }
 
     private static void AbstractRoom_Abstractize(On.AbstractRoom.orig_Abstractize orig, AbstractRoom self)
@@ -79,7 +89,7 @@ public class RainFall
             self.lightningSources[i] = new Lightning.LightningSource(self, i == 1);
         }
         self.bkgGradient = new Color[2];
-        if (!room.game.IsArenaSession && room.world.region.name == "UW")
+        if (!room.game.IsArenaSession && (room.world.region.name == "UW" || room.world.region.name == "TR"))
         {
             self.bkgGradient[0] = new Color(0.19607843f, 0.23529412f, 0.78431374f);
             self.bkgGradient[1] = new Color(0.21176471f, 1f, 0.22352941f);
@@ -216,13 +226,13 @@ public class RainFall
         {
             if (self.game != null && !self.abstractRoom.shelter && Downpour.lightning && self.roomRain != null)
             {
-                if (self.roomRain.dangerType == RoomRain.DangerType.Rain && startingIntensity > 0.5f && self.world.region.name != "UW")
+                if (self.roomRain.dangerType == RoomRain.DangerType.Rain && startingIntensity > 0.5f && self.lightning == null)
                 {
                     self.lightning = new Lightning(self, 1f, false);
                     self.lightning.bkgOnly = true;
                     self.AddObject(self.lightning);
                 }
-                if (self.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && startingIntensity > 0.5f && self.world.region.name != "UW")
+                if (self.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && startingIntensity > 0.5f && self.lightning == null)
                 {
                     self.lightning = new Lightning(self, 1f, false);
                     self.lightning.bkgOnly = true;

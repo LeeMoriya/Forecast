@@ -15,6 +15,8 @@ class RainPalette
     }
 
     public static float darkness;
+    public static Texture2D snow;
+    public static int ceiling;
 
     //Room effect color changes
     private static void RoomCamera_ApplyEffectColorsToPaletteTexture(On.RoomCamera.orig_ApplyEffectColorsToPaletteTexture orig, RoomCamera self, ref Texture2D texture, int color1, int color2)
@@ -95,7 +97,6 @@ class RainPalette
                             if (!RainFall.noRain)
                             {
                                 newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
-                                newColors[i] = Color.Lerp(newColors[i], new Color(1f, 1f, 1f), darkness * 0.5f);
                                 self.allEffectColorsTexture.SetPixels(newColors);
                             }
                             else
@@ -137,6 +138,9 @@ class RainPalette
             texture = new Texture2D(32, 16, TextureFormat.ARGB32, false);
             texture.anisoLevel = 0;
             texture.filterMode = FilterMode.Point;
+            snow = new Texture2D(32, 16, TextureFormat.ARGB32, false);
+            snow.anisoLevel = 0;
+            snow.filterMode = FilterMode.Point;
             {
                 //Load regular palette texture
                 self.www = new WWW(string.Concat(new object[]
@@ -156,6 +160,24 @@ class RainPalette
                 ".png"
                 }));
                 self.www.LoadImageIntoTexture(texture);
+                //Load snow palette texture
+                self.www = new WWW(string.Concat(new object[]
+                {
+                "file:///",
+                Custom.RootFolderDirectory(),
+                "Assets",
+                Path.DirectorySeparatorChar,
+                "Futile",
+                Path.DirectorySeparatorChar,
+                "Resources",
+                Path.DirectorySeparatorChar,
+                "Palettes",
+                Path.DirectorySeparatorChar,
+                "palette",
+                36,
+                ".png"
+                }));
+                self.www.LoadImageIntoTexture(snow);
             }
             if (self.room != null)
             {
@@ -165,9 +187,8 @@ class RainPalette
             if (self.room != null)
             {
                 Color[] colors = texture.GetPixels();
-                Color[] surfaceColors = Downpour.snowTex.GetPixels(0, 2, 29, 1);
                 Color[] newColors = new Color[colors.Length];
-                Color[] snowColors = Downpour.snowTex.GetPixels();
+                Color[] snowColors = snow.GetPixels();
                 for (int i = 0; i < colors.Length; i++)
                 {
                     if (!Downpour.snow)
@@ -178,9 +199,10 @@ class RainPalette
                     }
                     else
                     {
-                        if (!RainFall.noRain)
+                        if (!RainFall.noRain && ceiling < (self.room.Width * 0.95))
                         {
-                            newColors[i] = Color.Lerp(colors[i], snowColors[i], RainFall.rainIntensity);
+                            newColors[i] = colors[i];
+                            newColors[i] = Custom.Screen(newColors[i], snowColors[i]);
                             texture.SetPixels(newColors);
                         }
                         else
