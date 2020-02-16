@@ -15,8 +15,9 @@ class RainPalette
     }
 
     public static float darkness;
-    public static Texture2D snow;
-    public static int ceiling;
+    public static Texture2D exterior1;
+    public static Texture2D exterior2;
+    public static Texture2D interior1;
 
     //Room effect color changes
     private static void RoomCamera_ApplyEffectColorsToPaletteTexture(On.RoomCamera.orig_ApplyEffectColorsToPaletteTexture orig, RoomCamera self, ref Texture2D texture, int color1, int color2)
@@ -138,9 +139,15 @@ class RainPalette
             texture = new Texture2D(32, 16, TextureFormat.ARGB32, false);
             texture.anisoLevel = 0;
             texture.filterMode = FilterMode.Point;
-            snow = new Texture2D(32, 16, TextureFormat.ARGB32, false);
-            snow.anisoLevel = 0;
-            snow.filterMode = FilterMode.Point;
+            exterior1 = new Texture2D(32, 16, TextureFormat.ARGB32, false);
+            exterior1.anisoLevel = 0;
+            exterior1.filterMode = FilterMode.Point;
+            exterior2 = new Texture2D(32, 16, TextureFormat.ARGB32, false);
+            exterior2.anisoLevel = 0;
+            exterior2.filterMode = FilterMode.Point;
+            interior1 = new Texture2D(32, 16, TextureFormat.ARGB32, false);
+            interior1.anisoLevel = 0;
+            interior1.filterMode = FilterMode.Point;
             {
                 //Load regular palette texture
                 self.www = new WWW(string.Concat(new object[]
@@ -160,6 +167,38 @@ class RainPalette
                 ".png"
                 }));
                 self.www.LoadImageIntoTexture(texture);
+                //Load ext palette 1
+                self.www = new WWW(string.Concat(new object[]
+                {
+                "file:///",
+                Custom.RootFolderDirectory(),
+                "Assets",
+                Path.DirectorySeparatorChar,
+                "Futile",
+                Path.DirectorySeparatorChar,
+                "Resources",
+                Path.DirectorySeparatorChar,
+                "Palettes",
+                Path.DirectorySeparatorChar,
+                "snowExterior1.png"
+                }));
+                self.www.LoadImageIntoTexture(exterior1);
+                //Load ext palette 2
+                self.www = new WWW(string.Concat(new object[]
+                {
+                "file:///",
+                Custom.RootFolderDirectory(),
+                "Assets",
+                Path.DirectorySeparatorChar,
+                "Futile",
+                Path.DirectorySeparatorChar,
+                "Resources",
+                Path.DirectorySeparatorChar,
+                "Palettes",
+                Path.DirectorySeparatorChar,
+                "snowExterior2.png"
+                }));
+                self.www.LoadImageIntoTexture(exterior2);
                 //Load snow palette texture
                 self.www = new WWW(string.Concat(new object[]
                 {
@@ -173,11 +212,9 @@ class RainPalette
                 Path.DirectorySeparatorChar,
                 "Palettes",
                 Path.DirectorySeparatorChar,
-                "palette",
-                36,
-                ".png"
+                "snowInterior1.png"
                 }));
-                self.www.LoadImageIntoTexture(snow);
+                self.www.LoadImageIntoTexture(interior1);
             }
             if (self.room != null)
             {
@@ -188,25 +225,37 @@ class RainPalette
             {
                 Color[] colors = texture.GetPixels();
                 Color[] newColors = new Color[colors.Length];
-                Color[] snowColors = snow.GetPixels();
+                Color[] exterior1Cols = exterior1.GetPixels();
+                Color[] exterior2Cols = exterior2.GetPixels();
+                Color[] interior1Cols = interior1.GetPixels();
                 for (int i = 0; i < colors.Length; i++)
                 {
+                    //Rain
                     if (!Downpour.snow)
                     {
                         newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
                         newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 0.05f);
                         texture.SetPixels(newColors);
                     }
+                    //Snow
                     else
                     {
-                        if (!RainFall.noRain && ceiling < (self.room.Width * 0.95))
+                        //Exterior
+                        if (!RainFall.noRain && self.loadingRoom.roomSettings.DangerType == RoomRain.DangerType.Rain && self.loadingRoom.world.region.name != "HI")
                         {
                             newColors[i] = colors[i];
-                            newColors[i] = Custom.Screen(newColors[i], snowColors[i]);
+                            newColors[i] = Custom.Screen(newColors[i], exterior1Cols[i]);
                             texture.SetPixels(newColors);
+                        }
+                        else if (!RainFall.noRain && self.loadingRoom.roomSettings.DangerType == RoomRain.DangerType.Rain)
+                        {
+                            newColors[i] = colors[i];
+                            newColors[i] = Custom.Screen(newColors[i], exterior2Cols[i]);
+                            texture.SetPixels(colors);
                         }
                         else
                         {
+                            newColors[i] = colors[i];
                             texture.SetPixels(colors);
                         }
                     }

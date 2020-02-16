@@ -257,6 +257,7 @@ public class RainFall
                     if (ceilingCount < (self.Width * 0.95) && !noRain)
                     {
                         self.AddObject(new Preciptator(self, Downpour.snow, ceilingCount));
+
                     }
                     rainList.Add(self.abstractRoom.name);
                     ceilingCount = 0;

@@ -118,7 +118,7 @@ public class Preciptator : UpdatableAndDeletable
         this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
         if (isSnow)
         {
-            this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 15), RainFall.rainIntensity);
+            this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 18), RainFall.rainIntensity);
         }
         else
         {
@@ -393,6 +393,10 @@ public class RainDrop : CosmeticSprite
             timeToDie = true;
             sLeaser.sprites[1].color = Color.Lerp(color, rCam.PixelColorAtCoordinate(this.pos), 0.7f);
             this.collision = true;
+        }
+        if(splashCounter > 0f && !backgroundDrop)
+        {
+            sLeaser.sprites[1].color = Color.Lerp(color, rCam.PixelColorAtCoordinate(this.pos), 0.2f);
         }
         if (splashCounter > 0f)
         {

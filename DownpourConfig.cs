@@ -65,8 +65,8 @@ public class DownpourConfig : OptionInterface
         muteCheck.description = "Mute the sound effect added to interiors when its raining outside.";
         OptionalUI.OpLabel muteLabel = new OpLabel(new Vector2(230f, 378f), new Vector2(400f, 40f), "Mute interior rain sound", FLabelAlignment.Left, false);
         this.Tabs[0].AddItems(muteCheck, muteLabel);
-        //Coming soon
-        OptionalUI.OpCheckBox waterCheck = new OpCheckBox(new Vector2(200f, 355f), "Water", true);
+        //Water Ripples
+        OptionalUI.OpCheckBox waterCheck = new OpCheckBox(new Vector2(200f, 355f), "Water", false);
         waterCheck.description = "Rain drops can interact with water surfaces and cause ripples, may impact performance.";
         OptionalUI.OpLabel waterLabel = new OpLabel(new Vector2(230f, 348f), new Vector2(400f, 40f), "Water ripples", FLabelAlignment.Left, false);
         this.Tabs[0].AddItems(waterCheck, waterLabel);

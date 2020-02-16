@@ -49,7 +49,7 @@ public class Downpour : PartialityMod
     public Downpour()
     {
         this.ModID = "Downpour";
-        this.Version = "v0.4";
+        this.Version = "v0.5";
         this.author = "LeeMoriya";
     }
     public override void OnEnable()
