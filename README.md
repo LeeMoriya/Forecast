@@ -3,6 +3,8 @@ A mod for Rain World that adds dynamic and configurable rainfall.
 
 ![Downpour](https://i.imgur.com/hPblP6q.gif)
 
+Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
+
 ## Features
 - Adds a rain effect during cycles to outdoor rooms
 - Rain intensity increases as the cycle progresses
@@ -34,6 +36,12 @@ Get the latest version of the mod from the releases page [here.](https://github.
 1. Install Partiality for Rain World.
 2. Drop Downpour.dll and its requirements above into your Mods folder.
 3. Tick the mods in the Partiality Launcher and click 'Apply Mods'.
+
+## Compatibility
+The mod is currently known to be incompatible with the following:
+- MoodMod
+
+If you are aware of any other incompatible mods, please let me know and I'll list them here.
 
 ## Credits
 Special thanks to Slime_Cubed for helping improve performance.
