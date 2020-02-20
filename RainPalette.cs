@@ -180,41 +180,9 @@ class RainPalette
                 Path.DirectorySeparatorChar,
                 "Palettes",
                 Path.DirectorySeparatorChar,
-                "snowExterior1.png"
+                "palette36.png"
                 }));
                 self.www.LoadImageIntoTexture(exterior1);
-                //Load ext palette 2
-                self.www = new WWW(string.Concat(new object[]
-                {
-                "file:///",
-                Custom.RootFolderDirectory(),
-                "Assets",
-                Path.DirectorySeparatorChar,
-                "Futile",
-                Path.DirectorySeparatorChar,
-                "Resources",
-                Path.DirectorySeparatorChar,
-                "Palettes",
-                Path.DirectorySeparatorChar,
-                "snowExterior2.png"
-                }));
-                self.www.LoadImageIntoTexture(exterior2);
-                //Load snow palette texture
-                self.www = new WWW(string.Concat(new object[]
-                {
-                "file:///",
-                Custom.RootFolderDirectory(),
-                "Assets",
-                Path.DirectorySeparatorChar,
-                "Futile",
-                Path.DirectorySeparatorChar,
-                "Resources",
-                Path.DirectorySeparatorChar,
-                "Palettes",
-                Path.DirectorySeparatorChar,
-                "snowInterior1.png"
-                }));
-                self.www.LoadImageIntoTexture(interior1);
             }
             if (self.room != null)
             {
@@ -226,8 +194,6 @@ class RainPalette
                 Color[] colors = texture.GetPixels();
                 Color[] newColors = new Color[colors.Length];
                 Color[] exterior1Cols = exterior1.GetPixels();
-                Color[] exterior2Cols = exterior2.GetPixels();
-                Color[] interior1Cols = interior1.GetPixels();
                 for (int i = 0; i < colors.Length; i++)
                 {
                     //Rain
@@ -241,17 +207,11 @@ class RainPalette
                     else
                     {
                         //Exterior
-                        if (!RainFall.noRain && self.loadingRoom.roomSettings.DangerType == RoomRain.DangerType.Rain && self.loadingRoom.world.region.name != "HI")
+                        if (!RainFall.noRain && self.loadingRoom.roomSettings.DangerType == RoomRain.DangerType.Rain)
                         {
                             newColors[i] = colors[i];
                             newColors[i] = Custom.Screen(newColors[i], exterior1Cols[i]);
                             texture.SetPixels(newColors);
-                        }
-                        else if (!RainFall.noRain && self.loadingRoom.roomSettings.DangerType == RoomRain.DangerType.Rain)
-                        {
-                            newColors[i] = colors[i];
-                            newColors[i] = Custom.Screen(newColors[i], exterior2Cols[i]);
-                            texture.SetPixels(colors);
                         }
                         else
                         {

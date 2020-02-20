@@ -144,7 +144,79 @@ public class Preciptator : UpdatableAndDeletable
                 }
             }
         }
+        for (int i = 0; i < this.room.game.Players.Count; i++)
+        {
+            if (this.room.game.Players[i].realizedCreature != null && this.room.game.Players[i].realizedCreature.room == this.room)
+            {
+                for (int j = 0; j < this.room.game.Players[i].realizedCreature.bodyChunks.Length; j++)
+                {
+                    if (this.room.game.Players[i].realizedCreature.bodyChunks[j].ContactPoint.y < 0)
+                    {
+                        if (this.room.game.Players[i].realizedCreature.bodyChunks[j].lastContactPoint.y >= 0 && this.room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.y - this.room.game.Players[i].realizedCreature.bodyChunks[j].pos.y > 5f)
+                        {
+                            this.room.AddObject(new SnowDust(this.room.game.Players[i].realizedCreature.bodyChunks[j].pos + new Vector2(0f, -this.room.game.Players[i].realizedCreature.bodyChunks[j].rad), Custom.LerpMap(this.room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.y - this.room.game.Players[i].realizedCreature.bodyChunks[j].pos.y, 5f, 10f, 0.5f, 1f)));
+                        }
+                        else if (UnityEngine.Random.value < 0.1f && Mathf.Abs(this.room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.x - this.room.game.Players[i].realizedCreature.bodyChunks[j].pos.x) > 3f)
+                        {
+                            this.room.AddObject(new SnowDust(this.room.game.Players[i].realizedCreature.bodyChunks[j].pos + new Vector2(0f, -this.room.game.Players[i].realizedCreature.bodyChunks[j].rad), 0.25f * UnityEngine.Random.value));
+                        }
+                    }
+                }
+            }
+        }
     }
+}
+
+//Snowdust
+public class SnowDust : CosmeticSprite
+{
+    public SnowDust(Vector2 pos, float size)
+    {
+        this.pos = pos;
+        this.lastPos = pos;
+        this.size = size;
+        this.lastLife = 1f;
+        this.life = 1f;
+        this.lifeTime = Mathf.Lerp(40f, 120f, UnityEngine.Random.value) * Mathf.Lerp(0.5f, 1.5f, size);
+    }
+    public override void Update(bool eu)
+    {
+        base.Update(eu);
+        this.pos.y = this.pos.y + 0.5f;
+        this.pos.x = this.pos.x + 0.25f;
+        this.lastLife = this.life;
+        this.life -= 1f / this.lifeTime;
+        if (this.lastLife < 0f)
+        {
+            this.Destroy();
+        }
+    }
+    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+    {
+        sLeaser.sprites = new FSprite[1];
+        sLeaser.sprites[0] = new FSprite("Futile_White", true);
+        sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["Spores"];
+        sLeaser.sprites[0].color = new Color(1f, 1f, 1f);
+        this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("Background"));
+        base.InitiateSprites(sLeaser, rCam);
+    }
+    public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+    {
+        sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
+        sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, timeStacker) - camPos.y;
+        sLeaser.sprites[0].scale = 10f * Mathf.Pow(1f - Mathf.Lerp(this.lastLife, this.life, timeStacker), 0.35f) * Mathf.Lerp(0.5f, 1.5f, this.size);
+        sLeaser.sprites[0].alpha = Mathf.Lerp(this.lastLife, this.life, timeStacker);
+        base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
+    }
+    public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+    {
+        sLeaser.sprites[0].color = palette.texture.GetPixel(9, 5);
+        base.ApplyPalette(sLeaser, rCam, palette);
+    }
+    public float life;
+    public float lastLife;
+    public float lifeTime;
+    public float size;
 }
 
 //Raindrops
