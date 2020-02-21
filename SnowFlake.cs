@@ -91,11 +91,11 @@ public class SnowFlake : CosmeticSprite
         this.lastLastPos = this.lastPos;
         this.vel.x = this.vel.x * (1f + (RainFall.rainIntensity * 0.005f));
         this.vel.y = this.vel.y - (this.gravity * 0.5f) * (RainFall.rainIntensity * 2f);
-        if (this.vel.y < (-10f * RainFall.rainIntensity))
+        if (this.vel.y < (-7f * RainFall.rainIntensity))
         {
-            this.vel.y = (-10f * RainFall.rainIntensity);
+            this.vel.y = (-7f * RainFall.rainIntensity);
         }
-        if ((vel.x > 5f * (RainFall.rainIntensity * 1.1f) || vel.x < -5f * (RainFall.rainIntensity * 1.1f)) && dirCounter <= 0f)
+        if ((vel.x > 4f * (RainFall.rainIntensity * 1.1f) || vel.x < -4f * (RainFall.rainIntensity * 1.1f)) && dirCounter <= 0f)
         {
             this.dir = new Vector2(-this.dir.x, this.dir.y);
             dirCounter = UnityEngine.Random.Range(1f, 5f);
@@ -108,14 +108,7 @@ public class SnowFlake : CosmeticSprite
         }
         if ((this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid || this.room.GetTile(this.pos).Solid || this.room.GetTile(this.pos).AnyWater) && !foreground)
         {
-            if (UnityEngine.Random.Range(0f, 1f) < 0.1f)
-            {
-                foreground = true;
-            }
-            else
-            {
                 this.reset = true;
-            }
         }
         if (this.pos.y < -100f)
         {

@@ -19,7 +19,6 @@ public class Preciptator : UpdatableAndDeletable
     public float ratio;
     public int ceilingCount;
     public float direction;
-
     public Preciptator(Room room, bool isSnow, int ceilingCount)
     {
         this.roomBounds = room.RoomRect;
@@ -29,6 +28,7 @@ public class Preciptator : UpdatableAndDeletable
         this.isSnow = isSnow;
         this.ceilingCount = ceilingCount;
         this.direction = RainFall.direction;
+        this.room.AddObject(new SnowDecal(this.room));
     }
 
     public void AddRaindrops(int rainDropsToSpawn)
@@ -166,6 +166,49 @@ public class Preciptator : UpdatableAndDeletable
         }
     }
 }
+
+public class SnowDecal : CosmeticSprite
+{
+    public SnowDecal(Room room)
+    {
+        this.room = room;
+    }
+    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+    {
+        sLeaser.sprites = new FSprite[1];
+        sLeaser.sprites[0] = new FSprite("Futile_White", true);
+        sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["FlatLightNoisy"];
+        sLeaser.sprites[0].alpha = 0.34f;
+        sLeaser.sprites[0].color = Color.white;
+        sLeaser.sprites[0].scaleX = 10000f;
+        sLeaser.sprites[0].scaleY = 10000f;
+        this.AddToContainer(sLeaser, rCam, null);
+    }
+    public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+    {
+        sLeaser.sprites[0].x = this.pos.x - camPos.x;
+        sLeaser.sprites[0].y = this.pos.y - camPos.y;
+        base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
+    }
+    public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+    {
+    }
+    public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
+    {
+        if (newContatiner == null)
+        {
+            newContatiner = rCam.ReturnFContainer("Foreground");
+        }
+        base.AddToContainer(sLeaser, rCam, newContatiner);
+    }
+    public float rad;
+    public float flipX;
+    public float flipY;
+    public float rotat;
+    public bool bigSprite;
+    public float fade;
+}
+
 
 //Snowdust
 public class SnowDust : CosmeticSprite
