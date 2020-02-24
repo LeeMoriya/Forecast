@@ -178,7 +178,7 @@ public class SnowDecal : CosmeticSprite
         sLeaser.sprites = new FSprite[1];
         sLeaser.sprites[0] = new FSprite("Futile_White", true);
         sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["FlatLightNoisy"];
-        sLeaser.sprites[0].alpha = 0.34f;
+        sLeaser.sprites[0].alpha = 0f;
         sLeaser.sprites[0].color = Color.white;
         sLeaser.sprites[0].scaleX = 10000f;
         sLeaser.sprites[0].scaleY = 10000f;
@@ -188,6 +188,7 @@ public class SnowDecal : CosmeticSprite
     {
         sLeaser.sprites[0].x = this.pos.x - camPos.x;
         sLeaser.sprites[0].y = this.pos.y - camPos.y;
+        sLeaser.sprites[0].alpha = Mathf.Lerp(0f, 0.6f, this.room.world.rainCycle.RainDarkPalette);
         base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
     }
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)

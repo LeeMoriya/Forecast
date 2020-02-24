@@ -91,14 +91,14 @@ public class SnowFlake : CosmeticSprite
         this.lastLastPos = this.lastPos;
         this.vel.x = this.vel.x * (1f + (RainFall.rainIntensity * 0.005f));
         this.vel.y = this.vel.y - (this.gravity * 0.5f) * (RainFall.rainIntensity * 2f);
-        if (this.vel.y < (-7f * RainFall.rainIntensity))
+        if (this.vel.y < Mathf.Lerp((-7f * RainFall.rainIntensity),-20f,this.room.world.rainCycle.RainDarkPalette))
         {
-            this.vel.y = (-7f * RainFall.rainIntensity);
+            this.vel.y = Mathf.Lerp((-7f * RainFall.rainIntensity), -20f, this.room.world.rainCycle.RainDarkPalette);
         }
         if ((vel.x > 4f * (RainFall.rainIntensity * 1.1f) || vel.x < -4f * (RainFall.rainIntensity * 1.1f)) && dirCounter <= 0f)
         {
             this.dir = new Vector2(-this.dir.x, this.dir.y);
-            dirCounter = UnityEngine.Random.Range(1f, 5f);
+            dirCounter = Mathf.Lerp(UnityEngine.Random.Range(1f, 5f), UnityEngine.Random.Range(20f, 50f), this.room.world.rainCycle.RainDarkPalette);
         }
         this.vel += this.dir * 0.03f;
         this.dirCounter = this.dirCounter - (0.1f + (RainFall.rainIntensity * 0.3f));

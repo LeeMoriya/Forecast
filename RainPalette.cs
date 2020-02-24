@@ -180,7 +180,7 @@ class RainPalette
                 Path.DirectorySeparatorChar,
                 "Palettes",
                 Path.DirectorySeparatorChar,
-                "palette36.png"
+                "snow.png"
                 }));
                 self.www.LoadImageIntoTexture(exterior1);
             }
