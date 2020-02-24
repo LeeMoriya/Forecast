@@ -16,8 +16,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>e:\Steam Games\steamapps\common\Rain World\Mods\</OutputPath>
+    <Optimize>true</Optimize>
+    <OutputPath>E:\Steam Games\steamapps\common\Rain World\Mods\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -57,11 +57,10 @@
     <Compile Include="Downpour.cs" />
     <Compile Include="DownpourConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RainDrop.cs" />
+    <Compile Include="Precipitator.cs" />
     <Compile Include="RainFall.cs" />
     <Compile Include="RainPalette.cs" />
     <Compile Include="RainSound.cs" />
-    <Compile Include="SnowFlake.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
