@@ -109,6 +109,7 @@ public class Preciptator : UpdatableAndDeletable
                 Debug.Log("Rain Amount: " + Downpour.rainAmount);
                 Debug.Log("Rain Limit: " + this.rainLimit);
                 Debug.Log("Rain Chance: " + Downpour.rainChance + "%");
+                Debug.Log("World Height: " + this.room.abstractRoom.mapPos.y.ToString());
             }
             if (Input.GetKey(KeyCode.Alpha6))
             {
@@ -144,21 +145,24 @@ public class Preciptator : UpdatableAndDeletable
                 }
             }
         }
-        for (int i = 0; i < this.room.game.Players.Count; i++)
+        if (RainFall.rainList.Contains(this.room.abstractRoom.name))
         {
-            if (this.room.game.Players[i].realizedCreature != null && this.room.game.Players[i].realizedCreature.room == this.room)
+            for (int i = 0; i < this.room.game.Players.Count; i++)
             {
-                for (int j = 0; j < this.room.game.Players[i].realizedCreature.bodyChunks.Length; j++)
+                if (this.room.game.Players[i].realizedCreature != null && this.room.game.Players[i].realizedCreature.room == this.room)
                 {
-                    if (this.room.game.Players[i].realizedCreature.bodyChunks[j].ContactPoint.y < 0)
+                    for (int j = 0; j < this.room.game.Players[i].realizedCreature.bodyChunks.Length; j++)
                     {
-                        if (this.room.game.Players[i].realizedCreature.bodyChunks[j].lastContactPoint.y >= 0 && this.room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.y - this.room.game.Players[i].realizedCreature.bodyChunks[j].pos.y > 5f)
+                        if (this.room.game.Players[i].realizedCreature.bodyChunks[j].ContactPoint.y < 0)
                         {
-                            this.room.AddObject(new SnowDust(this.room.game.Players[i].realizedCreature.bodyChunks[j].pos + new Vector2(0f, -this.room.game.Players[i].realizedCreature.bodyChunks[j].rad), Custom.LerpMap(this.room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.y - this.room.game.Players[i].realizedCreature.bodyChunks[j].pos.y, 5f, 10f, 0.5f, 1f)));
-                        }
-                        else if (UnityEngine.Random.value < 0.1f && Mathf.Abs(this.room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.x - this.room.game.Players[i].realizedCreature.bodyChunks[j].pos.x) > 3f)
-                        {
-                            this.room.AddObject(new SnowDust(this.room.game.Players[i].realizedCreature.bodyChunks[j].pos + new Vector2(0f, -this.room.game.Players[i].realizedCreature.bodyChunks[j].rad), 0.25f * UnityEngine.Random.value));
+                            if (this.room.game.Players[i].realizedCreature.bodyChunks[j].lastContactPoint.y >= 0 && this.room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.y - this.room.game.Players[i].realizedCreature.bodyChunks[j].pos.y > 5f)
+                            {
+                                this.room.AddObject(new SnowDust(this.room.game.Players[i].realizedCreature.bodyChunks[j].pos + new Vector2(0f, -this.room.game.Players[i].realizedCreature.bodyChunks[j].rad), Custom.LerpMap(this.room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.y - this.room.game.Players[i].realizedCreature.bodyChunks[j].pos.y, 5f, 10f, 0.5f, 1f)));
+                            }
+                            else if (UnityEngine.Random.value < 0.1f && Mathf.Abs(this.room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.x - this.room.game.Players[i].realizedCreature.bodyChunks[j].pos.x) > 3f)
+                            {
+                                this.room.AddObject(new SnowDust(this.room.game.Players[i].realizedCreature.bodyChunks[j].pos + new Vector2(0f, -this.room.game.Players[i].realizedCreature.bodyChunks[j].rad), 0.25f * UnityEngine.Random.value));
+                            }
                         }
                     }
                 }
@@ -187,10 +191,14 @@ public class SnowFlake : CosmeticSprite
     public Vector2 resetPos;
     public Preciptator spawner;
     public Vector2 offset;
+    public bool randomOffset;
+    public bool screenReset;
 
 
     public SnowFlake(Vector2 pos, Color color, float rainIntensity, Preciptator spawner)
     {
+        this.screenReset = false;
+        this.randomOffset = false;
         this.timeToDie = false;
         this.foreground = false;
         this.splashCounter = 0;
@@ -221,6 +229,11 @@ public class SnowFlake : CosmeticSprite
         {
             this.Destroy();
         }
+        if (this.room != null && !randomOffset)
+        {
+            this.pos = this.room.RandomPos();
+            randomOffset = true;
+        }
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
         if (this.reset)
         {
@@ -229,14 +242,23 @@ public class SnowFlake : CosmeticSprite
             {
                 this.Destroy();
             }
-            if (player.mainBodyChunk != null && !player.inShortcut)
+
+            if (screenReset)
             {
-                this.resetPos = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
+                this.resetPos = new Vector2(UnityEngine.Random.Range(this.room.RoomRect.left - 100f, this.room.RoomRect.right + 100f), room.RoomRect.top + UnityEngine.Random.Range(100, 800f));
             }
             else
             {
-                this.resetPos = new Vector2(UnityEngine.Random.Range(this.room.RoomRect.left - 100f, this.room.RoomRect.right + 100f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
+                if (player.mainBodyChunk != null && !player.inShortcut && !screenReset)
+                {
+                    this.resetPos = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
+                }
+                else
+                {
+                    this.resetPos = new Vector2(UnityEngine.Random.Range(this.room.RoomRect.left - 100f, this.room.RoomRect.right + 100f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
+                }
             }
+            screenReset = false;
             this.dir = (new Vector2(UnityEngine.Random.Range(-4f, 4f), -5f) * RainFall.rainIntensity);
             this.vel = this.dir;
             this.pos = this.resetPos;
@@ -310,6 +332,7 @@ public class SnowFlake : CosmeticSprite
         }
         if (rCam.room.BeingViewed && this.pos.y < (rCam.pos.y - 100f))
         {
+            screenReset = true;
             this.reset = true;
         }
         if (sLeaser.sprites[0].alpha < 0f)
@@ -321,6 +344,7 @@ public class SnowFlake : CosmeticSprite
 
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
+        sLeaser.sprites[0].color = Color.Lerp(palette.texture.GetPixel(9, 5), Color.white, 0.12f);
         base.ApplyPalette(sLeaser, rCam, palette);
     }
 
@@ -662,7 +686,7 @@ public class RainDrop : CosmeticSprite
         }
         else
         {
-            sLeaser.sprites[0].color = Color.Lerp(new Color(1f,1f,1f), Color.Lerp(rCam.currentPalette.fogColor, Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.83f),0.95f);
+            sLeaser.sprites[0].color = Color.Lerp(new Color(1f, 1f, 1f), Color.Lerp(rCam.currentPalette.fogColor, Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.83f), 0.95f);
         }
         //If background drops encounter a depth in the room texture lower than their own depth value, treat it as a collision.
         if (backgroundDrop && !reset && !this.collision && rCam.IsViewedByCameraPosition(rCam.cameraNumber, this.pos) && rCam.DepthAtCoordinate(this.pos) < this.depth)
@@ -672,7 +696,7 @@ public class RainDrop : CosmeticSprite
             sLeaser.sprites[1].color = Color.Lerp(color, rCam.PixelColorAtCoordinate(this.pos), 0.7f);
             this.collision = true;
         }
-        if(splashCounter > 0f && !backgroundDrop)
+        if (splashCounter > 0f && !backgroundDrop)
         {
             sLeaser.sprites[1].color = Color.Lerp(color, rCam.PixelColorAtCoordinate(this.pos), 0.2f);
         }

@@ -35,6 +35,8 @@ namespace System.Runtime.CompilerServices
 public class RainScript : MonoBehaviour
 {
     public static Downpour mod;
+    public static List<string> snowExt1 = new List<string>();
+    public static List<string> snowExt2 = new List<string>();
     public void Initialize()
     {
         RainFall.Patch();
@@ -45,13 +47,24 @@ public class RainScript : MonoBehaviour
         Downpour.snowTex.filterMode = FilterMode.Point;
         byte[] snow = Convert.FromBase64String(Downpour.snowData);
         Downpour.snowTex.LoadImage(snow);
+        //Snow Palette Assignments
+        //Ext1 - Bright Palette
+        snowExt1.Add("CC");
+        snowExt1.Add("HI");
+        snowExt1.Add("GW");
+        snowExt1.Add("SI");
+        snowExt1.Add("SU");
+        snowExt1.Add("SL");
+        snowExt1.Add("LF");
+        snowExt1.Add("UW");
+        //Ext2 - Dark Palette
+        snowExt2.Add("SH");
+        //Regions Without Snow
+        //SB
+        //DS
     }
     public void Update()
     {
-        if (RainFall.flooding)
-        {
-            RainFall.floodLevel += 0.15f;
-        }
         if (Input.GetKeyDown(KeyCode.Alpha7))
         {
             if (Downpour.snow)

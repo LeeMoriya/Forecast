@@ -167,7 +167,7 @@ class RainPalette
                 ".png"
                 }));
                 self.www.LoadImageIntoTexture(texture);
-                //Load ext palette 1
+                //Load ext palettes
                 self.www = new WWW(string.Concat(new object[]
                 {
                 "file:///",
@@ -180,9 +180,39 @@ class RainPalette
                 Path.DirectorySeparatorChar,
                 "Palettes",
                 Path.DirectorySeparatorChar,
-                "snow.png"
+                "snowExt1.png"
                 }));
                 self.www.LoadImageIntoTexture(exterior1);
+                self.www = new WWW(string.Concat(new object[]
+                    {
+                "file:///",
+                Custom.RootFolderDirectory(),
+                "Assets",
+                Path.DirectorySeparatorChar,
+                "Futile",
+                Path.DirectorySeparatorChar,
+                "Resources",
+                Path.DirectorySeparatorChar,
+                "Palettes",
+                Path.DirectorySeparatorChar,
+                "snowExt2.png"
+                    }));
+                self.www.LoadImageIntoTexture(exterior2);
+                self.www = new WWW(string.Concat(new object[]
+                    {
+                "file:///",
+                Custom.RootFolderDirectory(),
+                "Assets",
+                Path.DirectorySeparatorChar,
+                "Futile",
+                Path.DirectorySeparatorChar,
+                "Resources",
+                Path.DirectorySeparatorChar,
+                "Palettes",
+                Path.DirectorySeparatorChar,
+                "snowInt1.png"
+                    }));
+                self.www.LoadImageIntoTexture(interior1);
             }
             if (self.room != null)
             {
@@ -191,9 +221,12 @@ class RainPalette
             //Colors from the palette texture are added to an array and desaturated and lerped towards a black color depending on rain intensity.
             if (self.room != null)
             {
+                float heightFade = Mathf.Lerp(0f, 1f, Mathf.InverseLerp(2500f, 3800f, self.loadingRoom.abstractRoom.mapPos.y));
                 Color[] colors = texture.GetPixels();
                 Color[] newColors = new Color[colors.Length];
                 Color[] exterior1Cols = exterior1.GetPixels();
+                Color[] exterior2Cols = exterior2.GetPixels();
+                Color[] interior1Cols = interior1.GetPixels();
                 for (int i = 0; i < colors.Length; i++)
                 {
                     //Rain
@@ -207,11 +240,33 @@ class RainPalette
                     else
                     {
                         //Exterior
-                        if (!RainFall.noRain && self.loadingRoom.roomSettings.DangerType == RoomRain.DangerType.Rain)
+                        if (Downpour.rainRegions.Contains(self.loadingRoom.world.region.name))
                         {
-                            newColors[i] = colors[i];
-                            newColors[i] = Custom.Screen(newColors[i], exterior1Cols[i]);
-                            texture.SetPixels(newColors);
+                            //If a region has snow enabled check what palette its set to have
+                            //If the room is in the rain list, give it an exterior palette
+                            //Otherwise give it an interior palette
+                            if (RainScript.snowExt1.Contains(self.loadingRoom.world.region.name))
+                            {
+                                if (RainFall.rainList.Contains(self.loadingRoom.abstractRoom.name))
+                                {
+                                    newColors[i] = colors[i];
+                                    exterior1Cols[i] = Color.Lerp(exterior1Cols[i],new Color(0f,0f,0f),heightFade);
+                                    newColors[i] = Custom.Screen(newColors[i], exterior1Cols[i]);
+                                    texture.SetPixels(newColors);
+                                }
+                                else
+                                {
+                                    newColors[i] = colors[i];
+                                    newColors[i] = Custom.Screen(newColors[i], interior1Cols[i]);
+                                    texture.SetPixels(newColors);
+                                }
+                            }
+                            if (RainScript.snowExt2.Contains(self.loadingRoom.world.region.name))
+                            {
+                                newColors[i] = colors[i];
+                                newColors[i] = Custom.Screen(newColors[i], exterior2Cols[i]);
+                                texture.SetPixels(newColors);
+                            }
                         }
                         else
                         {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using RWCustom;
+using Menu;
 
 public class RainFall
 {
@@ -19,6 +20,7 @@ public class RainFall
     public static bool noRainThisCycle = false;
     public static float floodLevel = 0;
     public static bool flooding = false;
+    public static RainEffect.RainDrop[] snowDrops = new RainEffect.RainDrop[2000];
 
     public static void Patch()
     {
@@ -28,18 +30,7 @@ public class RainFall
         On.Lightning.ctor += Lightning_ctor;
         On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize;
-        On.ProcessManager.UpdateFade += ProcessManager_UpdateFade;
     }
-
-    private static void ProcessManager_UpdateFade(On.ProcessManager.orig_UpdateFade orig, ProcessManager self)
-    {
-        orig.Invoke(self);
-        if(self.fadeSprite != null && Downpour.snow)
-        {
-            self.fadeSprite.color = new Color(0.75f, 0.75f, 0.75f);
-        }
-    }
-
     private static void AbstractRoom_Abstractize(On.AbstractRoom.orig_Abstractize orig, AbstractRoom self)
     {
         orig.Invoke(self);
@@ -105,6 +96,8 @@ public class RainFall
         //Starting rain intensity determined at the start of the cycle
         orig.Invoke(self, player);
         rainList.Clear();
+        rainIntensity = 0;
+        startingIntensity = 0;
         if (Downpour.configLoaded == false)
         {
             Downpour.rainRegions = new List<string>();
@@ -257,9 +250,8 @@ public class RainFall
                     if (ceilingCount < (self.Width * 0.95) && !noRain)
                     {
                         self.AddObject(new Preciptator(self, Downpour.snow, ceilingCount));
-
+                        rainList.Add(self.abstractRoom.name);
                     }
-                    rainList.Add(self.abstractRoom.name);
                     ceilingCount = 0;
                 }
             }
