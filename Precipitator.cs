@@ -229,7 +229,7 @@ public class SnowFlake : CosmeticSprite
         {
             this.Destroy();
         }
-        if (this.room != null && !randomOffset)
+        if (this.room != null && this.room.BeingViewed == false && !randomOffset)
         {
             this.pos = this.room.RandomPos();
             randomOffset = true;
@@ -242,23 +242,14 @@ public class SnowFlake : CosmeticSprite
             {
                 this.Destroy();
             }
-
-            if (screenReset)
+            if (player.mainBodyChunk != null && !player.inShortcut)
             {
-                this.resetPos = new Vector2(UnityEngine.Random.Range(this.room.RoomRect.left - 100f, this.room.RoomRect.right + 100f), room.RoomRect.top + UnityEngine.Random.Range(100, 800f));
+                this.resetPos = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top + UnityEngine.Random.Range(70, 150f));
             }
             else
             {
-                if (player.mainBodyChunk != null && !player.inShortcut && !screenReset)
-                {
-                    this.resetPos = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
-                }
-                else
-                {
-                    this.resetPos = new Vector2(UnityEngine.Random.Range(this.room.RoomRect.left - 100f, this.room.RoomRect.right + 100f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
-                }
+                this.resetPos = new Vector2(UnityEngine.Random.Range(this.room.RoomRect.left - 100f, this.room.RoomRect.right + 100f), room.RoomRect.top + UnityEngine.Random.Range(70, 150f));
             }
-            screenReset = false;
             this.dir = (new Vector2(UnityEngine.Random.Range(-4f, 4f), -5f) * RainFall.rainIntensity);
             this.vel = this.dir;
             this.pos = this.resetPos;
@@ -293,7 +284,11 @@ public class SnowFlake : CosmeticSprite
         {
             this.reset = true;
         }
-        if (this.pos.y < -100f)
+        if (player != null && this.pos.y < player.mainBodyChunk.pos.y - 400f)
+        {
+            this.reset = true;
+        }
+        if (this.pos.y < -50f)
         {
             this.reset = true;
         }
@@ -306,11 +301,13 @@ public class SnowFlake : CosmeticSprite
         {
             sLeaser.sprites[0] = new FSprite("SkyDandelion", true);
             sLeaser.sprites[0].scale = 0.15f + (RainFall.rainIntensity * 0.2f);
+            sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["CustomDepth"];
         }
         else
         {
             sLeaser.sprites[0] = new FSprite("deerEyeB", true);
             sLeaser.sprites[0].scale = 0.33f + (RainFall.rainIntensity * 0.2f);
+            sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["CustomDepth"];
         }
         sLeaser.sprites[0].color = color;
         this.AddToContainer(sLeaser, rCam, null);
@@ -330,11 +327,6 @@ public class SnowFlake : CosmeticSprite
             this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
             sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.02f;
         }
-        if (rCam.room.BeingViewed && this.pos.y < (rCam.pos.y - 100f))
-        {
-            screenReset = true;
-            this.reset = true;
-        }
         if (sLeaser.sprites[0].alpha < 0f)
         {
             this.reset = true;
@@ -353,6 +345,8 @@ public class SnowFlake : CosmeticSprite
         base.AddToContainer(sLeaser, rCam, newContatiner);
     }
 }
+
+//Snow Decal
 public class SnowDecal : CosmeticSprite
 {
     public SnowDecal(Room room)
@@ -363,11 +357,13 @@ public class SnowDecal : CosmeticSprite
     {
         sLeaser.sprites = new FSprite[1];
         sLeaser.sprites[0] = new FSprite("Futile_White", true);
-        sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["FlatLightNoisy"];
+        sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["EdgeFade"];
         sLeaser.sprites[0].alpha = 0f;
         sLeaser.sprites[0].color = Color.white;
-        sLeaser.sprites[0].scaleX = 10000f;
-        sLeaser.sprites[0].scaleY = 10000f;
+        sLeaser.sprites[0].x = rCam.game.rainWorld.screenSize.x / 2f;
+        sLeaser.sprites[0].y = rCam.game.rainWorld.screenSize.y / 2f;
+        sLeaser.sprites[0].scaleX = rCam.game.rainWorld.screenSize.x;
+        sLeaser.sprites[0].scaleY = rCam.game.rainWorld.screenSize.y;
         this.AddToContainer(sLeaser, rCam, null);
     }
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -395,7 +391,6 @@ public class SnowDecal : CosmeticSprite
     public bool bigSprite;
     public float fade;
 }
-
 
 //Snowdust
 public class SnowDust : CosmeticSprite
