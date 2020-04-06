@@ -28,16 +28,15 @@ public class RainFall
         On.Lightning.ctor += Lightning_ctor;
         On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize;
-        On.ProcessManager.UpdateFade += ProcessManager_UpdateFade;
+        On.RainWorld.LoadResources += RainWorld_LoadResources;
     }
 
-    private static void ProcessManager_UpdateFade(On.ProcessManager.orig_UpdateFade orig, ProcessManager self)
+    private static void RainWorld_LoadResources(On.RainWorld.orig_LoadResources orig, RainWorld self)
     {
+        Futile.atlasManager.LoadAtlasFromTexture("snowpile", Downpour.snowPileTex);
+        Futile.atlasManager.LoadAtlasFromTexture("logo", Downpour.logo);
+        Futile.atlasManager.LoadAtlasFromTexture("logo2", Downpour.logo2);
         orig.Invoke(self);
-        if(self.fadeSprite != null && Downpour.snow)
-        {
-            self.fadeSprite.color = new Color(0.75f, 0.75f, 0.75f);
-        }
     }
 
     private static void AbstractRoom_Abstractize(On.AbstractRoom.orig_Abstractize orig, AbstractRoom self)
@@ -77,6 +76,21 @@ public class RainFall
         }
         startingIntensity = rainIntensity;
         Debug.Log("Current rain intensity: " + rainIntensity);
+        if (self != null && room.roomRain != null)
+        {
+            for (int r = 0; r < room.TileWidth; r++)
+            {
+                if (room.Tiles[r, room.TileHeight - 1].Solid)
+                {
+                    ceilingCount++;
+                }
+            }
+            if (ceilingCount < (room.Width * 0.95) && !noRain)
+            {
+                room.AddObject(new Preciptator(room, Downpour.snow, ceilingCount));
+            }
+            ceilingCount = 0;
+        }
     }
     private static void Lightning_ctor(On.Lightning.orig_ctor orig, Lightning self, Room room, float intensity, bool bkgOnly)
     {
@@ -105,19 +119,6 @@ public class RainFall
         //Starting rain intensity determined at the start of the cycle
         orig.Invoke(self, player);
         rainList.Clear();
-        if (Downpour.configLoaded == false)
-        {
-            Downpour.rainRegions = new List<string>();
-            Downpour.rainRegions.Add("CC");
-            Downpour.rainRegions.Add("DS");
-            Downpour.rainRegions.Add("HI");
-            Downpour.rainRegions.Add("GW");
-            Downpour.rainRegions.Add("SI");
-            Downpour.rainRegions.Add("SU");
-            Downpour.rainRegions.Add("SH");
-            Downpour.rainRegions.Add("SL");
-            Downpour.rainRegions.Add("LF");
-        }
         if (UnityEngine.Random.Range(0, 100) < Downpour.rainChance)
         {
             noRainThisCycle = false;
@@ -140,28 +141,20 @@ public class RainFall
             }
             if (Downpour.intensity == 3)
             {
-                rainIntensity = 1f;
+                rainIntensity = 0.9f;
                 Downpour.dynamic = false;
             }
         }
         else
         {
             Downpour.dynamic = true;
-            switch (self.saveState.deathPersistentSaveData.karma)
+            if (!Downpour.snow)
             {
-                case 0:
-                    rainIntensity = UnityEngine.Random.Range(-0.3f, 0.7f);
-                    break;
-                case 1:
-                    rainIntensity = UnityEngine.Random.Range(-0.4f, 0.7f);
-                    break;
-                case 2:
-                    rainIntensity = UnityEngine.Random.Range(-0.5f, 0.7f);
-                    break;
+                rainIntensity = UnityEngine.Random.Range(-2f, 0.8f);
             }
-            if (self.saveState.deathPersistentSaveData.karma > 2)
+            else
             {
-                rainIntensity = UnityEngine.Random.Range(-2f, 0.7f);
+                rainIntensity = UnityEngine.Random.Range(0.1f, 0.9f);
             }
         }
         switch (Downpour.direction)
@@ -194,27 +187,13 @@ public class RainFall
         orig.Invoke(self);
         if (self.game != null && !self.game.IsArenaSession)
         {
-            if (Downpour.configLoaded == false)
+            if (Downpour.rainRegions.Contains(self.world.region.name))
             {
-                if (self.world.region.name == "UW" || self.world.region.name == "SB" || self.world.region.name == "SS")
-                {
-                    noRain = true;
-                }
-                else
-                {
-                    noRain = false;
-                }
+                noRain = false;
             }
             else
             {
-                if (Downpour.rainRegions.Contains(self.world.region.name))
-                {
-                    noRain = false;
-                }
-                else
-                {
-                    noRain = true;
-                }
+                noRain = true;
             }
         }
         else
@@ -257,9 +236,8 @@ public class RainFall
                     if (ceilingCount < (self.Width * 0.95) && !noRain)
                     {
                         self.AddObject(new Preciptator(self, Downpour.snow, ceilingCount));
-
+                        rainList.Add(self.abstractRoom.name);
                     }
-                    rainList.Add(self.abstractRoom.name);
                     ceilingCount = 0;
                 }
             }
@@ -270,6 +248,7 @@ public class RainFall
         orig.Invoke(self);
         if (Downpour.debug)
         {
+            //Decrease Intensity
             if (Input.GetKey(KeyCode.Alpha1))
             {
                 rainIntensity -= 0.005f;
@@ -279,6 +258,7 @@ public class RainFall
                 }
                 Debug.Log("Rain Intensity = " + rainIntensity);
             }
+            //Increase Intensity
             if (Input.GetKey(KeyCode.Alpha2))
             {
                 rainIntensity += 0.005f;
@@ -288,14 +268,25 @@ public class RainFall
                 }
                 Debug.Log("Rain Intensity = " + rainIntensity);
             }
+            //Show Room X and Y pos
             if (Input.GetKey(KeyCode.Alpha3))
             {
-                Debug.Log("Rain Intensity = " + rainIntensity);
+                if (self.BeingViewed)
+                {
+                    Debug.Log("---ROOM POSITION---");
+                    Debug.Log("X POS: " + self.abstractRoom.mapPos.x.ToString());
+                    Debug.Log("Y POS: " + self.abstractRoom.mapPos.y.ToString());
+                }
             }
             if (Input.GetKey(KeyCode.Alpha4))
             {
-                Debug.Log("Rain Disabled: " + noRainThisCycle);
+                if (self.BeingViewed)
+                {
+                    Debug.Log("---ROOM DARKNESS---");
+                    Debug.Log("Darkness: " + self.game.cameras[0].currentPalette.darkness.ToString());
+                }
             }
+            //Fast Forward Cycle Timer
             if (Input.GetKey(KeyCode.Alpha5))
             {
                 self.world.rainCycle.timer += 20;
@@ -307,7 +298,7 @@ public class RainFall
         {
             if (self.world.rainCycle.RainDarkPalette <= 0)
             {
-                rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
+                rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression * UnityEngine.Random.value);
             }
             else
             {
@@ -315,7 +306,7 @@ public class RainFall
             }
         }
         //Flooding tests
-        if(self.waterObject != null && rainIntensity > 0.7f)
+        if (self.waterObject != null && rainIntensity > 0.7f)
         {
             //flooding = true;
             //self.waterObject.fWaterLevel = self.waterObject.originalWaterLevel + floodLevel;

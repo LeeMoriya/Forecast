@@ -34,8 +34,9 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>D:\Steam Games\steamapps\common\Rain World\Mods\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="ConfigMachine">
-      <HintPath>D:\Steam Games\steamapps\common\Rain World\Mods\ConfigMachine.dll</HintPath>
+    <Reference Include="ConfigMachine, Version=1.0.1.3, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>E:\Steam Games\steamapps\common\Rain World\Mods\ConfigMachine.dll</HintPath>
     </Reference>
     <Reference Include="HOOKS-Assembly-CSharp">
       <HintPath>D:\Steam Games\steamapps\common\Rain World\Mods\HOOKS-Assembly-CSharp.dll</HintPath>
@@ -61,6 +62,7 @@
     <Compile Include="RainFall.cs" />
     <Compile Include="RainPalette.cs" />
     <Compile Include="RainSound.cs" />
+    <Compile Include="SnowPile.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
