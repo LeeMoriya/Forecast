@@ -42,7 +42,7 @@ public class Preciptator : UpdatableAndDeletable
                 if ((tile.Solid && this.room.GetTile(tile.X, tile.Y + 1).Terrain == Room.Tile.TerrainType.Air && this.room.GetTile(tile.X, tile.Y + 2).Terrain == Room.Tile.TerrainType.Air) ||
                     tile.Terrain == Room.Tile.TerrainType.Slope && this.room.GetTile(tile.X, tile.Y + 1).Terrain == Room.Tile.TerrainType.Air && this.room.GetTile(tile.X, tile.Y + 2).Terrain == Room.Tile.TerrainType.Air)
                 {
-                    if (UnityEngine.Random.value > 0.9f)
+                    if (UnityEngine.Random.value > 0.8f)
                     {
                         this.room.AddObject(new SnowPile(this.room.MiddleOfTile(tile.X, tile.Y - 1), UnityEngine.Random.Range(60f, 80f)));
                     }

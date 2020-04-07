@@ -50,6 +50,7 @@ public class DownpourConfig : OptionInterface
     public OpCheckBox[] regionChecks;
     public OpLabel regionLabel;
     public OpLabel regionDescription;
+    public OpLabel customRegionSupport;
 
     public DownpourConfig() : base(RainScript.mod)
     {
@@ -117,15 +118,16 @@ public class DownpourConfig : OptionInterface
         this.rainOption = new OpLabel(new Vector2(topAnchor.x + 366f, topAnchor.y - 203f), new Vector2(400f, 40f), "Particle Limit", FLabelAlignment.Left, false);
         this.rainSlider = new OpSlider(new Vector2(topAnchor.x + 275f, topAnchor.y - 180f), "rainAmount", new IntVector2(10, 80), 3.3f, false, 50);
         this.Tabs[0].AddItems(rainSlider, rainOption);
-        
+
         //Regions 
+        this.customRegionSupport = new OpLabel(new Vector2(425f, -5f), new Vector2(400f, 0f), "CustomRegions Support: Disabled", FLabelAlignment.Left, false);
         if (regionList != null)
         {
             this.regionLabelList = new OpLabel[regionList.Length];
             this.regionChecks = new OpCheckBox[regionList.Length];
             this.regionLabel = new OpLabel(new Vector2(30f, 200f), new Vector2(400f, 40f), "Region Settings", FLabelAlignment.Left, true);
             this.regionDescription = new OpLabel(new Vector2(30f, 175f), new Vector2(400f, 40f), "Enable and Disable weather on a per-region basis.", FLabelAlignment.Left, false);
-            this.Tabs[0].AddItems(regionLabel, regionDescription);
+            this.Tabs[0].AddItems(regionLabel, regionDescription, customRegionSupport);
             for (int i = 0; i < regionList.Length; i++)
             {
                 if (i < 6)
@@ -213,6 +215,7 @@ public class DownpourConfig : OptionInterface
                 (weatherDirection.subObjects[1] as Menu.MenuLabel).text = "Right";
                 break;
         }
+        this.customRegionSupport.label.label.color = new Color(0.37f, 0.1f, 0.1f);
     }
     public override void ConfigOnChange()
     {
