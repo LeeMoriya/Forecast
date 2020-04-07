@@ -218,12 +218,8 @@ class RainPalette
             {
                 self.ApplyEffectColorsToPaletteTexture(ref texture, self.room.roomSettings.EffectColorA, self.room.roomSettings.EffectColorB);
             }
-            else
-            {
-                self.ApplyEffectColorsToPaletteTexture(ref texture, -1, -1);
-            }
             //Colors from the palette texture are added to an array and desaturated and lerped towards a black color depending on rain intensity.
-            if (self.room != null)
+            if (self.room != null && self.room.abstractRoom.name != "SS_AI")
             {
                 if (self.game.IsArenaSession)
                 {
