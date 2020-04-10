@@ -258,8 +258,8 @@ class RainPalette
                 else
                 {
                     float heightFade = Mathf.Lerp(0f, 1f, Mathf.InverseLerp(2500f, 3800f, self.loadingRoom.abstractRoom.mapPos.y));
-                    float darkness = 1f - texture.GetPixel(30, 7).r;
-                    Debug.Log("DARKNESS: " + darkness);
+                    float darknessFade = 1f - texture.GetPixel(30, 7).r;
+                    Debug.Log("DARKNESS: " + darknessFade);
                     Color[] colors = texture.GetPixels();
                     Color[] newColors = new Color[colors.Length];
                     //Bright
@@ -284,7 +284,7 @@ class RainPalette
                             if (Downpour.rainRegions.Contains(self.loadingRoom.world.region.name))
                             {
                                 //Bright Palette
-                                if (darkness < 0.75f)
+                                if (darknessFade < 0.75f)
                                 {
                                     if (RainFall.rainList.Contains(self.loadingRoom.abstractRoom.name))
                                     {

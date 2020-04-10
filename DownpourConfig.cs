@@ -6,6 +6,9 @@ using OptionalUI;
 using UnityEngine;
 using RWCustom;
 using System.IO;
+using Partiality.Modloader;
+using Partiality;
+using System.Reflection;
 
 public class DownpourConfig : OptionInterface
 {
@@ -51,6 +54,8 @@ public class DownpourConfig : OptionInterface
     public OpLabel regionLabel;
     public OpLabel regionDescription;
     public OpLabel customRegionSupport;
+    public bool customRegionsEnabled;
+    public string[] regionList;
 
     public DownpourConfig() : base(RainScript.mod)
     {
@@ -63,7 +68,28 @@ public class DownpourConfig : OptionInterface
 
     public override void Initialize()
     {
-        string[] regionList = File.ReadAllLines(Custom.RootFolderDirectory() + "/World/Regions/regions.txt");
+        regionList = File.ReadAllLines(Custom.RootFolderDirectory() + "/World/Regions/regions.txt");
+        foreach (PartialityMod mod in PartialityManager.Instance.modManager.loadedMods)
+        {
+            if (mod.GetType().Name == "CustomWorldMod")
+            {
+                customRegionsEnabled = true;
+                FieldInfo f = mod.GetType().GetField("loadedRegions");
+                if (f != null)
+                {
+                    Dictionary<string, string> loadedRegions = (Dictionary<string,string>)f.GetValue(null);
+                    string[] moddedRegionList = loadedRegions.Keys.ToArray();
+                    int originalRegion = regionList.Length;
+                    Array.Resize<string>(ref regionList, originalRegion + moddedRegionList.Length);
+                    Array.Copy(moddedRegionList, 0, regionList, originalRegion, moddedRegionList.Length);
+                    break;
+                }
+            }
+            else
+            {
+                customRegionsEnabled = false;
+            }
+        }
 
         //Tabs
         this.Tabs = new OpTab[1];
@@ -215,12 +241,19 @@ public class DownpourConfig : OptionInterface
                 (weatherDirection.subObjects[1] as Menu.MenuLabel).text = "Right";
                 break;
         }
-        this.customRegionSupport.label.label.color = new Color(0.37f, 0.1f, 0.1f);
+        if (customRegionsEnabled)
+        {
+            this.customRegionSupport.label.label.text = "CustomRegions Support: Enabled";
+            this.customRegionSupport.label.label.color = new Color(0.1f, 0.8f, 0.1f);
+        }
+        else
+        {
+            this.customRegionSupport.label.label.text = "CustomRegions Support: Disabled";
+            this.customRegionSupport.label.label.color = new Color(0.37f, 0.1f, 0.1f);
+        }
     }
     public override void ConfigOnChange()
     {
-        string[] regionList = File.ReadAllLines(Custom.RootFolderDirectory() + "/World/Regions/regions.txt");
-        //List<string> regionList = Menu.FastTravelScreen.GetRegionOrder();
         Downpour.rainRegions = new List<string>();
         for (int i = 0; i < regionList.Length; i++)
         {

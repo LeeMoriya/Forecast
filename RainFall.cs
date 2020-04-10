@@ -226,6 +226,7 @@ public class RainFall
             {
                 if (!self.abstractRoom.shelter && self.roomRain.dangerType != RoomRain.DangerType.Flood && rainList.Contains(self.abstractRoom.name) == false)
                 {
+                    List<IntVector2> skyreach = new List<IntVector2>();
                     for (int r = 0; r < self.TileWidth; r++)
                     {
                         if (self.Tiles[r, self.TileHeight - 1].Solid)
