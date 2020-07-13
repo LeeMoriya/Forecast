@@ -87,7 +87,7 @@ public class RainFall
             }
             if (ceilingCount < (room.Width * 0.95) && !noRain)
             {
-                room.AddObject(new Preciptator(room, Downpour.snow, ceilingCount));
+                room.AddObject(new Preciptator(room, Downpour.snow));
             }
             ceilingCount = 0;
         }
@@ -154,7 +154,7 @@ public class RainFall
             }
             else
             {
-                rainIntensity = UnityEngine.Random.Range(0.1f, 0.9f);
+                rainIntensity = UnityEngine.Random.Range(0.35f, 0.9f);
             }
         }
         switch (Downpour.direction)
@@ -226,20 +226,10 @@ public class RainFall
             {
                 if (!self.abstractRoom.shelter && self.roomRain.dangerType != RoomRain.DangerType.Flood && rainList.Contains(self.abstractRoom.name) == false)
                 {
-                    List<IntVector2> skyreach = new List<IntVector2>();
-                    for (int r = 0; r < self.TileWidth; r++)
                     {
-                        if (self.Tiles[r, self.TileHeight - 1].Solid)
-                        {
-                            ceilingCount++;
-                        }
-                    }
-                    if (ceilingCount < (self.Width * 0.95) && !noRain)
-                    {
-                        self.AddObject(new Preciptator(self, Downpour.snow, ceilingCount));
+                        self.AddObject(new Preciptator(self, Downpour.snow));
                         rainList.Add(self.abstractRoom.name);
                     }
-                    ceilingCount = 0;
                 }
             }
         }
@@ -279,12 +269,16 @@ public class RainFall
                     Debug.Log("Y POS: " + self.abstractRoom.mapPos.y.ToString());
                 }
             }
-            if (Input.GetKey(KeyCode.Alpha4))
+            if (Input.GetKeyDown(KeyCode.Alpha4))
             {
                 if (self.BeingViewed)
                 {
-                    Debug.Log("---ROOM DARKNESS---");
-                    Debug.Log("Darkness: " + self.game.cameras[0].currentPalette.darkness.ToString());
+                    Downpour.direction++;
+                    if(Downpour.direction > 3)
+                    {
+                        Downpour.direction = 1;
+                    }
+                    Debug.Log("Direction: " + Downpour.direction);
                 }
             }
             //Fast Forward Cycle Timer

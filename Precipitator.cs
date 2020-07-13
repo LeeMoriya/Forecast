@@ -23,37 +23,53 @@ public class Preciptator : UpdatableAndDeletable
     public List<Vector2> skyreach;
     public int[] rainReach;
     public Vector2 camPos;
+    public List<Vector2> camSkyreach;
 
-    public Preciptator(Room room, bool isSnow, int ceilingCount)
+    public Preciptator(Room room, bool isSnow)
     {
         this.skyreach = new List<Vector2>();
+        this.camSkyreach = new List<Vector2>();
         this.spawnDecals = false;
         this.roomBounds = room.RoomRect;
         this.rainDrops = 0;
         this.snowFlakes = 0;
         this.room = room;
         this.isSnow = isSnow;
-        this.ceilingCount = ceilingCount;
+        this.ceilingCount = 0;
         this.direction = RainFall.direction;
         this.room.AddObject(new SnowDecal(this.room));
-        foreach (Room.Tile tile in this.room.Tiles)
+        for (int r = 0; r < this.room.TileWidth; r++)
         {
-            if ((tile.Solid && this.room.GetTile(tile.X, tile.Y + 1).Terrain == Room.Tile.TerrainType.Air && this.room.GetTile(tile.X, tile.Y + 2).Terrain == Room.Tile.TerrainType.Air) ||
-                tile.Terrain == Room.Tile.TerrainType.Slope && this.room.GetTile(tile.X, tile.Y + 1).Terrain == Room.Tile.TerrainType.Air && this.room.GetTile(tile.X, tile.Y + 2).Terrain == Room.Tile.TerrainType.Air)
+            if (this.room.Tiles[r, this.room.TileHeight - 1].Solid)
             {
-                this.skyreach.Add(this.room.MiddleOfTile(tile.X, tile.Y - 1));
-                //Add snow decals to surfaces
-                if (this.isSnow)
+                ceilingCount++;
+            }
+        }
+        Debug.Log("Ceiling Count: " + ceilingCount);
+        Debug.Log(this.room.Width);
+        Debug.Log(this.room.Width * 0.95);
+        Debug.Log((float)this.room.Width * 0.95);
+
+        if (ceilingCount < (this.room.Width * 0.95))
+        {
+            foreach (Room.Tile tile in this.room.Tiles)
+            {
+                if ((tile.Solid && this.room.GetTile(tile.X, tile.Y + 1).Terrain == Room.Tile.TerrainType.Air && this.room.GetTile(tile.X, tile.Y + 2).Terrain == Room.Tile.TerrainType.Air) ||
+                    tile.Terrain == Room.Tile.TerrainType.Slope && this.room.GetTile(tile.X, tile.Y + 1).Terrain == Room.Tile.TerrainType.Air && this.room.GetTile(tile.X, tile.Y + 2).Terrain == Room.Tile.TerrainType.Air)
                 {
-                    if (UnityEngine.Random.value > 0.8f)
+                    this.skyreach.Add(this.room.MiddleOfTile(tile.X, tile.Y - 1));
+                    //Add snow decals to surfaces
+                    if (this.isSnow && Downpour.decals)
                     {
-                        this.room.AddObject(new SnowPile(this.room.MiddleOfTile(tile.X, tile.Y - 1), UnityEngine.Random.Range(60f, 80f)));
+                        if (UnityEngine.Random.value > 0.8f)
+                        {
+                            this.room.AddObject(new SnowPile(this.room.MiddleOfTile(tile.X, tile.Y - 1), UnityEngine.Random.Range(60f, 80f)));
+                        }
+                        this.room.AddObject(new SnowPile(this.room.MiddleOfTile(tile.X, tile.Y), UnityEngine.Random.Range(20f, 45f)));
                     }
-                    this.room.AddObject(new SnowPile(this.room.MiddleOfTile(tile.X, tile.Y), UnityEngine.Random.Range(20f, 45f)));
                 }
             }
         }
-        
     }
 
     public void AddRaindrops(int rainDropsToSpawn)
@@ -72,14 +88,27 @@ public class Preciptator : UpdatableAndDeletable
 
     public void AddSnowflakes(int snowFlakesToSpawn)
     {
-        if (room != null && this.skyreach != null)
+        if (room != null && room.BeingViewed)
         {
-            for (int i = 0; i < snowFlakesToSpawn; i++)
+            if (this.camPos != null)
             {
-                Vector2 rng = this.skyreach[UnityEngine.Random.Range(0, this.skyreach.Count)];
-                SnowFlake snowFlake = new SnowFlake(rng, Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity, this);
-                this.room.AddObject(snowFlake);
-                this.snowFlakes++;
+                Debug.Log("CAMERA POSITION: " + this.room.game.cameras[0].pos);
+                for (int i = 0; i < snowFlakesToSpawn; i++)
+                {
+                    //Get a random position within range of the RoomCamera
+                    Vector2 cam = this.camPos;
+                    IntVector2 randomOffset = IntVector2.FromVector2(new Vector2(cam.x + UnityEngine.Random.Range(-700, 700), cam.y + UnityEngine.Random.Range(-500, 500)));
+                    Vector2 offset2 = new Vector2(UnityEngine.Random.Range(-10f, 10f), UnityEngine.Random.Range(-10f, 10f));
+                    //If that random position has line of sight with the sky, spawn a snowflake there
+                    if (!this.room.RayTraceTilesForTerrain(randomOffset.x, randomOffset.y, randomOffset.x, this.room.TileHeight - 1))
+                    {
+                        Vector2 spawn = randomOffset.ToVector2();
+                        Vector2 spawnPos = spawn + offset2;
+                        SnowFlake snowFlake = new SnowFlake(spawnPos, Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), RainFall.rainIntensity, this);
+                        this.room.AddObject(snowFlake);
+                        this.snowFlakes++;
+                    }
+                }
             }
         }
     }
@@ -87,18 +116,23 @@ public class Preciptator : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
+        if (this.room.BeingViewed)
+        {
+           this.camPos = this.room.game.cameras[0].pos + new Vector2(this.room.game.rainWorld.screenSize.x / 2, this.room.game.rainWorld.screenSize.y / 2);
+        }
         this.isSnow = Downpour.snow;
-        this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
         if (isSnow)
         {
-            this.rainLimit = (int)Mathf.Lerp(this.rainAmount * 5, (this.rainAmount * 25), RainFall.rainIntensity);
+            this.rainAmount = Mathf.Lerp(Downpour.rainAmount * 0.5f, Downpour.rainAmount, RainFall.rainIntensity);
+            this.rainLimit = (int)Mathf.Lerp(this.rainAmount * 30, (this.rainAmount * 40), RainFall.rainIntensity);
         }
         else
         {
+            this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
             this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 10), RainFall.rainIntensity);
         }
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
-        
+
         if (this.room.game != null && this.room != null && !room.abstractRoom.gate && this.room.ReadyForPlayer)
         {
             if (!isSnow)
@@ -118,7 +152,7 @@ public class Preciptator : UpdatableAndDeletable
                 }
             }
         }
-        if (Downpour.snow && RainFall.rainList.Contains(this.room.abstractRoom.name))
+        if (Downpour.snow && Downpour.dust && RainFall.rainList.Contains(this.room.abstractRoom.name))
         {
             for (int i = 0; i < this.room.game.Players.Count; i++)
             {
@@ -152,7 +186,6 @@ public class SnowFlake : CosmeticSprite
     public bool foreground;
     public float screenXPos;
     public float splashCounter;
-    public bool timeToDie;
     public Vector2 dir;
     public bool invert;
     public float dirCounter;
@@ -169,12 +202,11 @@ public class SnowFlake : CosmeticSprite
     public Vector2 shortcutPos;
     public Vector2 currentCamPos;
     public Vector2 defaultPos;
-
+    public float directionAdjust;
 
     public SnowFlake(Vector2 pos, Color color, float rainIntensity, Preciptator spawner)
     {
         this.screenReset = false;
-        this.timeToDie = false;
         this.foreground = false;
         this.splashCounter = 0;
         this.collision = false;
@@ -188,15 +220,30 @@ public class SnowFlake : CosmeticSprite
             this.color = Color.Lerp(color, new Color(1f, 1f, 1f), 0.7f);
         }
         this.defaultPos = pos;
-        this.resetPos = new Vector2(pos.x, spawner.room.RoomRect.top + 150f);
-        this.pos = new Vector2(pos.x, UnityEngine.Random.Range(pos.y, spawner.room.RoomRect.top + 150f));
+        this.resetPos = new Vector2(pos.x, spawner.room.RoomRect.top + UnityEngine.Random.Range(130f,1700f));
+        this.pos = pos;
         this.lastPos = this.pos;
         this.lastLastPos = this.pos;
         this.lastLastLastPos = this.pos;
-        this.dir = (new Vector2(UnityEngine.Random.Range(-6f, 0.1f), -5f) * rainIntensity);
-        this.vel = this.dir;
-        this.pos += vel * (2f * rainIntensity);
+        this.dir = (new Vector2(UnityEngine.Random.Range(-2f, 0.1f), -5f) * rainIntensity);
         this.gravity = Mathf.Lerp(0.4f, 0.9f, UnityEngine.Random.value);
+        this.pos += vel * (40f * rainIntensity);
+        this.dir = new Vector2(-this.dir.x + (directionAdjust * RainFall.rainIntensity), this.dir.y);
+        this.vel = this.dir;
+        this.pos += vel * (4f * rainIntensity);
+        dirCounter = UnityEngine.Random.Range(2f, 10f);
+        switch (spawner.direction)
+        {
+            case 1:
+                directionAdjust = -1.2f;
+                break;
+            case 2:
+                directionAdjust = 0f;
+                break;
+            case 3:
+                directionAdjust = 1.2f;
+                break;
+        }
     }
     public override void Update(bool eu)
     {
@@ -204,71 +251,90 @@ public class SnowFlake : CosmeticSprite
         {
             this.Destroy();
         }
-        
+        if (!this.room.BeingViewed)
+        {
+            return;
+        }
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
-        if (player != null && player.mainBodyChunk != null && !player.inShortcut && this.room.BeingViewed)
+        if (reset && player != null && player.mainBodyChunk != null && !player.inShortcut && this.room.BeingViewed)
         {
-            this.resetPos = new Vector2(UnityEngine.Random.Range(player.mainBodyChunk.pos.x - 1300f, player.mainBodyChunk.pos.x + 1300f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
-        }
-        else if(this.currentCamPos != null)
-        {
-            this.resetPos = new Vector2(UnityEngine.Random.Range(this.currentCamPos.x - 1300f, this.currentCamPos.x + 1300f), room.RoomRect.top + UnityEngine.Random.Range(100, 200f));
-        }
-        else
-        {
-            this.resetPos = new Vector2(defaultPos.x, UnityEngine.Random.Range(defaultPos.y, spawner.room.RoomRect.top + 150f));
+            this.resetPos = new Vector2(player.mainBodyChunk.pos.x + UnityEngine.Random.Range(-1250, 1250), this.spawner.camPos.y + UnityEngine.Random.Range(300,1500));
         }
         if (this.reset)
         {
-            float rng = UnityEngine.Random.value;
-            if (rng < 0.05f && this.room.world.rainCycle.RainDarkPalette > 0)
+            if (UnityEngine.Random.value < 0.15f && this.room.world.rainCycle.RainDarkPalette > 0)
             {
                 this.Destroy();
             }
-            this.dir = (new Vector2(UnityEngine.Random.Range(-4f, 4f), -5f) * RainFall.rainIntensity);
+            this.dir = (new Vector2(UnityEngine.Random.Range(-4f, 4f) + (directionAdjust * RainFall.rainIntensity), -5f) * RainFall.rainIntensity);
             this.vel = this.dir;
             this.pos = this.resetPos;
             this.lastPos = this.resetPos;
             this.lastLastPos = this.resetPos;
             this.lastLastLastPos = this.resetPos;
             this.collision = false;
-            this.timeToDie = false;
             this.foreground = false;
             this.reset = false;
         }
         this.lastLastLastPos = this.lastLastPos;
         this.lastLastPos = this.lastPos;
         this.vel.x = this.vel.x * (1f + (RainFall.rainIntensity * 0.005f));
-        this.vel.y = this.vel.y - (this.gravity * 0.5f) * (RainFall.rainIntensity * 2f);
+        this.vel.y = this.vel.y - (this.gravity * RainFall.rainIntensity) * 0.1f;
         if (this.vel.y < Mathf.Lerp((-7f * RainFall.rainIntensity), -15f, this.room.world.rainCycle.RainDarkPalette))
         {
-            this.vel.y = Mathf.Lerp((-7f * RainFall.rainIntensity), -15f, this.room.world.rainCycle.RainDarkPalette) + (UnityEngine.Random.value * 2.3f);
+            this.vel.y = Mathf.Lerp((-7f * RainFall.rainIntensity), -15f, this.room.world.rainCycle.RainDarkPalette) + (1f * UnityEngine.Random.value);
         }
-        if ((vel.x > 4f * (RainFall.rainIntensity * 1.1f) || vel.x < -4f * (RainFall.rainIntensity * 1.1f)) && dirCounter <= 0f)
+        if (spawner.direction == 1)
         {
-            this.dir = new Vector2(-this.dir.x, this.dir.y);
-            dirCounter = Mathf.Lerp(UnityEngine.Random.Range(1f, 5f), UnityEngine.Random.Range(20f, 50f), this.room.world.rainCycle.RainDarkPalette);
+            if ((vel.x > 1f * RainFall.rainIntensity || vel.x < -4f * RainFall.rainIntensity) && dirCounter <= 0f)
+            {
+                if(vel.x > 1f)
+                {
+                    vel.x = vel.x * 0.03f;
+                }
+                this.dir = new Vector2(-this.dir.x + (directionAdjust * RainFall.rainIntensity), this.dir.y);
+                dirCounter = UnityEngine.Random.Range(2f, 10f);
+            }
         }
-        this.vel += this.dir * 0.03f;
-        this.dirCounter = this.dirCounter - (0.1f + (RainFall.rainIntensity * 0.3f));
+        else if (spawner.direction == 2)
+        {
+            if ((vel.x > 4f * RainFall.rainIntensity || vel.x < -4f * RainFall.rainIntensity) && dirCounter <= 0f)
+            {
+                this.dir = new Vector2(-this.dir.x, this.dir.y);
+                dirCounter = UnityEngine.Random.Range(2f, 10f);
+            }
+        }
+        else
+        {
+            if ((vel.x > 4f * RainFall.rainIntensity || vel.x < -1f * RainFall.rainIntensity) && dirCounter <= 0f)
+            {
+                if (vel.x < -1f)
+                {
+                    vel.x = vel.x * 0.03f;
+                }
+                this.dir = new Vector2(-this.dir.x + (directionAdjust * RainFall.rainIntensity), this.dir.y);
+                dirCounter = UnityEngine.Random.Range(2f, 10f);
+            }
+        }
+        this.vel += this.dir * 0.02f;
+        this.dirCounter = this.dirCounter - (0.1f + (RainFall.rainIntensity * UnityEngine.Random.value));
         if (dirCounter < 0f)
         {
             dirCounter = 0;
         }
-        if ((this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid || this.room.GetTile(this.pos).Solid || this.room.GetTile(this.pos).AnyWater) && !foreground)
+        if (this.room.fullyLoaded && this.room.BeingViewed)
         {
-            this.reset = true;
-        }
-        if (this.pos.y < -50f)
-        {
-            this.reset = true;
+            if ((this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid || this.room.GetTile(this.pos).Solid || this.room.GetTile(this.pos).AnyWater))
+            {
+                this.reset = true;
+            }
         }
         base.Update(eu);
     }
     public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
         sLeaser.sprites = new FSprite[1];
-        if (UnityEngine.Random.Range(0f, 1f) > 0.5f)
+        if (UnityEngine.Random.Range(0f, 1f) > 0.6f)
         {
             sLeaser.sprites[0] = new FSprite("SkyDandelion", true);
             sLeaser.sprites[0].scale = 0.15f + (RainFall.rainIntensity * 0.2f);
@@ -288,23 +354,10 @@ public class SnowFlake : CosmeticSprite
         {
             sLeaser.sprites[0].alpha = UnityEngine.Random.Range(0.85f, 1f);
         }
-        if(camPos != null)
-        {
-            this.currentCamPos = camPos;
-        }
         sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker) - camPos.x;
         sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, timeStacker) - camPos.y;
         sLeaser.sprites[0].rotation = Custom.AimFromOneVectorToAnother(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker));
         sLeaser.sprites[0].scaleY = Mathf.Max(0.45f, 0.45f + 0.1f * Vector2.Distance(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker)));
-        if (this.foreground)
-        {
-            this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD2"));
-            sLeaser.sprites[0].alpha = sLeaser.sprites[0].alpha - 0.02f;
-        }
-        if (sLeaser.sprites[0].alpha < 0f)
-        {
-            this.reset = true;
-        }
         base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
     }
 
@@ -316,7 +369,7 @@ public class SnowFlake : CosmeticSprite
         }
         else
         {
-            sLeaser.sprites[0].color = Color.Lerp(palette.texture.GetPixel(9, 5), Color.white, 0.12f);
+            sLeaser.sprites[0].color = Color.Lerp(palette.texture.GetPixel(9, 5), Color.white, 0.32f);
         }
         base.ApplyPalette(sLeaser, rCam, palette);
     }
@@ -327,7 +380,7 @@ public class SnowFlake : CosmeticSprite
     }
 }
 
-//Snow Decal
+//Snow Decal (End of Cycle)
 public class SnowDecal : CosmeticSprite
 {
     public SnowDecal(Room room)
@@ -338,7 +391,6 @@ public class SnowDecal : CosmeticSprite
     {
         sLeaser.sprites = new FSprite[1];
         sLeaser.sprites[0] = new FSprite("Futile_White", true);
-        sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["EdgeFade"];
         sLeaser.sprites[0].alpha = 0f;
         sLeaser.sprites[0].color = Color.white;
         sLeaser.sprites[0].x = rCam.game.rainWorld.screenSize.x / 2f;
@@ -351,17 +403,25 @@ public class SnowDecal : CosmeticSprite
     {
         sLeaser.sprites[0].x = this.pos.x - camPos.x;
         sLeaser.sprites[0].y = this.pos.y - camPos.y;
-        sLeaser.sprites[0].alpha = Mathf.Lerp(0f, 0.6f, this.room.world.rainCycle.RainDarkPalette);
+        sLeaser.sprites[0].alpha = Mathf.Lerp(0f, 0.7f, this.room.world.rainCycle.RainDarkPalette);
         base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
     }
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
+        if (palette.darkness > 0.5f)
+        {
+            sLeaser.sprites[0].color = Color.Lerp(palette.skyColor, new Color(0.2f, 0.2f, 0.2f), 0.4f);
+        }
+        else
+        {
+            sLeaser.sprites[0].color = Color.Lerp(palette.texture.GetPixel(9, 5), Color.white, 0.5f);
+        }
     }
     public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
         if (newContatiner == null)
         {
-            newContatiner = rCam.ReturnFContainer("Foreground");
+            newContatiner = rCam.ReturnFContainer("HUD2");
         }
         base.AddToContainer(sLeaser, rCam, newContatiner);
     }
@@ -416,7 +476,14 @@ public class SnowDust : CosmeticSprite
     }
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
-        sLeaser.sprites[0].color = palette.texture.GetPixel(9, 5);
+        if (palette.darkness > 0.5f)
+        {
+            sLeaser.sprites[0].color = Color.Lerp(palette.skyColor, new Color(0.2f, 0.2f, 0.2f), 0.4f);
+        }
+        else
+        {
+            sLeaser.sprites[0].color = Color.Lerp(palette.texture.GetPixel(9, 5), Color.white, 0.12f);
+        }
         base.ApplyPalette(sLeaser, rCam, palette);
     }
     public float life;

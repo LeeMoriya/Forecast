@@ -85,7 +85,7 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
 
     public void UpdateVerts(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        alphaFade = UnityEngine.Random.Range(0.5f,1f) - rCam.currentPalette.darkness;
+        alphaFade = UnityEngine.Random.Range(0.7f,1f) - rCam.currentPalette.darkness;
         sLeaser.sprites[0].RemoveFromContainer();
         this.InitiateSprites(sLeaser, rCam);
         float[,] vertices = this.vertices;

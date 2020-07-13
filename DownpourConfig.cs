@@ -45,6 +45,10 @@ public class DownpourConfig : OptionInterface
     public OpCheckBox waterCheck;
     public OpLabel waterLabel;
     public OpCheckBox bgOn;
+    public OpCheckBox dustCheck;
+    public OpLabel dustLabel;
+    public OpCheckBox decalCheck;
+    public OpLabel decalLabel;
     public OpImage logo;
     public OpImage logo2;
     public OpLabel rainOption;
@@ -54,6 +58,9 @@ public class DownpourConfig : OptionInterface
     public OpLabel regionLabel;
     public OpLabel regionDescription;
     public OpLabel customRegionSupport;
+    public OpLabel versionNumber;
+    public OpSimpleButton rainButton;
+    public OpSimpleButton snowButton;
     public bool customRegionsEnabled;
     public string[] regionList;
 
@@ -77,7 +84,7 @@ public class DownpourConfig : OptionInterface
                 FieldInfo f = mod.GetType().GetField("loadedRegions");
                 if (f != null)
                 {
-                    Dictionary<string, string> loadedRegions = (Dictionary<string,string>)f.GetValue(null);
+                    Dictionary<string, string> loadedRegions = (Dictionary<string, string>)f.GetValue(null);
                     string[] moddedRegionList = loadedRegions.Keys.ToArray();
                     int originalRegion = regionList.Length;
                     Array.Resize<string>(ref regionList, originalRegion + moddedRegionList.Length);
@@ -94,19 +101,20 @@ public class DownpourConfig : OptionInterface
         //Tabs
         this.Tabs = new OpTab[1];
         this.Tabs[0] = new OpTab("Weather");
-        
+
         //Weather Type
         this.logo = new OpImage(new Vector2(270f, 540f), "logo");
         this.logo2 = new OpImage(new Vector2(270f, 540f), "logo2");
         this.weatherType = new OpRadioButtonGroup("Type", 0);
         this.weatherTypeLabel = new OpLabel(new Vector2(30f, 570f), new Vector2(400f, 40f), "Weather Type", FLabelAlignment.Left, true);
-        this.rainWeather = new OpRadioButton(new Vector2(30f, 540f));
-        this.snowWeather = new OpRadioButton(new Vector2(95f, 540f));
-        this.rainLabel = new OpLabel(new Vector2(60f, 533f), new Vector2(400f, 40f), "Rain", FLabelAlignment.Left, false);
-        this.snowLabel = new OpLabel(new Vector2(125f, 533f), new Vector2(400f, 40f), "Snow", FLabelAlignment.Left, false);
+        this.rainWeather = new OpRadioButton(new Vector2(0f, 800f));
+        this.rainButton = new OpSimpleButton(new Vector2(30f, 540f), new Vector2(70f, 25f), "rainButton", "Rain");
+        this.snowWeather = new OpRadioButton(new Vector2(0f, 800f));
+        this.snowButton = new OpSimpleButton(new Vector2(130f, 540f), new Vector2(70f, 25f), "snowButton", "Snow");
         this.weatherType.SetButtons(new OpRadioButton[] { rainWeather, snowWeather });
-        this.Tabs[0].AddItems(rainWeather, snowWeather, rainLabel, snowLabel, weatherType, weatherTypeLabel);
-        
+        this.versionNumber = new OpLabel(new Vector2(10f, -5f), new Vector2(0f, 0f), "Version: 0.5.0", FLabelAlignment.Left, false);
+        this.Tabs[0].AddItems(rainButton, snowButton, rainWeather, snowWeather, weatherType, weatherTypeLabel, versionNumber);
+
         //Weather Sliders
         this.rainIntensity = new OpLabel(new Vector2(topAnchor.x, topAnchor.y), new Vector2(400f, 40f), "Rain Settings", FLabelAlignment.Left, true);
         this.intensitySliderLabel = new OpLabel(new Vector2(topAnchor.x + 40f, topAnchor.y - 83f), new Vector2(400f, 40f), "Weather Progression", FLabelAlignment.Left, false);
@@ -121,25 +129,31 @@ public class DownpourConfig : OptionInterface
         this.rainChanceSlider.description = "Configure whether the chosen weather will occur during a cycle.";
         this.topRect = new OpRect(new Vector2(15f, 250f), new Vector2(590f, 270f), 0.1f);
         this.Tabs[0].AddItems(rainIntensity, weatherIntensity, intensitySliderLabel, directionSliderLabel, weatherDirection, topRect, logo, logo2, rainChanceSlider, rainChanceLabel);
-        
+
         //Checkboxes
-        this.lightningCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y), "Lightning", true);
-        this.lightningLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 6f), new Vector2(400f, 40f), "Lightning", FLabelAlignment.Left, false);
-        this.paletteCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 40f), "Palette", true);
-        this.paletteLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 46f), new Vector2(400f, 40f), "Palette changes", FLabelAlignment.Left, false);
+        this.lightningCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 40f), "Lightning", true);
+        this.lightningLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 46f), new Vector2(400f, 40f), "Lightning", FLabelAlignment.Left, false);
+        this.paletteCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y), "Palette", true);
+        this.paletteLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 6f), new Vector2(400f, 40f), "Palette changes", FLabelAlignment.Left, false);
         this.muteCheck = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y), "Mute", false);
         this.muteLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 6f), new Vector2(400f, 40f), "Mute interiors", FLabelAlignment.Left, false);
         this.waterCheck = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y - 40f), "Water", false);
         this.waterLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 46f), new Vector2(400f, 40f), "Water ripples", FLabelAlignment.Left, false);
         this.bgOn = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 80f), "Background", true);
         this.bgLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 86f), new Vector2(400f, 40f), "Background", FLabelAlignment.Left, false);
+        this.decalCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 40f), "Decals", true);
+        this.decalLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 46f), new Vector2(400f, 40f), "Surface decals", FLabelAlignment.Left, false);
+        this.dustCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 80f), "Dust", true);
+        this.dustLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 86f), new Vector2(400f, 40f), "Snow dust", FLabelAlignment.Left, false);
+        this.dustCheck.description = "Puffs of snow appear when landing on the ground.";
+        this.decalCheck.description = "Adds snowy decals to surfaces.";
         this.lightningCheck.description = "Lightning will have a chance of appearing if the cycle starts with high weather intensity.";
         this.paletteCheck.description = "The region will become darker with higher rain intensity.";
         this.muteCheck.description = "Mute the sound effect added to interiors when its raining outside.";
         this.waterCheck.description = "Rain drops can interact with water surfaces and cause ripples, may impact performance.";
         this.bgOn.description = "Enable or disable collision with background elements.";
-        this.Tabs[0].AddItems(lightningLabel, lightningCheck, rainSettingsDescription, paletteCheck, muteCheck, waterCheck, bgOn, paletteLabel, muteLabel, waterLabel, bgLabel);
-        
+        this.Tabs[0].AddItems(lightningLabel, lightningCheck, rainSettingsDescription, paletteCheck, muteCheck, waterCheck, bgOn, paletteLabel, muteLabel, waterLabel, bgLabel, dustCheck,dustLabel,decalCheck,decalLabel);
+
         //Particle Limit
         this.rainOption = new OpLabel(new Vector2(topAnchor.x + 366f, topAnchor.y - 203f), new Vector2(400f, 40f), "Particle Limit", FLabelAlignment.Left, false);
         this.rainSlider = new OpSlider(new Vector2(topAnchor.x + 275f, topAnchor.y - 180f), "rainAmount", new IntVector2(10, 80), 3.3f, false, 50);
@@ -177,7 +191,7 @@ public class DownpourConfig : OptionInterface
                     regionLabelList[i] = new OpLabel(new Vector2(-1650f + (95f * i), 10f), new Vector2(400f, 40f), "-" + regionList[i], FLabelAlignment.Left, true);
                 }
                 this.Tabs[0].AddItems(regionLabelList[i], regionChecks[i]);
-                if (regionList[i] == "UW" || regionList[i] == "SB" || regionList[i] == "SS")
+                if (regionList[i] == "SS")
                 {
                     regionChecks[i].valueBool = false;
                 }
@@ -185,29 +199,74 @@ public class DownpourConfig : OptionInterface
         }
         Downpour.configLoaded = true;
     }
+    public override void Signal(UItrigger trigger, string signal)
+    {
+        base.Signal(trigger, signal);
+        if (signal == "rainButton")
+        {
+            this.rainWeather.valueBool = true;
+        }
+        if (signal == "snowButton")
+        {
+            this.snowWeather.valueBool = true;
+        }
+    }
     public override void Update(float dt)
     {
         base.Update(dt);
         //Toggle between rain and snow mode
-        if (rainWeather.valueBool)
+        if (this.rainWeather.valueBool)
         {
             rainIntensity.text = "Rain Settings";
             rainSettingsDescription.text = "Enable or disable rain specific settings:";
-            bgOn.greyedOut = false;
-            muteCheck.greyedOut = false;
-            waterCheck.greyedOut = false;
+            paletteCheck.description = "The region will become darker with higher rain intensity.";
             logo.Show();
             logo2.Hide();
+            //Hide rain checks
+            lightningCheck.Show();
+            muteCheck.Show();
+            waterCheck.Show();
+            bgOn.Show();
+            //Show rain check labels
+            bgLabel.Show();
+            muteLabel.Show();
+            waterLabel.Show();
+            lightningLabel.Show();
+            //Hide snow checks
+            decalCheck.Hide();
+            dustCheck.Hide();
+            //Hide snow labels
+            decalLabel.Hide();
+            dustLabel.Hide();
         }
         else
         {
             rainIntensity.text = "Snow Settings";
             rainSettingsDescription.text = "Enable or disable snow specific settings:";
-            bgOn.greyedOut = true;
-            muteCheck.greyedOut = true;
-            waterCheck.greyedOut = true;
+            paletteCheck.description = "A snowy palette will be overlayed onto the current palette.";
             logo.Hide();
             logo2.Show();
+            //Disable rain checks
+            lightningCheck.valueBool = false;
+            muteCheck.valueBool = false;
+            waterCheck.valueBool = false;
+            bgOn.valueBool = false;
+            //Hide rain checks
+            lightningCheck.Hide();
+            muteCheck.Hide();
+            waterCheck.Hide();
+            bgOn.Hide();
+            //Hide rain check labels
+            bgLabel.Hide();
+            muteLabel.Hide();
+            waterLabel.Hide();
+            lightningLabel.Hide();
+            //Hide snow checks
+            decalCheck.Show();
+            dustCheck.Show();
+            //Hide snow labels
+            decalLabel.Show();
+            dustLabel.Show();
         }
         //Intensity Slider
         switch (weatherIntensity.value)
@@ -249,7 +308,7 @@ public class DownpourConfig : OptionInterface
         else
         {
             this.customRegionSupport.label.label.text = "CustomRegions Support: Disabled";
-            this.customRegionSupport.label.label.color = new Color(0.37f, 0.1f, 0.1f);
+            this.customRegionSupport.label.label.color = new Color(0.37f, 0.37f, 0.37f);
         }
     }
     public override void ConfigOnChange()
@@ -309,6 +368,22 @@ public class DownpourConfig : OptionInterface
         else
         {
             Downpour.lightning = true;
+        }
+        if (config["Decals"] == "false")
+        {
+            Downpour.decals = false;
+        }
+        else
+        {
+            Downpour.decals = true;
+        }
+        if (config["Dust"] == "false")
+        {
+            Downpour.dust = false;
+        }
+        else
+        {
+            Downpour.dust = true;
         }
         if (config["weatherIntensity"] == "0")
         {

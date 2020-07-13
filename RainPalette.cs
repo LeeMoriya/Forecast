@@ -259,7 +259,6 @@ class RainPalette
                 {
                     float heightFade = Mathf.Lerp(0f, 1f, Mathf.InverseLerp(2500f, 3800f, self.loadingRoom.abstractRoom.mapPos.y));
                     float darknessFade = 1f - texture.GetPixel(30, 7).r;
-                    Debug.Log("DARKNESS: " + darknessFade);
                     Color[] colors = texture.GetPixels();
                     Color[] newColors = new Color[colors.Length];
                     //Bright
@@ -268,6 +267,10 @@ class RainPalette
                     Color[] exterior2Cols = exterior2.GetPixels();
                     //Bright Interior
                     Color[] interior1Cols = interior1.GetPixels();
+                    bool brightex = false;
+                    bool brightin = false;
+                    bool darkex = false;
+
                     for (int i = 0; i < colors.Length; i++)
                     {
                         //Rain
@@ -284,7 +287,7 @@ class RainPalette
                             if (Downpour.rainRegions.Contains(self.loadingRoom.world.region.name))
                             {
                                 //Bright Palette
-                                if (darknessFade < 0.75f)
+                                if (darknessFade < 0.4f)
                                 {
                                     if (RainFall.rainList.Contains(self.loadingRoom.abstractRoom.name))
                                     {
@@ -295,12 +298,14 @@ class RainPalette
                                         }
                                         newColors[i] = Custom.Screen(newColors[i], exterior1Cols[i]);
                                         texture.SetPixels(newColors);
+                                        brightex = true;
                                     }
                                     else
                                     {
                                         newColors[i] = colors[i];
                                         newColors[i] = Custom.Screen(newColors[i], interior1Cols[i]);
                                         texture.SetPixels(newColors);
+                                        brightin = true;
                                     }
                                 }
                                 //Dark Palette
@@ -311,6 +316,7 @@ class RainPalette
                                         newColors[i] = colors[i];
                                         newColors[i] = Custom.Screen(newColors[i], exterior2Cols[i]);
                                         texture.SetPixels(newColors);
+                                        darkex = true;
                                     }
                                     else
                                     {
@@ -325,6 +331,22 @@ class RainPalette
                                 texture.SetPixels(colors);
                             }
                         }
+                    }
+                    //Debug palette checker
+                    if (brightex)
+                    {
+                        Debug.Log("Downpour: " + self.room.abstractRoom.name.ToString() + ": Using bright exterior palette");
+                        Debug.Log(self.room.abstractRoom.name.ToString() + ": Darkness = " + darknessFade);
+                    }
+                    if (brightin)
+                    {
+                        Debug.Log("Downpour: " + self.room.abstractRoom.name.ToString() + ": Using bright interior palette");
+                        Debug.Log(self.room.abstractRoom.name.ToString() + ": Darkness = " + darknessFade);
+                    }
+                    if (darkex)
+                    {
+                        Debug.Log("Downpour: " + self.room.abstractRoom.name.ToString() + ": Using dark exterior palette");
+                        Debug.Log(self.room.abstractRoom.name.ToString() + ": Darkness = " + darknessFade);
                     }
                 }
             }

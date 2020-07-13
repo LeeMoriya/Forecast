@@ -130,6 +130,8 @@ public class Downpour : PartialityMod
     public static bool snow = true;
     public static bool bg = true;
     public static bool water = true;
+    public static bool decals = true;
+    public static bool dust = true;
     public static List<string> rainRegions = new List<string>();
     public static int rainAmount = 50;
     public static int direction = 0;

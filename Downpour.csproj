@@ -34,7 +34,7 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>D:\Steam Games\steamapps\common\Rain World\Mods\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="ConfigMachine, Version=1.0.1.3, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ConfigMachine, Version=1.2.0.2, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>E:\Steam Games\steamapps\common\Rain World\Mods\ConfigMachine.dll</HintPath>
     </Reference>
