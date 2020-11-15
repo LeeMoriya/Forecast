@@ -13,7 +13,7 @@ Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
 - Config menu with various options.
 
 ## Requirements
-- [PublicityStunt](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
+- [PublicityStunt](https://cdn.discordapp.com/attachments/305139167300550666/530462441432416266/PublicityStunt.dll)
 - [ConfigMachine 1.0](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
 
 Both PublicityStunt and ConfigMachine 1.0 are required as of v0.4.
