@@ -13,7 +13,6 @@ Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
 - Config menu with various options.
 
 ## Requirements
-- [PublicityStunt](https://cdn.discordapp.com/attachments/305139167300550666/530462441432416266/PublicityStunt.dll)
 - [ConfigMachine 1.0](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
 
 Both PublicityStunt and ConfigMachine 1.0 are required as of v0.4.
@@ -33,9 +32,9 @@ The following settings can be change in the config menu:
 Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases)
 
 ## Installation
-1. Install Partiality for Rain World.
+1. Install BepInEx
 2. Drop Downpour.dll and its requirements above into your Mods folder.
-3. Tick the mods in the Partiality Launcher and click 'Apply Mods'.
+3. Tick the mods in the BOI Mod Manager and run the game.
 
 ## Compatibility
 The mod is currently known to be incompatible with the following:
