@@ -15,8 +15,6 @@ Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
 ## Requirements
 - [ConfigMachine 1.0](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
 
-Both PublicityStunt and ConfigMachine 1.0 are required as of v0.4.
-
 The following settings can be change in the config menu:
 - Rain Intensity (Dynamic, Low, Med, High)
 - Lightning (On, Off)
@@ -29,7 +27,7 @@ The following settings can be change in the config menu:
 - Toggle Rainfall Per-Region
 
 ## Download
-Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases)
+Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.6)
 
 ## Installation
 1. Install BepInEx
