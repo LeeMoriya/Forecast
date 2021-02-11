@@ -11,6 +11,7 @@ Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
 - Regions become darker as rain intensity increases.
 - Small chance of lightning being added to a room.
 - Config menu with various options.
+- AutoUpdate support.
 
 ## Requirements
 - [ConfigMachine 1.0](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
@@ -18,6 +19,7 @@ Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
 The following settings can be change in the config menu:
 - Rain Intensity (Dynamic, Low, Med, High)
 - Lightning (On, Off)
+- Lightning Strikes (On, Off)
 - Darkening (On, Off)
 - Skittle Mode (On, Off)
 - Mute Interior Rain Sound
@@ -27,7 +29,7 @@ The following settings can be change in the config menu:
 - Toggle Rainfall Per-Region
 
 ## Download
-Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.6)
+Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.65)
 
 ## Installation
 1. Install BepInEx
