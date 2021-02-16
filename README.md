@@ -39,7 +39,7 @@ Get the latest version of the mod from the releases page [here.](https://github.
 
 ## Compatibility
 The mod is currently known to be incompatible with the following:
-- MoodMod (Disable Region darkening in the config menu to restore MoodMod functionality)
+- MoodMod (Disable palette changes in the config menu to restore MoodMod functionality)
 
 If you are aware of any other incompatible mods, please let me know and I'll list them here.
 
