@@ -20,6 +20,7 @@ The following settings can be change in the config menu:
 - Rain Intensity (Dynamic, Low, Med, High)
 - Lightning (On, Off)
 - Lightning Strikes (On, Off)
+- Lightning Strike Damage (None, Stun, Lethal)
 - Darkening (On, Off)
 - Skittle Mode (On, Off)
 - Mute Interior Rain Sound
@@ -29,7 +30,7 @@ The following settings can be change in the config menu:
 - Toggle Rainfall Per-Region
 
 ## Download
-Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.65)
+Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.7)
 
 ## Installation
 1. Install BepInEx
