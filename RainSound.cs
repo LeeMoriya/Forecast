@@ -29,19 +29,15 @@ class RainSound : UpdatableAndDeletable
             {
                 normalRainSound = new DisembodiedDynamicSoundLoop(this);
                 normalRainSound.sound = SoundID.Normal_Rain_LOOP;
-                normalRainSound.Volume = Mathf.Lerp(0f, 1.2f, RainFall.rainIntensity);
                 heavyRainSound = new DisembodiedDynamicSoundLoop(this);
                 heavyRainSound.sound = SoundID.Heavy_Rain_LOOP;
-                heavyRainSound.Volume = Mathf.Lerp(0f, 0.6f, RainFall.rainIntensity);
             }
             else if (!Downpour.interiorRain)
             {
                 interiorRainSound = new DisembodiedDynamicSoundLoop(this);
                 interiorRainSound.sound = SoundID.Flash_Flood_LOOP;
-                interiorRainSound.Volume = Mathf.Lerp(0f, 0.35f, RainFall.rainIntensity);
                 rumbleSound = new DisembodiedDynamicSoundLoop(this);
                 rumbleSound.sound = SoundID.Death_Rain_Heard_From_Underground_LOOP;
-                rumbleSound.Volume = Mathf.Lerp(0f, 0.18f, RainFall.rainIntensity);
             }
         }
     }
@@ -52,7 +48,7 @@ class RainSound : UpdatableAndDeletable
         {
             this.Destroy();
         }
-        else
+        else if(RainFall.rainIntensity >0f)
         {
             if (interiorRainSound != null)
             {
@@ -61,12 +57,12 @@ class RainSound : UpdatableAndDeletable
             }
             if (normalRainSound != null)
             {
-                normalRainSound.Volume = Mathf.Lerp(0f, 1f, RainFall.rainIntensity);
+                normalRainSound.Volume = Mathf.Lerp(0f, 1f, RainFall.rainIntensity * 1.7f);
                 normalRainSound.Update();
             }
             if (heavyRainSound != null)
             {
-                heavyRainSound.Volume = Mathf.Lerp(0f, 0.4f, RainFall.rainIntensity);
+                heavyRainSound.Volume = Mathf.Lerp(0f, 0.55f, RainFall.rainIntensity * 1.2f);
                 heavyRainSound.Update();
             }
             if (rumbleSound != null)

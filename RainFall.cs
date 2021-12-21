@@ -24,11 +24,29 @@ public class RainFall
     {
         On.Room.Update += Room_Update;
         On.Room.Loaded += Room_Loaded;
+        On.AbstractRoom.RealizeRoom += AbstractRoom_RealizeRoom;
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
         On.Lightning.ctor += Lightning_ctor;
         On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize;
         On.RainWorld.LoadResources += RainWorld_LoadResources;
+    }
+
+    private static void AbstractRoom_RealizeRoom(On.AbstractRoom.orig_RealizeRoom orig, AbstractRoom self, World world, RainWorldGame game)
+    {
+        orig.Invoke(self, world, game);
+        if (!noRain)
+        {
+            //Add Weather Object
+            if (self.realizedRoom != null && self.realizedRoom.roomRain != null && self.world.rainCycle.TimeUntilRain > 0)
+            {
+                if (!self.shelter && !self.gate && self.realizedRoom.roomRain.dangerType != RoomRain.DangerType.Flood && !rainList.Contains(self.name))
+                {
+                    rainList.Add(self.name);
+                    self.realizedRoom.AddObject(new Preciptator(self.realizedRoom, Downpour.snow));
+                }
+            }
+        }
     }
 
     private static void RainWorld_LoadResources(On.RainWorld.orig_LoadResources orig, RainWorld self)
@@ -116,9 +134,9 @@ public class RainFall
     }
     private static void StoryGameSession_AddPlayer(On.StoryGameSession.orig_AddPlayer orig, StoryGameSession self, AbstractCreature player)
     {
-        //Starting rain intensity determined at the start of the cycle
         orig.Invoke(self, player);
         rainList.Clear();
+        //Rain Chance
         if (UnityEngine.Random.Range(0, 100) < Downpour.rainChance)
         {
             noRainThisCycle = false;
@@ -127,6 +145,7 @@ public class RainFall
         {
             noRainThisCycle = true;
         }
+        //Rain Starting Intensity (Non-Dynamic)
         if (!Downpour.dynamic)
         {
             if (Downpour.intensity == 1)
@@ -145,22 +164,24 @@ public class RainFall
                 Downpour.dynamic = false;
             }
         }
+        //Rain Starting Intensity (Dynamic)
         else
         {
             Downpour.dynamic = true;
             if (!Downpour.snow)
             {
-                rainIntensity = UnityEngine.Random.Range(-2f, 0.8f);
+                rainIntensity = UnityEngine.Random.Range(-1.5f, 0.8f);
             }
             else
             {
-                rainIntensity = UnityEngine.Random.Range(0.35f, 0.9f);
+                rainIntensity = UnityEngine.Random.Range(0.15f, 0.9f);
             }
         }
+        //Rain Direction
         switch (Downpour.direction)
         {
             case 0:
-                direction = UnityEngine.Random.Range(1, 3);
+                direction = UnityEngine.Random.Range(1, 4);
                 break;
             case 1:
                 direction = 1;
@@ -172,6 +193,7 @@ public class RainFall
                 direction = 3;
                 break;
         }
+        //Apply Rain Intensity
         if (!noRainThisCycle)
         {
             startingIntensity = rainIntensity;
@@ -185,6 +207,7 @@ public class RainFall
     private static void Room_Loaded(On.Room.orig_Loaded orig, Room self)
     {
         orig.Invoke(self);
+        //Enable Weather Per-Region based on Config
         if (self.game != null && !self.game.IsArenaSession)
         {
             if (Downpour.rainRegions.Contains(self.world.region.name))
@@ -203,34 +226,10 @@ public class RainFall
         //Add lightning effect to rooms.
         if (!noRain)
         {
-            if (self.game != null && !self.abstractRoom.shelter && Downpour.lightning && self.roomRain != null)
-            {
-                if (self.roomRain.dangerType == RoomRain.DangerType.Rain && startingIntensity > 0.5f && self.lightning == null)
-                {
-                    self.lightning = new Lightning(self, 1f, false);
-                    self.lightning.bkgOnly = true;
-                    self.AddObject(self.lightning);
-                }
-                if (self.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && startingIntensity > 0.5f && self.lightning == null)
-                {
-                    self.lightning = new Lightning(self, 1f, false);
-                    self.lightning.bkgOnly = true;
-                    self.AddObject(self.lightning);
-                }
-            }
+            //Add Rain Sound Object
             if (self.game != null)
             {
                 self.AddObject(new RainSound(self));
-            }
-            if (self != null && self.roomRain != null && self.world.rainCycle.TimeUntilRain > 0 && !noRain)
-            {
-                if (!self.abstractRoom.shelter && self.roomRain.dangerType != RoomRain.DangerType.Flood && rainList.Contains(self.abstractRoom.name) == false)
-                {
-                    {
-                        self.AddObject(new Preciptator(self, Downpour.snow));
-                        rainList.Add(self.abstractRoom.name);
-                    }
-                }
             }
         }
     }
@@ -274,7 +273,7 @@ public class RainFall
                 if (self.BeingViewed)
                 {
                     Downpour.direction++;
-                    if(Downpour.direction > 3)
+                    if (Downpour.direction > 3)
                     {
                         Downpour.direction = 1;
                     }
@@ -289,26 +288,16 @@ public class RainFall
 
         }
         //Rain intensity increases with cycle duration if in dynamic mode
-        if (Downpour.dynamic && !noRainThisCycle)
+        if (Downpour.dynamic && !noRainThisCycle && self.BeingViewed)
         {
             if (self.world.rainCycle.RainDarkPalette <= 0)
             {
-                rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression * UnityEngine.Random.value);
+                rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
             }
             else
             {
                 rainIntensity = Mathf.Lerp(0.95f, 0f, self.world.rainCycle.RainDarkPalette);
             }
-        }
-        //Flooding tests
-        if (self.waterObject != null && rainIntensity > 0.7f)
-        {
-            //flooding = true;
-            //self.waterObject.fWaterLevel = self.waterObject.originalWaterLevel + floodLevel;
-        }
-        else
-        {
-            flooding = false;
         }
     }
 }
