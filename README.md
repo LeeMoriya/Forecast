@@ -13,8 +13,11 @@ Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
 - Config menu with various options.
 - AutoUpdate support.
 
+New!
+- Snow weather type (experimental)
+
 ## Requirements
-- [ConfigMachine 1.0](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
+- [ConfigMachine](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
 
 The following settings can be change in the config menu:
 - Rain Intensity (Dynamic, Low, Med, High)
