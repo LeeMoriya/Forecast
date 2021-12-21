@@ -30,7 +30,7 @@ The following settings can be change in the config menu:
 - Toggle Rainfall Per-Region
 
 ## Download
-Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.75)
+Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.8)
 
 ## Installation
 1. Install BepInEx
