@@ -13,7 +13,7 @@ Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
 - Config menu with various options.
 - AutoUpdate support.
 
-New!
+### New!
 - Snow weather type (experimental)
 
 ## Requirements
