@@ -1,4 +1,4 @@
-# Rain World - Downpour Mod
+# Rain World - Downpour Mod ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
 A mod for Rain World that adds dynamic and configurable rainfall.
 
 ![Downpour](https://i.imgur.com/hPblP6q.gif)
@@ -11,16 +11,16 @@ Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
 - Regions become darker as rain intensity increases.
 - Small chance of lightning being added to a room.
 - Config menu with various options.
+- AutoUpdate support.
 
 ## Requirements
-- [PublicityStunt](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
 - [ConfigMachine 1.0](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
-
-Both PublicityStunt and ConfigMachine 1.0 are required as of v0.4.
 
 The following settings can be change in the config menu:
 - Rain Intensity (Dynamic, Low, Med, High)
 - Lightning (On, Off)
+- Lightning Strikes (On, Off)
+- Lightning Strike Damage (None, Stun, Lethal)
 - Darkening (On, Off)
 - Skittle Mode (On, Off)
 - Mute Interior Rain Sound
@@ -30,16 +30,16 @@ The following settings can be change in the config menu:
 - Toggle Rainfall Per-Region
 
 ## Download
-Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases)
+Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.75)
 
 ## Installation
-1. Install Partiality for Rain World.
+1. Install BepInEx
 2. Drop Downpour.dll and its requirements above into your Mods folder.
-3. Tick the mods in the Partiality Launcher and click 'Apply Mods'.
+3. Tick the mods in the BOI Mod Manager and run the game.
 
 ## Compatibility
 The mod is currently known to be incompatible with the following:
-- MoodMod (Disable Region darkening in the config menu to restore MoodMod functionality)
+- MoodMod (Disable palette changes in the config menu to restore MoodMod functionality)
 
 If you are aware of any other incompatible mods, please let me know and I'll list them here.
 
