@@ -31,6 +31,6 @@ The following settings can be change in the config menu:
 Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.8.1)
 
 ## Installation
-1. Install BepInEx
+1. Install BepInEx - [Video Guide](https://youtu.be/brDN_8uN6-U)
 2. Drop Downpour.dll and its requirements above into your Mods folder.
 3. Tick the mods in the BOI Mod Manager and run the game.
