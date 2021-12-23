@@ -1,8 +1,8 @@
 # Rain World - Downpour Mod ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
 A mod for Rain World that adds dynamic and configurable rainfall.
 
-![Downpour](https://i.imgur.com/hPblP6q.gif)
-![Snow](https://media.giphy.com/media/ZIyJ3KpfRJGvgeGgui/giphy.gif)
+![Rain](https://i.imgur.com/hPblP6q.gif)
+![Snow](https://i.imgur.com/KfKGo1w.gif)
 
 Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
 
