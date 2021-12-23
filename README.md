@@ -2,6 +2,7 @@
 A mod for Rain World that adds dynamic and configurable rainfall.
 
 ![Downpour](https://i.imgur.com/hPblP6q.gif)
+![Snow](https://media.giphy.com/media/ZIyJ3KpfRJGvgeGgui/giphy.gif)
 
 Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
 
