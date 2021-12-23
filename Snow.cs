@@ -102,7 +102,7 @@ public class SnowFlake : CosmeticSprite
                 //If that random position has line of sight with the sky, spawn a snowflake there
                 Vector2 spawn = randomOffset.ToVector2();
                 Vector2 spawnPos = spawn + offset2;
-                if (this.depth < 0.7f || this.spawner.RayTraceSky(spawnPos, new Vector2(0f, 1f)))
+                if ((this.depth < 0.7f || this.spawner.RayTraceSky(spawnPos, new Vector2(0f, 1f)))&& spawnPos.y > this.room.floatWaterLevel)
                 {
                     this.resetPos = spawnPos;
                 }
@@ -186,6 +186,10 @@ public class SnowFlake : CosmeticSprite
         }
 
         //Reset
+        if (this.room.waterObject != null && this.room.GetTile(this.pos).WaterSurface || this.pos.y < this.room.floatWaterLevel)
+        {
+            this.reset = true;
+        }
         if (this.depth > 0.8f)
         {
             if ((this.room.GetTile(this.pos).Terrain == Room.Tile.TerrainType.Solid || this.room.GetTile(this.pos).Solid || this.room.GetTile(this.pos).AnyWater))
@@ -232,7 +236,7 @@ public class SnowFlake : CosmeticSprite
     {
         if (palette.darkness > 0.5f)
         {
-            sLeaser.sprites[0].color = Color.Lerp(palette.skyColor, new Color(0.45f, 0.45f, 0.45f), Mathf.Lerp(0.8f, 0.5f, this.depth));
+            sLeaser.sprites[0].color = Color.Lerp(palette.skyColor, new Color(0.15f, 0.15f, 0.15f), Mathf.Lerp(0.8f, 0.5f, this.depth));
         }
         else
         {
@@ -243,7 +247,7 @@ public class SnowFlake : CosmeticSprite
 
     public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
     {
-        newContatiner = rCam.ReturnFContainer("Foreground");
+        newContatiner = rCam.ReturnFContainer("GrabShaders");
         sLeaser.sprites[0].RemoveFromContainer();
         newContatiner.AddChild(sLeaser.sprites[0]);
     }

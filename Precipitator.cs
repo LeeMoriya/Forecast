@@ -218,7 +218,7 @@ public class Preciptator : UpdatableAndDeletable
             if (!isSnow)
             {
                 this.snowFlakes = 0;
-                if (this.rainDrops < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
+                if (!RainFall.noRainThisCycle && this.rainDrops < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
                 {
                     this.AddRaindrops(rainLimit - this.rainDrops);
                 }
@@ -230,7 +230,7 @@ public class Preciptator : UpdatableAndDeletable
             else
             {
                 this.rainDrops = 0;
-                if (this.snowFlakes < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
+                if (!RainFall.noRainThisCycle && this.snowFlakes < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
                 {
                     this.AddSnowflakes(rainLimit - this.snowFlakes);
                 }

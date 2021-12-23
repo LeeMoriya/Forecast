@@ -12,7 +12,7 @@ class RainPalette
     public static void Patch()
     {
         //On.RoomCamera.LoadPalette += RoomCamera_LoadPalette;
-        //On.RoomCamera.ApplyEffectColorsToPaletteTexture += RoomCamera_ApplyEffectColorsToPaletteTexture;
+        On.RoomCamera.ApplyEffectColorsToPaletteTexture += RoomCamera_ApplyEffectColorsToPaletteTexture;
         On.RoomCamera.LoadPalette += LoadPalette;
     }
 
@@ -35,39 +35,87 @@ class RainPalette
             Color[] modifiedPalette = new Color[origPalette.Length];
             float darknessFade = 1f - texture.GetPixel(30, 7).r;
 
-            if (Downpour.snow)
+            if (self.game.IsArenaSession)
             {
-                //Determine palette needed
-                if (Downpour.rainRegions.Contains(room.world.region.name))
+                Color[] colors = texture.GetPixels();
+                Color[] newColors = new Color[colors.Length];
+                Color[] exterior1Cols = Downpour.snowExt1.GetPixels();
+                Color[] interior1Cols = Downpour.snowInt1.GetPixels();
+                for (int i = 0; i < colors.Length; i++)
                 {
-                    //Exterior
-                    if (RainFall.rainList.Contains(room.abstractRoom.name))
+                    //Rain
+                    if (!Downpour.snow)
                     {
-                        Color[] snowPalette = Downpour.snowExt1.GetPixels();
-                        for (int i = 0; i < modifiedPalette.Length; i++)
-                        {
-                            modifiedPalette[i] = origPalette[i];
-                            modifiedPalette[i] = Custom.Desaturate(modifiedPalette[i], Mathf.Lerp(0.45f, 0f, darknessFade));
-                            snowPalette[i] = Color.Lerp(snowPalette[i], new Color(0f, 0f, 0f), darknessFade);
-                            modifiedPalette[i] = Custom.Screen(modifiedPalette[i], snowPalette[i]);
-                        }
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
+                        newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 0.05f);
+                        texture.SetPixels(newColors);
                     }
-                    //Interior
+                    //Snow
                     else
                     {
-                        Color[] snowPalette = Downpour.snowInt1.GetPixels();
-                        for (int i = 0; i < modifiedPalette.Length; i++)
+                        if (RainFall.rainList.Contains(self.loadingRoom.abstractRoom.name))
                         {
-                            modifiedPalette[i] = origPalette[i];
-                            modifiedPalette[i] = Custom.Desaturate(modifiedPalette[i], Mathf.Lerp(0.45f, 0f, darknessFade));
-                            snowPalette[i] = Color.Lerp(snowPalette[i], new Color(0f, 0f, 0f), darknessFade);
-                            modifiedPalette[i] = Custom.Screen(modifiedPalette[i], snowPalette[i]);
+                            newColors[i] = colors[i];
+                            exterior1Cols[i] = Color.Lerp(exterior1Cols[i], new Color(0f, 0f, 0f), 0f);
+                            newColors[i] = Custom.Screen(newColors[i], exterior1Cols[i]);
+                            texture.SetPixels(newColors);
+                        }
+                        else
+                        {
+                            newColors[i] = colors[i];
+                            newColors[i] = Custom.Screen(newColors[i], interior1Cols[i]);
+                            texture.SetPixels(newColors);
                         }
                     }
-                    texture.SetPixels(modifiedPalette);
-                    texture.Apply();
                 }
             }
+            else
+            {
+                if (Downpour.snow)
+                {
+                    //Determine palette needed
+                    if (Downpour.rainRegions.Contains(room.world.region.name))
+                    {
+                        //Exterior
+                        if (RainFall.rainList.Contains(room.abstractRoom.name))
+                        {
+                            Color[] snowPalette = Downpour.snowExt1.GetPixels();
+                            for (int i = 0; i < modifiedPalette.Length; i++)
+                            {
+                                modifiedPalette[i] = origPalette[i];
+                                modifiedPalette[i] = Custom.Desaturate(modifiedPalette[i], Mathf.Lerp(0.45f, 0f, darknessFade));
+                                snowPalette[i] = Color.Lerp(snowPalette[i], new Color(0f, 0f, 0f), darknessFade);
+                                modifiedPalette[i] = Custom.Screen(modifiedPalette[i], snowPalette[i]);
+                            }
+                        }
+                        //Interior
+                        else
+                        {
+                            Color[] snowPalette = Downpour.snowInt1.GetPixels();
+                            for (int i = 0; i < modifiedPalette.Length; i++)
+                            {
+                                modifiedPalette[i] = origPalette[i];
+                                modifiedPalette[i] = Custom.Desaturate(modifiedPalette[i], Mathf.Lerp(0.45f, 0f, darknessFade));
+                                snowPalette[i] = Color.Lerp(snowPalette[i], new Color(0f, 0f, 0f), darknessFade);
+                                modifiedPalette[i] = Custom.Screen(modifiedPalette[i], snowPalette[i]);
+                            }
+                        }
+                        texture.SetPixels(modifiedPalette);
+                    }
+                }
+                else
+                {
+                    Color[] colors = texture.GetPixels();
+                    Color[] newColors = new Color[colors.Length];
+                    for (int i = 0; i < colors.Length; i++)
+                    {
+                        newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
+                        newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 0.05f);
+                    }
+                    texture.SetPixels(newColors);
+                }
+            }
+            texture.Apply();
             //Apply new colors to texture and call orig
         }
     }
@@ -75,6 +123,16 @@ class RainPalette
     //Room effect color changes
     private static void RoomCamera_ApplyEffectColorsToPaletteTexture(On.RoomCamera.orig_ApplyEffectColorsToPaletteTexture orig, RoomCamera self, ref Texture2D texture, int color1, int color2)
     {
+        orig.Invoke(self, ref texture, color1, color2);
+        Room room = null;
+        if (self.loadingRoom != null)
+        {
+            room = self.loadingRoom;
+        }
+        else if (self.room != null)
+        {
+            room = self.room;
+        }
         if (Downpour.paletteChange && !RainFall.noRain)
         {
             if (RainFall.rainIntensity > 0f)
@@ -85,25 +143,7 @@ class RainPalette
             {
                 darkness = 1f * 0.3f;
             }
-            self.allEffectColorsTexture = new Texture2D(40, 4, TextureFormat.ARGB32, false);
-            self.allEffectColorsTexture.anisoLevel = 0;
-            self.allEffectColorsTexture.filterMode = FilterMode.Point;
-            self.www = new WWW(string.Concat(new object[]
-            {
-            "file:///",
-            Custom.RootFolderDirectory(),
-            "Assets",
-            Path.DirectorySeparatorChar,
-            "Futile",
-            Path.DirectorySeparatorChar,
-            "Resources",
-            Path.DirectorySeparatorChar,
-            "Palettes",
-            Path.DirectorySeparatorChar,
-            "effectColors.png"
-            }));
-            self.www.LoadImageIntoTexture(self.allEffectColorsTexture);
-            if (self.room != null)
+            if (room != null)
             {
                 if (color1 > -1)
                 {
@@ -122,7 +162,7 @@ class RainPalette
                             if (!RainFall.noRain)
                             {
                                 newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
-                                newColors[i] = Color.Lerp(newColors[i], new Color(1f, 1f, 1f), darkness * 1.5f);
+                                newColors[i] = Color.Lerp(newColors[i], new Color(1f, 1f, 1f), darkness * 0.2f);
                                 self.allEffectColorsTexture.SetPixels(newColors);
                             }
                             else
@@ -131,45 +171,12 @@ class RainPalette
                             }
                         }
                     }
-                    texture.SetPixels(30, 4, 2, 2, self.allEffectColorsTexture.GetPixels(color1 * 2, 0, 2, 2, 0), 0);
-                    texture.SetPixels(30, 12, 2, 2, self.allEffectColorsTexture.GetPixels(color1 * 2, 2, 2, 2, 0), 0);
-                }
-                if (color2 > -1)
-                {
-                    Color[] colors = self.allEffectColorsTexture.GetPixels();
-                    Color[] newColors = new Color[colors.Length];
-                    for (int i = 0; i < colors.Length; i++)
-                    {
-                        if (!Downpour.snow)
-                        {
-                            newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
-                            newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 0.5f);
-                            self.allEffectColorsTexture.SetPixels(newColors);
-                        }
-                        else
-                        {
-                            if (!RainFall.noRain)
-                            {
-                                newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
-                                self.allEffectColorsTexture.SetPixels(newColors);
-                            }
-                            else
-                            {
-                                self.allEffectColorsTexture.SetPixels(colors);
-                            }
-                        }
-                    }
-                    self.allEffectColorsTexture.SetPixels(newColors);
-                    texture.SetPixels(30, 2, 2, 2, self.allEffectColorsTexture.GetPixels(color2 * 2, 0, 2, 2, 0), 0);
-                    texture.SetPixels(30, 10, 2, 2, self.allEffectColorsTexture.GetPixels(color2 * 2, 2, 2, 2, 0), 0);
+                    texture.Apply();
                 }
             }
         }
-        else
-        {
-            orig.Invoke(self, ref texture, color1, color2);
-        }
     }
+
 
     //Main room palette changes
     public static void RoomCamera_LoadPalette(On.RoomCamera.orig_LoadPalette orig, RoomCamera self, int pal, ref Texture2D texture)
