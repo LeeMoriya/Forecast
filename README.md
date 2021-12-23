@@ -4,8 +4,6 @@ A dynamic weather mod for Rain World that adds rain and snow.
 ![Rain](https://i.imgur.com/hPblP6q.gif)
 ![Snow](https://media.giphy.com/media/vE1qoRyPgkDzCfQbBw/giphy.gif)
 
-Video Preview: https://www.youtube.com/watch?v=rosN0avujXw
-
 ## Features
 - Adds new particle weather effects to outdoor rooms
 - Weather intensity increases as the cycle progresses
