@@ -59,6 +59,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Blizzard.cs" />
     <Compile Include="Downpour.cs" />
     <Compile Include="DownpourConfig.cs" />
     <Compile Include="LightningStrike.cs" />

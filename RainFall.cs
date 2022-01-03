@@ -30,6 +30,38 @@ public class RainFall
         On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize;
         On.RainWorld.LoadResources += RainWorld_LoadResources;
+        On.Player.ctor += Player_ctor;
+        On.RainCycle.RainHit += RainCycle_RainHit;
+        On.RoomRain.Update += RoomRain_Update;
+    }
+
+    private static void RoomRain_Update(On.RoomRain.orig_Update orig, RoomRain self, bool eu)
+    {
+        if (Downpour.snow)
+        {
+            return;
+        }
+        orig.Invoke(self, eu);
+    }
+
+    private static void RainCycle_RainHit(On.RainCycle.orig_RainHit orig, RainCycle self)
+    {
+        if (Downpour.snow)
+        {
+            return;
+        }
+        orig.Invoke(self);
+    }
+
+    private static void Player_ctor(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
+    {
+        orig.Invoke(self, abstractCreature, world);
+        if (Downpour.snow)
+        {
+            Downpour.runspeedArray = new float[self.room.game.Players.Count];
+            Downpour.runspeedArray[self.playerState.playerNumber] = self.slugcatStats.runspeedFac;
+            //Debug.Log("RUN SPEED ORIG: " + Downpour.runspeedArray[self.playerState.playerNumber].ToString());
+        }
     }
 
     private static void AbstractRoom_RealizeRoom(On.AbstractRoom.orig_RealizeRoom orig, AbstractRoom self, World world, RainWorldGame game)
@@ -38,12 +70,23 @@ public class RainFall
         if (!noRain)
         {
             //Add Weather Object
-            if (self.realizedRoom != null && self.realizedRoom.roomRain != null && self.world.rainCycle.TimeUntilRain > 0)
+            if (self.realizedRoom != null && self.realizedRoom.roomRain != null)
             {
                 if (!self.shelter && !self.gate && self.realizedRoom.roomRain.dangerType != RoomRain.DangerType.Flood && !rainList.Contains(self.name))
                 {
-                    rainList.Add(self.name);
-                    self.realizedRoom.AddObject(new Preciptator(self.realizedRoom, Downpour.snow));
+                    ceilingCount = 0;
+                    for (int r = 0; r < self.realizedRoom.TileWidth; r++)
+                    {
+                        if (self.realizedRoom.Tiles[r, self.realizedRoom.TileHeight - 1].Solid)
+                        {
+                            ceilingCount++;
+                        }
+                    }
+                    if (ceilingCount < (self.realizedRoom.Width * 0.95))
+                    {
+                        rainList.Add(self.name);
+                        self.realizedRoom.AddObject(new Preciptator(self.realizedRoom, Downpour.snow));
+                    }
                 }
             }
         }
@@ -54,6 +97,9 @@ public class RainFall
         Futile.atlasManager.LoadAtlasFromTexture("snowpile", Downpour.snowPileTex);
         Futile.atlasManager.LoadAtlasFromTexture("logo", Downpour.logo);
         Futile.atlasManager.LoadAtlasFromTexture("logo2", Downpour.logo2);
+        Futile.atlasManager.LoadAtlasFromTexture("blizzard", Downpour.blizzardTexture);
+        Futile.atlasManager.LoadAtlasFromTexture("overlay1", Downpour.overlay1);
+        Futile.atlasManager.LoadAtlasFromTexture("overlay2", Downpour.overlay2);
         orig.Invoke(self);
     }
 
@@ -112,14 +158,7 @@ public class RainFall
     }
     private static void Lightning_ctor(On.Lightning.orig_ctor orig, Lightning self, Room room, float intensity, bool bkgOnly)
     {
-        self.room = room;
-        self.intensity = intensity;
-        self.bkgOnly = bkgOnly;
-        self.lightningSources = new Lightning.LightningSource[2];
-        for (int i = 0; i < 2; i++)
-        {
-            self.lightningSources[i] = new Lightning.LightningSource(self, i == 1);
-        }
+        orig.Invoke(self, room, intensity, bkgOnly);
         self.bkgGradient = new Color[2];
         if (!room.game.IsArenaSession && (room.world.region.name == "UW" || room.world.region.name == "TR"))
         {
@@ -136,6 +175,7 @@ public class RainFall
     {
         orig.Invoke(self, player);
         rainList.Clear();
+
         //Rain Chance
         if (UnityEngine.Random.Range(0, 100) < Downpour.rainChance)
         {
@@ -236,6 +276,40 @@ public class RainFall
     private static void Room_Update(On.Room.orig_Update orig, Room self)
     {
         orig.Invoke(self);
+        if (Downpour.snow)
+        {
+            if (self.game.world.rainCycle.RainDarkPalette > 0f)
+            {
+                if (rainList.Contains(self.abstractRoom.name))
+                {
+                    for (int i = 0; i < self.updateList.Count; i++)
+                    {
+                        if (self.updateList[i] is Player)
+                        {
+                            if ((self.updateList[i] as Player).slugcatStats.runspeedFac > 0.7f)
+                            {
+                                (self.updateList[i] as Player).slugcatStats.runspeedFac -= 0.001f;
+                                //Debug.Log("[" + (self.updateList[i] as Player).playerState.playerNumber + "] " + (self.updateList[i] as Player).slugcatStats.runspeedFac.ToString());
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < self.updateList.Count; i++)
+                    {
+                        if (self.updateList[i] is Player)
+                        {
+                            if ((self.updateList[i] as Player).slugcatStats.runspeedFac < Downpour.runspeedArray[(self.updateList[i] as Player).playerState.playerNumber])
+                            {
+                                (self.updateList[i] as Player).slugcatStats.runspeedFac += 0.001f;
+                                //Debug.Log("[" + (self.updateList[i] as Player).playerState.playerNumber + "] " + (self.updateList[i] as Player).slugcatStats.runspeedFac.ToString());
+                            }
+                        }
+                    }
+                }
+            }
+        }
         if (Downpour.debug)
         {
             //Decrease Intensity

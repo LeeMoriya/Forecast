@@ -79,9 +79,12 @@ public class SnowFlake : CosmeticSprite
 
     public override void Update(bool eu)
     {
-        if (!Downpour.snow)
+        if (!Downpour.snow || this.room.world.rainCycle.RainDarkPalette > 0f)
         {
-            this.Destroy();
+            if(UnityEngine.Random.value > 0.98f)
+            {
+                this.Destroy();
+            }
         }
 
         //Upon Reset
@@ -89,10 +92,6 @@ public class SnowFlake : CosmeticSprite
 
         if (this.reset)
         {
-            if (UnityEngine.Random.value < 0.15f && this.room.world.rainCycle.RainDarkPalette > 0)
-            {
-                this.Destroy();
-            }
             if (player != null && player.mainBodyChunk != null && !player.inShortcut && this.room.BeingViewed)
             {
                 this.depth = UnityEngine.Random.Range(0f, 0.9f);
@@ -102,7 +101,7 @@ public class SnowFlake : CosmeticSprite
                 //If that random position has line of sight with the sky, spawn a snowflake there
                 Vector2 spawn = randomOffset.ToVector2();
                 Vector2 spawnPos = spawn + offset2;
-                if ((this.depth < 0.7f || this.spawner.RayTraceSky(spawnPos, new Vector2(0f, 1f)))&& spawnPos.y > this.room.floatWaterLevel)
+                if ((this.spawner.RayTraceSky(spawnPos, new Vector2(0f, 1f)))&& spawnPos.y > this.room.floatWaterLevel)
                 {
                     this.resetPos = spawnPos;
                 }
@@ -259,24 +258,30 @@ public class SnowDecal : CosmeticSprite
     public SnowDecal(Room room)
     {
         this.room = room;
+        this.pos = new Vector2(0f, 0f);
     }
+
     public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
         sLeaser.sprites = new FSprite[1];
         sLeaser.sprites[0] = new FSprite("Futile_White", true);
         sLeaser.sprites[0].alpha = 0f;
         sLeaser.sprites[0].color = Color.white;
+        sLeaser.sprites[0].SetAnchor(0.5f,0.5f);
         sLeaser.sprites[0].x = rCam.game.rainWorld.screenSize.x / 2f;
         sLeaser.sprites[0].y = rCam.game.rainWorld.screenSize.y / 2f;
         sLeaser.sprites[0].scaleX = rCam.game.rainWorld.screenSize.x;
         sLeaser.sprites[0].scaleY = rCam.game.rainWorld.screenSize.y;
+        sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["EdgeFade"];
         this.AddToContainer(sLeaser, rCam, null);
     }
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        sLeaser.sprites[0].x = this.pos.x - camPos.x;
-        sLeaser.sprites[0].y = this.pos.y - camPos.y;
-        sLeaser.sprites[0].alpha = Mathf.Lerp(0f, 0.7f, this.room.world.rainCycle.RainDarkPalette);
+        sLeaser.sprites[0].x = rCam.game.rainWorld.screenSize.x / 2f;
+        sLeaser.sprites[0].y = rCam.game.rainWorld.screenSize.y / 2f;
+        sLeaser.sprites[0].scaleX = (rCam.game.rainWorld.screenSize.x * Mathf.Lerp(1.5f, 1f, rCam.game.world.rainCycle.RainDarkPalette) + 2f) / 16f;
+        sLeaser.sprites[0].scaleY = (rCam.game.rainWorld.screenSize.y * Mathf.Lerp(2.5f, 1.5f, rCam.game.world.rainCycle.RainDarkPalette) + 2f) / 16f;
+        sLeaser.sprites[0].alpha = Mathf.Lerp(-0.2f, 0.4f, rCam.game.world.rainCycle.RainDarkPalette);
         base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
     }
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
@@ -298,6 +303,7 @@ public class SnowDecal : CosmeticSprite
         }
         base.AddToContainer(sLeaser, rCam, newContatiner);
     }
+
     public float rad;
     public float flipX;
     public float flipY;

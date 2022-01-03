@@ -42,6 +42,8 @@ public class DownpourConfig : OptionInterface
     public OpLabel paletteLabel;
     public OpCheckBox muteCheck;
     public OpLabel muteLabel;
+    public OpCheckBox effectCheck;
+    public OpLabel effectLabel;
     public OpCheckBox waterCheck;
     public OpLabel waterLabel;
     public OpCheckBox bgOn;
@@ -130,20 +132,23 @@ public class DownpourConfig : OptionInterface
         this.damageLabel = new OpLabel(new Vector2(checkAnchor.x + 10f, checkAnchor.y - 123f), new Vector2(), "Damage Type: ", FLabelAlignment.Left, false);
         this.bgOn = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y - 70f), "Background", true);
         this.bgLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 76f), new Vector2(400f, 40f), "Background", FLabelAlignment.Left, false);
-        this.decalCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 30f), "Decals", true);
-        this.decalLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 36f), new Vector2(400f, 40f), "Surface decals", FLabelAlignment.Left, false);
-        this.dustCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 70f), "Dust", true);
-        this.dustLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 76f), new Vector2(400f, 40f), "Snow dust", FLabelAlignment.Left, false);
+        this.decalCheck = new OpCheckBox(new Vector2(checkAnchor.x+150f, checkAnchor.y - 30f), "Decals", true);
+        this.decalLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 36f), new Vector2(400f, 40f), "Surface decals", FLabelAlignment.Left, false);
+        this.dustCheck = new OpCheckBox(new Vector2(checkAnchor.x+150f, checkAnchor.y - 70f), "Dust", true);
+        this.dustLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 76f), new Vector2(400f, 40f), "Snow dust", FLabelAlignment.Left, false);
+        this.effectCheck = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y + 10), "Effect", false);
+        this.effectLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y + 4f), new Vector2(400f, 40f), "Effect Colors", FLabelAlignment.Left, false);
         this.dustCheck.description = "Puffs of snow appear when landing on the ground.";
         this.decalCheck.description = "Adds snowy decals to surfaces.";
-        this.lightningCheck.description = "Lightning will appear at higher rain intensities.";
+        this.lightningCheck.description = "Lightning will appear at higher weather intensities.";
         this.paletteCheck.description = "The region will become darker with higher rain intensity.";
         this.muteCheck.description = "Mute the sound effect added to interiors when its raining outside.";
         this.waterCheck.description = "Rain drops can interact with water surfaces and cause ripples, may impact performance.";
         this.bgOn.description = "Enable or disable collision with background elements, may impact performance.";
         this.strikeDamage.description = "Adjust the damage type of Lightning Strikes";
-        this.strikeCheck.description = "When rain intensity is high enough, lightning strikes can occur.";
-        this.Tabs[0].AddItems(lightningLabel, lightningCheck, strikeCheck, strikeLabel, strikeDamage, damageLabel, rainSettingsDescription, paletteCheck, muteCheck, waterCheck, bgOn, paletteLabel, muteLabel, waterLabel, bgLabel, dustCheck,dustLabel,decalCheck,decalLabel);
+        this.strikeCheck.description = "When weather intensity is high enough, lightning strikes can occur.";
+        this.effectCheck.description = "Whitens things like plants and signs so they better match the snowy palette, can ruin some custom props";
+        this.Tabs[0].AddItems(lightningLabel, lightningCheck, strikeCheck, strikeLabel, strikeDamage, damageLabel, rainSettingsDescription, paletteCheck, muteCheck, waterCheck, bgOn, paletteLabel, muteLabel, waterLabel, bgLabel, dustCheck,dustLabel,decalCheck,decalLabel, effectCheck, effectLabel);
 
         //Particle Limit
         this.rainOption = new OpLabel(new Vector2(topAnchor.x + 366f, topAnchor.y - 223f), new Vector2(400f, 40f), "Particle Limit", FLabelAlignment.Left, false);
@@ -213,8 +218,6 @@ public class DownpourConfig : OptionInterface
             logo.Show();
             logo2.Hide();
             //Hide rain checks
-            lightningCheck.Show();
-            strikeCheck.Show();
             muteCheck.Show();
             waterCheck.Show();
             bgOn.Show();
@@ -222,15 +225,15 @@ public class DownpourConfig : OptionInterface
             bgLabel.Show();
             muteLabel.Show();
             waterLabel.Show();
-            lightningLabel.Show();
-            strikeLabel.Show();
             //Hide snow checks
             decalCheck.Hide();
             dustCheck.Hide();
+            effectCheck.Hide();
             //Hide snow labels
             decalLabel.Hide();
             dustLabel.Hide();
             snowWarning.Hide();
+            effectLabel.Hide();
         }
         else
         {
@@ -240,30 +243,26 @@ public class DownpourConfig : OptionInterface
             logo.Hide();
             logo2.Show();
             //Disable rain checks
-            lightningCheck.valueBool = false;
             muteCheck.valueBool = false;
             waterCheck.valueBool = false;
             bgOn.valueBool = false;
-            strikeCheck.valueBool = false;
             //Hide rain checks
-            lightningCheck.Hide();
             muteCheck.Hide();
             waterCheck.Hide();
             bgOn.Hide();
-            strikeCheck.Hide();
             //Hide rain check labels
             bgLabel.Hide();
             muteLabel.Hide();
             waterLabel.Hide();
-            lightningLabel.Hide();
-            strikeLabel.Hide();
             //Hide snow checks
             decalCheck.Show();
             dustCheck.Show();
+            effectCheck.Show();
             //Hide snow labels
             decalLabel.Show();
             dustLabel.Show();
             snowWarning.Show();
+            effectLabel.Show();
         }
         if(lightningCheck.valueBool == false)
         {
@@ -365,6 +364,14 @@ public class DownpourConfig : OptionInterface
         else
         {
             Downpour.paletteChange = true;
+        }
+        if(config["Effect"] == "false")
+        {
+            Downpour.effectColors = false;
+        }
+        else
+        {
+            Downpour.effectColors = true;
         }
         if (config["Mute"] == "false")
         {

@@ -37,35 +37,38 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
         {
             base.slatedForDeletetion = true;
         }
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Insert))
+        if (Downpour.debug)
         {
-            this.alphaFade = this.alphaFade + 0.01f;
-            this.meshDirty = true;
-        }
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Delete))
-        {
-            this.alphaFade = this.alphaFade - 0.01f;
-            this.meshDirty = true;
-        }
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Home))
-        {
-            this.near = this.near + 0.01f;
-            this.meshDirty = true;
-        }
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.End))
-        {
-            this.near = this.near - 0.01f;
-            this.meshDirty = true;
-        }
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.PageUp))
-        {
-            this.far = this.far + 0.01f;
-            this.meshDirty = true;
-        }
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.PageDown))
-        {
-            this.far = this.far - 0.01f;
-            this.meshDirty = true;
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Insert))
+            {
+                this.alphaFade = this.alphaFade + 0.01f;
+                this.meshDirty = true;
+            }
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Delete))
+            {
+                this.alphaFade = this.alphaFade - 0.01f;
+                this.meshDirty = true;
+            }
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Home))
+            {
+                this.near = this.near + 0.01f;
+                this.meshDirty = true;
+            }
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.End))
+            {
+                this.near = this.near - 0.01f;
+                this.meshDirty = true;
+            }
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.PageUp))
+            {
+                this.far = this.far + 0.01f;
+                this.meshDirty = true;
+            }
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.PageDown))
+            {
+                this.far = this.far - 0.01f;
+                this.meshDirty = true;
+            }
         }
         base.Update(eu);
     }
@@ -78,6 +81,7 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
         sLeaser.sprites[0] = triangleMesh;
         sLeaser.sprites[0].shader = rCam.room.game.rainWorld.Shaders["Decal"];
         //sLeaser.sprites[0].rotation = UnityEngine.Random.value * 360f;
+        alphaFade = UnityEngine.Random.Range(0.7f, 1f) - rCam.currentPalette.darkness;
         this.verts = new Vector2[(sLeaser.sprites[0] as TriangleMesh).vertices.Length];
         this.AddToContainer(sLeaser, rCam, null);
         this.meshDirty = true;
@@ -85,9 +89,6 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
 
     public void UpdateVerts(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
     {
-        alphaFade = UnityEngine.Random.Range(0.7f,1f) - rCam.currentPalette.darkness;
-        sLeaser.sprites[0].RemoveFromContainer();
-        this.InitiateSprites(sLeaser, rCam);
         float[,] vertices = this.vertices;
         for (int i = 0; i <= this.gridDiv; i++)
         {
@@ -124,6 +125,17 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
         for (int i = 0; i < this.verts.Length; i++)
         {
             (sLeaser.sprites[0] as TriangleMesh).MoveVertice(i, this.verts[i] - camPos);
+        }
+        if (rCam.game.world.rainCycle.RainDarkPalette > 0f)
+        {
+            //Top left
+            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, (this.verts[0] += new Vector2(-0.01f, 0.01f)) - camPos);
+            //Bottom Left
+            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, (this.verts[1] += new Vector2(-0.01f, -0.01f)) - camPos);
+            //Top Right
+            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, (this.verts[2] += new Vector2(0.01f, 0.01f)) - camPos);
+            //Bottom Right
+            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(3, (this.verts[3] += new Vector2(0.01f, -0.01f)) - camPos);
         }
         if (base.slatedForDeletetion || this.room != rCam.room)
         {
