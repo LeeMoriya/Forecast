@@ -16,7 +16,7 @@ A dynamic weather mod for Rain World that adds rain and snow.
 - [ConfigMachine](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
 
 The following settings can be change in the config menu:
-- Rain Intensity (Dynamic, Low, Med, High)
+- Weather Intensity (Dynamic, Low, Med, High)
 - Toggle palette changes
 - Toggle Lightning Strikes
 - Adjust Lightning damage type
