@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using RWCustom;
+using System.Text.RegularExpressions;
 
 public class RainFall
 {
@@ -33,6 +34,24 @@ public class RainFall
         On.Player.ctor += Player_ctor;
         On.RainCycle.RainHit += RainCycle_RainHit;
         On.RoomRain.Update += RoomRain_Update;
+        //Debug
+        On.RoomSettings.LoadAmbientSounds += RoomSettings_LoadAmbientSounds;
+    }
+
+    private static void RoomSettings_LoadAmbientSounds(On.RoomSettings.orig_LoadAmbientSounds orig, RoomSettings self, string[] s)
+    {
+        orig.Invoke(self, s);
+        if (Downpour.debug)
+        {
+            for (int i = 0; i < s.Length; i++)
+            {
+                string[] array = Regex.Split(s[i], "><");
+                if (array[0] == "OMNI")
+                {
+                    Debug.Log("SOUND: " + array[1]);
+                }
+            }
+        }
     }
 
     private static void RoomRain_Update(On.RoomRain.orig_Update orig, RoomRain self, bool eu)

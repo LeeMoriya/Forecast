@@ -8,6 +8,7 @@ using RWCustom;
 public class Blizzard : UpdatableAndDeletable
 {
     public Preciptator preciptator;
+    public OmniDirectionalSound[] sfx;
     public int particleCount;
     public int particleLimit;
     public int cooldown;
@@ -18,9 +19,33 @@ public class Blizzard : UpdatableAndDeletable
         this.preciptator = preciptator;
         this.room = this.preciptator.room;
         this.particleLimit = 70;
-        this.room.AddObject(new Blizzard.ScrollingTexture("overlay1", 1.5f, 0.3f));
-        this.room.AddObject(new Blizzard.ScrollingTexture("overlay2", 2f, 1f));
-        this.room.AddObject(new Blizzard.ScrollingTexture("overlay2", 2.3f, 1f));
+        this.room.AddObject(new Blizzard.ScrollingTexture("overlay1", 4.5f, 0.3f));
+        this.room.AddObject(new Blizzard.ScrollingTexture("overlay2", 5f, 1f));
+        this.room.AddObject(new Blizzard.ScrollingTexture("overlay2", 6.3f, 1f));
+        this.sfx = new OmniDirectionalSound[3];
+        for (int i = 0; i < this.sfx.Length; i++)
+        {
+            string sample = "";
+            switch (i)
+            {
+                case 0:
+                    sample = "AM_WIN-HowlingWnd.ogg";
+                    break;
+                case 1:
+                    sample = "AM_WIN-NatWind.ogg";
+                    break;
+                case 2:
+                    sample = "AM_WIN-LightWind.ogg";
+                    break;
+            }
+            this.sfx[i] = new OmniDirectionalSound(sample, false)
+            {
+                volume = 0f,
+                pitch = 1f,
+                type = AmbientSound.Type.Omnidirectional
+            };
+            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[i]));
+        }
     }
     public override void Update(bool eu)
     {
@@ -33,6 +58,47 @@ public class Blizzard : UpdatableAndDeletable
                 this.particleCount++;
                 this.room.AddObject(new Blizzard.Particle(this));
             }
+        }
+        bool sfx1 = false;
+        bool sfx2 = false;
+        bool sfx3 = false;
+        for (int i = 0; i < this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Count; i++)
+        {
+            if(this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[0])
+            {
+                sfx1 = true;
+            }
+            if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[1])
+            {
+                sfx2 = true;
+            }
+            if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[2])
+            {
+                sfx3 = true;
+            }
+            if (this.sfx.Contains(this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound))
+            {
+                if (this.room.BeingViewed)
+                {
+                    this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette);
+                }
+                else
+                {
+                    this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = 0f;
+                }
+            }
+        }
+        if (!sfx1)
+        {
+            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[0]));
+        }
+        if (!sfx2)
+        {
+            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[1]));
+        }
+        if (!sfx3)
+        {
+            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[2]));
         }
         this.room.game.cameras[0].microShake = Mathf.Lerp(0f, 0.01f, Mathf.Lerp(0f, this.particleLimit, this.particleCount));
         base.Update(eu);
@@ -61,11 +127,11 @@ public class Blizzard : UpdatableAndDeletable
             {
                 this.reset = false;
                 this.alpha = 0f;
-                this.pos = new Vector2(UnityEngine.Random.Range(-50f, 1500f), UnityEngine.Random.Range(-50f, 1000f));
+                this.pos = new Vector2(UnityEngine.Random.Range(-50f, 1600f), UnityEngine.Random.Range(-50f, 1100f));
             }
             this.lastLastPos = this.lastPos;
-            this.pos.x -= this.xSway * 1.4f;
-            this.pos.y -= this.ySway * 1.4f;
+            this.pos.x -= this.xSway * 2f;
+            this.pos.y -= this.ySway * 2f;
             if(this.pos.x < -100f || this.pos.y < -100f)
             {
                 this.reset = true;
@@ -85,7 +151,7 @@ public class Blizzard : UpdatableAndDeletable
 
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
-            if(sLeaser.sprites[0].alpha < Mathf.Lerp(0f,0.5f, Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette)))
+            if(sLeaser.sprites[0].alpha < Mathf.Lerp(0f,0.55f, Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette)))
             {
                 this.alpha += 0.015f * timeStacker;
             }
