@@ -12,6 +12,7 @@ public class Blizzard : UpdatableAndDeletable
     public int particleCount;
     public int particleLimit;
     public int cooldown;
+    public float intensity = 0f;
 
     public Blizzard(Preciptator preciptator)
     {
@@ -20,6 +21,7 @@ public class Blizzard : UpdatableAndDeletable
         this.room = this.preciptator.room;
         this.particleLimit = 70;
         this.room.AddObject(new Blizzard.ScrollingTexture("overlay1", 4.5f, 0.3f));
+        this.room.AddObject(new Blizzard.ScrollingTexture("overlay1", 8.5f, 0.31f));
         this.room.AddObject(new Blizzard.ScrollingTexture("overlay2", 5f, 1f));
         this.room.AddObject(new Blizzard.ScrollingTexture("overlay2", 6.3f, 1f));
         this.sfx = new OmniDirectionalSound[3];
@@ -35,7 +37,7 @@ public class Blizzard : UpdatableAndDeletable
                     sample = "AM_WIN-NatWind.ogg";
                     break;
                 case 2:
-                    sample = "AM_WIN-LightWind.ogg";
+                    sample = "AM_IND-Midsex02.ogg";
                     break;
             }
             this.sfx[i] = new OmniDirectionalSound(sample, false)
@@ -49,6 +51,7 @@ public class Blizzard : UpdatableAndDeletable
     }
     public override void Update(bool eu)
     {
+        //Particles
         cooldown++;
         if (cooldown >= Mathf.Lerp(50, 10, Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette)))
         {
@@ -59,12 +62,19 @@ public class Blizzard : UpdatableAndDeletable
                 this.room.AddObject(new Blizzard.Particle(this));
             }
         }
+        //Wind
+        if (this.intensity <= 0.08f)
+        {
+            this.intensity = Mathf.Lerp(0f, 0.081f, this.room.world.rainCycle.RainDarkPalette);
+        }
+        this.ThrowAroundObjects();
+        //Sound
         bool sfx1 = false;
         bool sfx2 = false;
         bool sfx3 = false;
         for (int i = 0; i < this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Count; i++)
         {
-            if(this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[0])
+            if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[0])
             {
                 sfx1 = true;
             }
@@ -80,7 +90,14 @@ public class Blizzard : UpdatableAndDeletable
             {
                 if (this.room.BeingViewed)
                 {
-                    this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette);
+                    if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[2])
+                    {
+                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-1f, 0f, TimePastCycleEnd));
+                    }
+                    else
+                    {
+                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette);
+                    }
                 }
                 else
                 {
@@ -100,8 +117,90 @@ public class Blizzard : UpdatableAndDeletable
         {
             this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[2]));
         }
-        this.room.game.cameras[0].microShake = Mathf.Lerp(0f, 0.01f, Mathf.Lerp(0f, this.particleLimit, this.particleCount));
+        //Camera Shake
+        if (this.room.BeingViewed)
+        {
+            this.room.game.cameras[0].screenShake = Mathf.Lerp(0f, 0.3f, Mathf.InverseLerp(-1f, 0f, TimePastCycleEnd));
+        }
         base.Update(eu);
+    }
+
+    public float TimePastCycleEnd
+    {
+        get
+        {
+            return (this.room.world.rainCycle.timer - this.room.world.rainCycle.cycleLength) / 2400f;
+        }
+    }
+
+    public void ThrowAroundObjects()
+    {
+        if (this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.rainReach != null)
+        {
+            for (int i = 0; i < this.room.physicalObjects.Length; i++)
+            {
+                for (int j = 0; j < this.room.physicalObjects[i].Count; j++)
+                {
+                    for (int k = 0; k < this.room.physicalObjects[i][j].bodyChunks.Length; k++)
+                    {
+                        BodyChunk bodyChunk = this.room.physicalObjects[i][j].bodyChunks[k];
+                        IntVector2 tilePosition = this.room.GetTilePosition(bodyChunk.pos + new Vector2(Mathf.Lerp(-bodyChunk.rad, bodyChunk.rad, UnityEngine.Random.value), Mathf.Lerp(-bodyChunk.rad, bodyChunk.rad, UnityEngine.Random.value)));
+                        float num = this.intensity;
+                        bool flag = false;
+                        if (this.room.roomRain.rainReach[Custom.IntClamp(tilePosition.x, 0, this.room.TileWidth - 1)] < tilePosition.y)
+                        {
+                            flag = true;
+                            num = this.intensity;
+                        }
+                        if (this.room.water)
+                        {
+                            num *= Mathf.InverseLerp(this.room.FloatWaterLevel(bodyChunk.pos.x) - 100f, this.room.FloatWaterLevel(bodyChunk.pos.x), bodyChunk.pos.y);
+                        }
+                        if (num > 0f)
+                        {
+                            bodyChunk.vel += Custom.DegToVec(Mathf.Lerp(245f, 270f, UnityEngine.Random.value)) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
+
+                            if (bodyChunk.owner is Creature)
+                            {
+                                if (Mathf.Pow(UnityEngine.Random.value, 1.2f) * 2f * (float)bodyChunk.owner.bodyChunks.Length < num)
+                                {
+                                    //(bodyChunk.owner as Creature).Stun(UnityEngine.Random.Range(1, 1 + (int)(9f * num)));
+                                }
+                                if (bodyChunk == (bodyChunk.owner as Creature).mainBodyChunk)
+                                {
+                                    (bodyChunk.owner as Creature).rainDeath += num;
+                                }
+                                if (bodyChunk.owner is Player)
+                                {
+                                    Debug.Log("RAIN DEATH: " + (bodyChunk.owner as Player).rainDeath);
+                                }
+                                if (num > 0.05f && (bodyChunk.owner as Creature).rainDeath > 1f)
+                                {
+                                    if (bodyChunk.owner is Player)
+                                    {
+                                        if (UnityEngine.Random.value < 0.025f)
+                                        {
+                                            (bodyChunk.owner as Player).exhausted = true;
+                                            (bodyChunk.owner as Player).lungsExhausted = true;
+                                            (bodyChunk.owner as Player).aerobicLevel = 1f;
+                                            (bodyChunk.owner as Player).slowMovementStun = 2;
+                                            (bodyChunk.owner as Player).Stun(7);
+                                            break;
+                                        }
+                                    }
+                                    else if(UnityEngine.Random.value < 0.025f)
+                                    {
+                                        (bodyChunk.owner as Creature).Die();
+                                    }
+                                }
+
+                            }
+                            //bodyChunk.vel += Custom.DegToVec(Mathf.Lerp(90f, 270f, UnityEngine.Random.value)) * UnityEngine.Random.value * 5f * this.intensity;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public class Particle : CosmeticSprite
@@ -132,7 +231,7 @@ public class Blizzard : UpdatableAndDeletable
             this.lastLastPos = this.lastPos;
             this.pos.x -= this.xSway * 2f;
             this.pos.y -= this.ySway * 2f;
-            if(this.pos.x < -100f || this.pos.y < -100f)
+            if (this.pos.x < -100f || this.pos.y < -100f)
             {
                 this.reset = true;
             }
@@ -151,7 +250,7 @@ public class Blizzard : UpdatableAndDeletable
 
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
-            if(sLeaser.sprites[0].alpha < Mathf.Lerp(0f,0.55f, Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette)))
+            if (sLeaser.sprites[0].alpha < Mathf.Lerp(0f, 0.55f, Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette)))
             {
                 this.alpha += 0.015f * timeStacker;
             }
@@ -214,7 +313,7 @@ public class Blizzard : UpdatableAndDeletable
             (sLeaser.sprites[0] as TriangleMesh).MoveVertice(3, new Vector2(rCam.sSize.x, rCam.sSize.y));
             for (int i = 0; i < (sLeaser.sprites[0] as TriangleMesh).UVvertices.Length; i++)
             {
-                (sLeaser.sprites[0] as TriangleMesh).UVvertices[i] += new Vector2(0.007f, 0.006f) * scrollSpeed;
+                (sLeaser.sprites[0] as TriangleMesh).UVvertices[i] += new Vector2(0.007f, 0.006f) * scrollSpeed * timeStacker;
             }
             base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
         }

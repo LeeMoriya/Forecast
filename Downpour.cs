@@ -13,6 +13,7 @@ using System.IO;
 using RWCustom;
 using Menu;
 using System.Security.Permissions;
+using MonoMod.RuntimeDetour;
 
 [assembly: IgnoresAccessChecksTo("Assembly-CSharp")]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -69,6 +70,9 @@ public class Downpour : PartialityMod
     {
         RainFall.Patch();
         RainPalette.Patch();
+        //Tricky Hooks
+        new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>) RainCycle_get_ScreenShake);
+        new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.MicroScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_MicroScreenShake);
         //Load Snow Palette Image
         Downpour.snowTex = new Texture2D(32, 16, TextureFormat.ARGB32, false);
         Downpour.snowTex.anisoLevel = 0;
@@ -131,6 +135,24 @@ public class Downpour : PartialityMod
         Downpour.overlay2.wrapMode = TextureWrapMode.Repeat;
         byte[] overlay2 = Convert.FromBase64String(Downpour.overlay2Data);
         Downpour.overlay2.LoadImage(overlay2);
+    }
+
+    private float RainCycle_get_MicroScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
+    {
+        if (Downpour.snow)
+        {
+            return 0f;
+        }
+        return orig.Invoke(rainCycle);
+    }
+
+    private float RainCycle_get_ScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
+    {
+        if (Downpour.snow)
+        {
+            return 0f;
+        }
+        return orig.Invoke(rainCycle);
     }
 
     public static bool paletteChange = true;
