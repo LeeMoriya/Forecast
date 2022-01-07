@@ -13,6 +13,7 @@ public class Blizzard : UpdatableAndDeletable
     public int particleLimit;
     public int cooldown;
     public float intensity = 0f;
+    public float extremelyTemporaryPlayerExposureVariable = 0f;
 
     public Blizzard(Preciptator preciptator)
     {
@@ -158,44 +159,73 @@ public class Blizzard : UpdatableAndDeletable
                         }
                         if (num > 0f)
                         {
+                            //Wind
                             bodyChunk.vel += Custom.DegToVec(Mathf.Lerp(245f, 270f, UnityEngine.Random.value)) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
 
-                            if (bodyChunk.owner is Creature)
+                            //Player
+                            if (bodyChunk.owner is Player)
                             {
-                                if (Mathf.Pow(UnityEngine.Random.value, 1.2f) * 2f * (float)bodyChunk.owner.bodyChunks.Length < num)
+                                //Apply rainDeath
+                                if (bodyChunk == (bodyChunk.owner as Creature).mainBodyChunk)
                                 {
-                                    //(bodyChunk.owner as Creature).Stun(UnityEngine.Random.Range(1, 1 + (int)(9f * num)));
+                                    (bodyChunk.owner as Creature).rainDeath += num;
+                                    Debug.Log("RAIN DEATH: " + (bodyChunk.owner as Player).rainDeath);
+
+                                    if (num > 0.03f)
+                                    {
+                                        (bodyChunk).vel += Custom.RNV() * extremelyTemporaryPlayerExposureVariable;
+
+                                        if (extremelyTemporaryPlayerExposureVariable > 1f)
+                                        {
+                                            (bodyChunk.owner as Player).Die();
+                                        }
+                                        if ((bodyChunk.owner as Player).stun > 0)
+                                        {
+                                            extremelyTemporaryPlayerExposureVariable += 0.01f;
+                                            Debug.Log("EXPOSURE: " + extremelyTemporaryPlayerExposureVariable);
+                                        }
+                                        //Exhaustion
+                                        if (UnityEngine.Random.value < extremelyTemporaryPlayerExposureVariable + 0.01f * 0.025f)
+                                        {
+                                            if ((bodyChunk.owner as Player).rainDeath > 1f)
+                                            {
+                                                (bodyChunk.owner as Player).exhausted = true;
+                                                (bodyChunk.owner as Player).lungsExhausted = true;
+                                                (bodyChunk.owner as Player).aerobicLevel = 1f;
+                                                (bodyChunk.owner as Player).slowMovementStun = 2;
+                                                (bodyChunk.owner as Player).Stun(7);
+                                                (bodyChunk.owner as Player).rainDeath -= 1f;
+                                            }
+                                            else
+                                            {
+                                                (bodyChunk.owner as Player).Blink((int)UnityEngine.Random.Range(1f, 15f));
+                                            }
+                                        }
+                                    }
                                 }
+                            }
+                            //Creatures
+                            else if(bodyChunk.owner is Creature)
+                            {
+                                //Apply rainDeath
                                 if (bodyChunk == (bodyChunk.owner as Creature).mainBodyChunk)
                                 {
                                     (bodyChunk.owner as Creature).rainDeath += num;
                                 }
-                                if (bodyChunk.owner is Player)
+                                //Random Stun
+                                if (Mathf.Pow(UnityEngine.Random.value, 1.2f) * 2f * (float)bodyChunk.owner.bodyChunks.Length < num)
                                 {
-                                    Debug.Log("RAIN DEATH: " + (bodyChunk.owner as Player).rainDeath);
+                                    (bodyChunk.owner as Creature).Stun(UnityEngine.Random.Range(1, 1 + (int)(9f * num)));
                                 }
+                                //Kill - TODO
                                 if (num > 0.05f && (bodyChunk.owner as Creature).rainDeath > 1f)
                                 {
-                                    if (bodyChunk.owner is Player)
-                                    {
-                                        if (UnityEngine.Random.value < 0.025f)
-                                        {
-                                            (bodyChunk.owner as Player).exhausted = true;
-                                            (bodyChunk.owner as Player).lungsExhausted = true;
-                                            (bodyChunk.owner as Player).aerobicLevel = 1f;
-                                            (bodyChunk.owner as Player).slowMovementStun = 2;
-                                            (bodyChunk.owner as Player).Stun(7);
-                                            break;
-                                        }
-                                    }
-                                    else if(UnityEngine.Random.value < 0.025f)
+                                    if (UnityEngine.Random.value < 0.025f)
                                     {
                                         (bodyChunk.owner as Creature).Die();
                                     }
                                 }
-
                             }
-                            //bodyChunk.vel += Custom.DegToVec(Mathf.Lerp(90f, 270f, UnityEngine.Random.value)) * UnityEngine.Random.value * 5f * this.intensity;
                         }
                     }
                 }
