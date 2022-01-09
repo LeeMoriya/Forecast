@@ -281,7 +281,7 @@ public class SnowDecal : CosmeticSprite
         sLeaser.sprites[0].y = rCam.game.rainWorld.screenSize.y / 2f;
         sLeaser.sprites[0].scaleX = (rCam.game.rainWorld.screenSize.x * Mathf.Lerp(1.5f, 1f, rCam.game.world.rainCycle.RainDarkPalette) + 2f) / 16f;
         sLeaser.sprites[0].scaleY = (rCam.game.rainWorld.screenSize.y * Mathf.Lerp(2.5f, 1.5f, rCam.game.world.rainCycle.RainDarkPalette) + 2f) / 16f;
-        sLeaser.sprites[0].alpha = Mathf.Lerp(-0.2f, 0.4f, rCam.game.world.rainCycle.RainDarkPalette);
+        sLeaser.sprites[0].alpha = Mathf.Lerp(-0.2f, 0.5f, rCam.game.world.rainCycle.RainDarkPalette);
         base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
     }
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
@@ -299,7 +299,7 @@ public class SnowDecal : CosmeticSprite
     {
         if (newContatiner == null)
         {
-            newContatiner = rCam.ReturnFContainer("HUD2");
+            newContatiner = rCam.ReturnFContainer("HUD");
         }
         base.AddToContainer(sLeaser, rCam, newContatiner);
     }

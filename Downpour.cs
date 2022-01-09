@@ -172,6 +172,7 @@ public class Downpour : PartialityMod
     public static bool effectColors = false;
     public static List<string> rainRegions = new List<string>();
     public static float[] runspeedArray;
+    public static List<ExposureController> exposureControllers;
     public static int rainAmount = 50;
     public static int direction = 0;
     public static int rainChance = 75;

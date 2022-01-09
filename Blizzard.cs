@@ -4,6 +4,245 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using RWCustom;
+using Music;
+
+public class ExposureController
+{
+    public Player player;
+    public Blizzard blizzard;
+    public float exposure = 0;
+    public float ambient = 0f;
+    public int cooldown;
+    public int bellCooldown;
+    public int bellRing;
+    public bool dead;
+    public FLabel labelPlayer;
+    public FLabel labelExposure;
+    public FLabel labelAmbient;
+    public FLabel labelBlizzard;
+    public FLabel labelCooldown;
+    public ExposureController(Player player)
+    {
+        this.player = player;
+        this.dead = false;
+        Debug.Log("EXPOSURE CONTROLLER - PLAYER " + this.player.playerState.playerNumber);
+
+        if (Downpour.debug)
+        {
+            Vector2 sSize = this.player.abstractCreature.world.game.cameras[0].sSize;
+            float offset = 80f * this.player.playerState.playerNumber;
+            labelPlayer = new FLabel("font", "Player " + this.player.playerState.playerNumber);
+            labelPlayer.SetPosition(30.01f, sSize.y - (25f + offset));
+            labelPlayer.color = new Color(0.4f, 0.3f, 0.8f);
+            labelPlayer.alignment = FLabelAlignment.Left;
+            labelPlayer.alpha = 0f;
+            Futile.stage.AddChild(labelPlayer);
+            labelExposure = new FLabel("font", "");
+            labelExposure.SetPosition(30.01f, sSize.y - (40f + offset));
+            labelExposure.color = new Color(0.3f, 1f, 1f);
+            labelExposure.alignment = FLabelAlignment.Left;
+            Futile.stage.AddChild(labelExposure);
+            labelAmbient = new FLabel("font", "");
+            labelAmbient.SetPosition(30.01f, sSize.y - (55f + offset));
+            labelAmbient.color = new Color(0.3f, 1f, 1f);
+            labelAmbient.alignment = FLabelAlignment.Left;
+            Futile.stage.AddChild(labelAmbient);
+            labelBlizzard = new FLabel("font", "");
+            labelBlizzard.SetPosition(30.01f, sSize.y - (70f + offset));
+            labelBlizzard.color = new Color(0.3f, 1f, 1f);
+            labelBlizzard.alignment = FLabelAlignment.Left;
+            Futile.stage.AddChild(labelBlizzard);
+            labelCooldown = new FLabel("font", "");
+            labelCooldown.SetPosition(30.01f, sSize.y - (85f + offset));
+            labelCooldown.color = new Color(0.3f, 1f, 1f);
+            labelCooldown.alignment = FLabelAlignment.Left;
+            Futile.stage.AddChild(labelCooldown);
+        }
+    }
+
+    public void UpdateDebugLabels()
+    {
+        labelPlayer.alpha = 1f;
+        labelExposure.text = "Exposure: " + this.exposure;
+        labelAmbient.text = "Ambient: " + this.ambient;
+        if (blizzard == null)
+        {
+            labelBlizzard.text = "Blizzard: NO";
+            labelBlizzard.color = new Color(1f, 0f, 0f);
+        }
+        else
+        {
+            labelBlizzard.text = "Blizzard: YES";
+            labelBlizzard.color = new Color(0f, 1f, 0f);
+        }
+        labelCooldown.text = "Cooldown: " + this.cooldown;
+    }
+
+    public void Update()
+    {
+        if (this.player.room != null)
+        {
+            //Outdoors
+            if (this.blizzard != null)
+            {
+                //Switch Blizzard
+                if (this.blizzard.room != this.player.room)
+                {
+                    SwitchBlizzard();
+                    return;
+                }
+                //Exposed
+                if (this.exposure < 1f)
+                {
+                    if (this.blizzard.TimePastCycleEnd > 0f)
+                    {
+                        float scale = Mathf.Clamp(this.blizzard.TimePastCycleEnd, 0.00143f, 0.6f);
+                        this.exposure += 0.0007f * scale;
+                    }
+                    else
+                    {
+                        this.exposure += 0.0001f;
+                    }
+                    dead = false;
+                }
+                cooldown++;
+            }
+            //Indoors
+            else
+            {
+                SwitchBlizzard();
+                if (this.TimePastCycleEnd != -1f)
+                {
+                    //this.exposure -= 0.0005f;
+                    this.ambient = Mathf.Lerp(0f, 0.69f, Mathf.InverseLerp(0f, 2f, this.TimePastCycleEnd));
+                    if (this.exposure >= this.ambient)
+                    {
+                        this.exposure -= 0.0005f;
+                    }
+                    else
+                    {
+                        this.exposure += 0.0005f;
+                    }
+                }
+            }
+            if (this.exposure > 0f)
+            {
+                //Stun
+                if (this.exposure < 0.4f)
+                {
+                    if (cooldown >= UnityEngine.Random.Range(700, 1000))
+                    {
+                        cooldown = 0;
+                        this.player.Stun((int)(20 * this.exposure));
+                    }
+                }
+                //Exhaustion
+                else
+                {
+                    if (cooldown >= UnityEngine.Random.Range(600, 1000))
+                    {
+                        cooldown = 0;
+                        this.player.lungsExhausted = true;
+                        this.player.slowMovementStun = (int)(UnityEngine.Random.Range(0.5f, 2f) * this.exposure);
+                        if (UnityEngine.Random.value < 0.3f * this.exposure)
+                        {
+                            this.player.Stun(UnityEngine.Random.Range(50,120));
+                        }
+                    }
+                }
+                this.player.bodyChunks[0].vel += Custom.RNV() * (0.4f * this.exposure);
+                if (UnityEngine.Random.value < 0.0015)
+                {
+                    this.player.Blink(30);
+                }
+
+                //Death Bells
+                if (this.exposure >= 1f && !this.dead && this.player.playerState.playerNumber == 0)
+                {
+                    bellCooldown++;
+                    if (bellCooldown > (int)Mathf.Lerp(200f, 50f, Mathf.InverseLerp(0f,22f, bellRing)))
+                    {
+                        bellCooldown = 0;
+                        bellRing++;
+                        Debug.Log(bellRing);
+                        this.player.room.PlaySound(SoundID.MENU_Start_New_Game, this.player.mainBodyChunk, false, Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)), 1.3f);
+                        if(bellRing == 25)
+                        {
+                            if (!this.dead)
+                            {
+                                this.player.Die();
+                                this.dead = true;
+                            }
+                        }
+                        else
+                        {
+                            this.dead = false;
+                        }
+                    }
+                }
+                else
+                {
+                    bellCooldown++;
+                    if(bellCooldown > 150)
+                    {
+                        bellCooldown = 0;
+                        bellRing--;
+                        Debug.Log(bellRing);
+                    }
+                }
+                bellRing = Mathf.Clamp(bellRing, 0, 25);
+            }
+            this.exposure = Mathf.Clamp(this.exposure, 0f, 1f);
+            if (Downpour.debug)
+            {
+                UpdateDebugLabels();
+            }
+        }
+    }
+
+
+
+    public void SwitchBlizzard()
+    {
+        if (this.player.room != null)
+        {
+            for (int i = 0; i < this.player.room.updateList.Count; i++)
+            {
+                if (this.player.room.updateList[i] is Blizzard)
+                {
+                    this.blizzard = this.player.room.updateList[i] as Blizzard;
+                    Debug.Log("UPDATED BLIZZARD TO " + this.player.room.abstractRoom.name);
+                    return;
+                }
+            }
+            this.blizzard = null;
+        }
+    }
+
+    public float TimePastCycleEnd
+    {
+        get
+        {
+            if (this.player.room != null)
+            {
+                return (this.player.room.world.rainCycle.timer - this.player.room.world.rainCycle.cycleLength) / 2400f;
+            }
+            return -1f;
+        }
+    }
+
+    public float rainDeath
+    {
+        get
+        {
+            if (this.player != null)
+            {
+                return this.player.rainDeath;
+            }
+            return 0f;
+        }
+    }
+}
 
 public class Blizzard : UpdatableAndDeletable
 {
@@ -168,44 +407,11 @@ public class Blizzard : UpdatableAndDeletable
                                 //Apply rainDeath
                                 if (bodyChunk == (bodyChunk.owner as Creature).mainBodyChunk)
                                 {
-                                    (bodyChunk.owner as Creature).rainDeath += num;
-                                    Debug.Log("RAIN DEATH: " + (bodyChunk.owner as Player).rainDeath);
-
-                                    if (num > 0.03f)
-                                    {
-                                        (bodyChunk).vel += Custom.RNV() * extremelyTemporaryPlayerExposureVariable;
-
-                                        if (extremelyTemporaryPlayerExposureVariable > 1f)
-                                        {
-                                            (bodyChunk.owner as Player).Die();
-                                        }
-                                        if ((bodyChunk.owner as Player).stun > 0)
-                                        {
-                                            extremelyTemporaryPlayerExposureVariable += 0.01f;
-                                            Debug.Log("EXPOSURE: " + extremelyTemporaryPlayerExposureVariable);
-                                        }
-                                        //Exhaustion
-                                        if (UnityEngine.Random.value < extremelyTemporaryPlayerExposureVariable + 0.01f * 0.025f)
-                                        {
-                                            if ((bodyChunk.owner as Player).rainDeath > 1f)
-                                            {
-                                                (bodyChunk.owner as Player).exhausted = true;
-                                                (bodyChunk.owner as Player).lungsExhausted = true;
-                                                (bodyChunk.owner as Player).aerobicLevel = 1f;
-                                                (bodyChunk.owner as Player).slowMovementStun = 2;
-                                                (bodyChunk.owner as Player).Stun(7);
-                                                (bodyChunk.owner as Player).rainDeath -= 1f;
-                                            }
-                                            else
-                                            {
-                                                (bodyChunk.owner as Player).Blink((int)UnityEngine.Random.Range(1f, 15f));
-                                            }
-                                        }
-                                    }
+                                    (bodyChunk.owner as Creature).rainDeath += num * 0.1f;
                                 }
                             }
                             //Creatures
-                            else if(bodyChunk.owner is Creature)
+                            else if (bodyChunk.owner is Creature)
                             {
                                 //Apply rainDeath
                                 if (bodyChunk == (bodyChunk.owner as Creature).mainBodyChunk)
@@ -220,7 +426,7 @@ public class Blizzard : UpdatableAndDeletable
                                 //Kill - TODO
                                 if (num > 0.05f && (bodyChunk.owner as Creature).rainDeath > 1f)
                                 {
-                                    if (UnityEngine.Random.value < 0.025f)
+                                    if (UnityEngine.Random.value < 0.0025f)
                                     {
                                         (bodyChunk.owner as Creature).Die();
                                     }

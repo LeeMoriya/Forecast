@@ -34,8 +34,15 @@ public class RainFall
         On.Player.ctor += Player_ctor;
         On.RainCycle.RainHit += RainCycle_RainHit;
         On.RoomRain.Update += RoomRain_Update;
+        On.StoryGameSession.ctor += StoryGameSession_ctor;
         //Debug
         On.RoomSettings.LoadAmbientSounds += RoomSettings_LoadAmbientSounds;
+    }
+
+    private static void StoryGameSession_ctor(On.StoryGameSession.orig_ctor orig, StoryGameSession self, int saveStateNumber, RainWorldGame game)
+    {
+        orig.Invoke(self, saveStateNumber, game);
+        Downpour.exposureControllers = new List<ExposureController>();
     }
 
     private static void RoomSettings_LoadAmbientSounds(On.RoomSettings.orig_LoadAmbientSounds orig, RoomSettings self, string[] s)
@@ -75,11 +82,9 @@ public class RainFall
     private static void Player_ctor(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
     {
         orig.Invoke(self, abstractCreature, world);
-        if (Downpour.snow)
+        if (Downpour.snow && self.room.game.session is StoryGameSession)
         {
-            Downpour.runspeedArray = new float[self.room.game.Players.Count];
-            Downpour.runspeedArray[self.playerState.playerNumber] = self.slugcatStats.runspeedFac;
-            //Debug.Log("RUN SPEED ORIG: " + Downpour.runspeedArray[self.playerState.playerNumber].ToString());
+            Downpour.exposureControllers.Add(new ExposureController(self));
         }
     }
 
@@ -295,37 +300,14 @@ public class RainFall
     private static void Room_Update(On.Room.orig_Update orig, Room self)
     {
         orig.Invoke(self);
-        if (Downpour.snow)
+        if (Downpour.snow && self.world.rainCycle.RainDarkPalette > 0f)
         {
-            if (self.game.world.rainCycle.RainDarkPalette > 0f)
+            //Update exposure
+            if(Downpour.exposureControllers != null & Downpour.exposureControllers.Count > 0)
             {
-                if (rainList.Contains(self.abstractRoom.name))
+                for (int i = 0; i < Downpour.exposureControllers.Count; i++)
                 {
-                    for (int i = 0; i < self.updateList.Count; i++)
-                    {
-                        if (self.updateList[i] is Player)
-                        {
-                            if ((self.updateList[i] as Player).slugcatStats.runspeedFac > 0.7f)
-                            {
-                                (self.updateList[i] as Player).slugcatStats.runspeedFac -= 0.001f;
-                                //Debug.Log("[" + (self.updateList[i] as Player).playerState.playerNumber + "] " + (self.updateList[i] as Player).slugcatStats.runspeedFac.ToString());
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < self.updateList.Count; i++)
-                    {
-                        if (self.updateList[i] is Player)
-                        {
-                            if ((self.updateList[i] as Player).slugcatStats.runspeedFac < Downpour.runspeedArray[(self.updateList[i] as Player).playerState.playerNumber])
-                            {
-                                (self.updateList[i] as Player).slugcatStats.runspeedFac += 0.001f;
-                                //Debug.Log("[" + (self.updateList[i] as Player).playerState.playerNumber + "] " + (self.updateList[i] as Player).slugcatStats.runspeedFac.ToString());
-                            }
-                        }
-                    }
+                    Downpour.exposureControllers[i].Update();
                 }
             }
         }
