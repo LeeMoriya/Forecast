@@ -252,66 +252,6 @@ public class SnowFlake : CosmeticSprite
     }
 }
 
-//Snow Decal (End of Cycle)
-public class SnowDecal : CosmeticSprite
-{
-    public SnowDecal(Room room)
-    {
-        this.room = room;
-        this.pos = new Vector2(0f, 0f);
-    }
-
-    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
-    {
-        sLeaser.sprites = new FSprite[1];
-        sLeaser.sprites[0] = new FSprite("Futile_White", true);
-        sLeaser.sprites[0].alpha = 0f;
-        sLeaser.sprites[0].color = Color.white;
-        sLeaser.sprites[0].SetAnchor(0.5f,0.5f);
-        sLeaser.sprites[0].x = rCam.game.rainWorld.screenSize.x / 2f;
-        sLeaser.sprites[0].y = rCam.game.rainWorld.screenSize.y / 2f;
-        sLeaser.sprites[0].scaleX = rCam.game.rainWorld.screenSize.x;
-        sLeaser.sprites[0].scaleY = rCam.game.rainWorld.screenSize.y;
-        sLeaser.sprites[0].shader = rCam.game.rainWorld.Shaders["EdgeFade"];
-        this.AddToContainer(sLeaser, rCam, null);
-    }
-    public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
-    {
-        sLeaser.sprites[0].x = rCam.game.rainWorld.screenSize.x / 2f;
-        sLeaser.sprites[0].y = rCam.game.rainWorld.screenSize.y / 2f;
-        sLeaser.sprites[0].scaleX = (rCam.game.rainWorld.screenSize.x * Mathf.Lerp(1.5f, 1f, rCam.game.world.rainCycle.RainDarkPalette) + 2f) / 16f;
-        sLeaser.sprites[0].scaleY = (rCam.game.rainWorld.screenSize.y * Mathf.Lerp(2.5f, 1.5f, rCam.game.world.rainCycle.RainDarkPalette) + 2f) / 16f;
-        sLeaser.sprites[0].alpha = Mathf.Lerp(-0.2f, 0.5f, rCam.game.world.rainCycle.RainDarkPalette);
-        base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
-    }
-    public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
-    {
-        if (palette.darkness > 0.5f)
-        {
-            sLeaser.sprites[0].color = Color.Lerp(palette.skyColor, new Color(0.2f, 0.2f, 0.2f), 0.4f);
-        }
-        else
-        {
-            sLeaser.sprites[0].color = Color.Lerp(palette.texture.GetPixel(9, 5), Color.white, 0.5f);
-        }
-    }
-    public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
-    {
-        if (newContatiner == null)
-        {
-            newContatiner = rCam.ReturnFContainer("HUD");
-        }
-        base.AddToContainer(sLeaser, rCam, newContatiner);
-    }
-
-    public float rad;
-    public float flipX;
-    public float flipY;
-    public float rotat;
-    public bool bigSprite;
-    public float fade;
-}
-
 //Snowdust
 public class SnowDust : CosmeticSprite
 {

@@ -42,10 +42,6 @@ public class Preciptator : UpdatableAndDeletable
         this.isSnow = isSnow;
         this.ceilingCount = 0;
         this.direction = RainFall.direction;
-        if (Downpour.snow)
-        {
-            this.room.AddObject(new SnowDecal(this.room));
-        }
         for (int r = 0; r < this.room.TileWidth; r++)
         {
             if (this.room.Tiles[r, this.room.TileHeight - 1].Solid)
@@ -186,7 +182,7 @@ public class Preciptator : UpdatableAndDeletable
         this.isSnow = Downpour.snow;
         if (isSnow)
         {
-            if (this.room.game.world.rainCycle.RainDarkPalette > 0f && this.blizzard == null)
+            if ((this.room.world.rainCycle.timer - this.room.world.rainCycle.cycleLength) / 2400f > -0.5f && this.blizzard == null)
             {
                 this.blizzard = new Blizzard(this);
                 this.room.AddObject(this.blizzard);

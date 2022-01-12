@@ -5,11 +5,59 @@ using System.Text;
 using UnityEngine;
 using RWCustom;
 using Music;
+using HUD;
+
+
+public class Vignette : ISingleCameraDrawable
+{
+    public ExposureController controller;
+    public FSprite vignette;
+    public RoomCamera camera;
+    public Vignette(ExposureController controller)
+    {
+        this.controller = controller;
+        this.camera = this.controller.cam;
+        this.vignette = new FSprite("Futile_White", true);
+        this.vignette.alpha = 0f;
+        this.vignette.color = Color.white;
+        this.vignette.SetAnchor(0.5f, 0.5f);
+        this.vignette.x = this.camera.game.rainWorld.screenSize.x / 2f;
+        this.vignette.y = this.camera.game.rainWorld.screenSize.y / 2f;
+        this.vignette.scaleX = this.camera.game.rainWorld.screenSize.x;
+        this.vignette.scaleY = this.camera.game.rainWorld.screenSize.y;
+        this.vignette.shader = this.camera.game.rainWorld.Shaders["EdgeFade"];
+        this.camera.AddSingleCameraDrawable(this);
+        this.camera.ReturnFContainer("HUD").AddChild(this.vignette);
+        Debug.Log("VIGNETTE CREATED");
+    }
+
+    public void Draw(RoomCamera camera, float timeStacker, Vector2 camPos)
+    {
+        if (!this.camera.ReturnFContainer("HUD")._childNodes.Contains(this.vignette))
+        {
+            this.camera.ReturnFContainer("HUD").AddChild(this.vignette);
+        }
+        if (camera.currentPalette.darkness > 0.5f)
+        {
+            this.vignette.color = Color.Lerp(camera.currentPalette.skyColor, new Color(0.2f, 0.2f, 0.2f), 0.4f);
+        }
+        else
+        {
+            this.vignette.color = Color.Lerp(camera.currentPalette.texture.GetPixel(9, 5), Color.white, 0.4f);
+        }
+        this.vignette.x = this.camera.game.rainWorld.screenSize.x / 2f;
+        this.vignette.y = this.camera.game.rainWorld.screenSize.y / 2f;
+        this.vignette.scaleX = (this.camera.game.rainWorld.screenSize.x * Mathf.Lerp(1.5f, 1f, this.controller.exposure) + 2f) / 16f;
+        this.vignette.scaleY = (this.camera.game.rainWorld.screenSize.y * Mathf.Lerp(2.5f, 1.5f, this.controller.exposure) + 2f) / 16f;
+        this.vignette.alpha = Mathf.Lerp(0f, 0.5f, this.controller.exposure);
+    }
+}
 
 public class ExposureController
 {
     public Player player;
     public RoomCamera cam;
+    public Vignette vignette;
     public Blizzard blizzard;
     public float exposure = 0;
     public float ambient = 0f;
@@ -26,6 +74,10 @@ public class ExposureController
     {
         this.player = player;
         this.cam = this.player.room.game.cameras[0];
+        if (this.player.playerState.playerNumber == 0)
+        {
+            this.vignette = new Vignette(this);
+        }
         this.dead = false;
 
         Debug.Log("EXPOSURE CONTROLLER - PLAYER " + this.player.playerState.playerNumber);
@@ -78,7 +130,7 @@ public class ExposureController
             labelBlizzard.text = "Blizzard: YES";
             labelBlizzard.color = new Color(0f, 1f, 0f);
         }
-        labelCooldown.text = "Cooldown: " + this.cooldown;
+        labelCooldown.text = "Cycle End: " + this.TimePastCycleEnd;
     }
 
     public void Update()
@@ -99,7 +151,7 @@ public class ExposureController
                 {
                     if (this.blizzard.TimePastCycleEnd > 0f)
                     {
-                        float scale = Mathf.Clamp(this.blizzard.TimePastCycleEnd, 0.00143f, 0.6f);
+                        float scale = Mathf.Clamp(this.blizzard.TimePastCycleEnd, 0.00143f, 0.45f);
                         this.exposure += 0.0007f * scale;
                     }
                     else
@@ -116,8 +168,8 @@ public class ExposureController
                 SwitchBlizzard();
                 if (this.TimePastCycleEnd != -1f)
                 {
-                    this.cam.screenShake = Mathf.Lerp(0f, Mathf.InverseLerp(0f,0.2f,this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(-1f, 0.5f, TimePastCycleEnd));
-                    this.ambient = Mathf.Lerp(0f, Mathf.Lerp(0f,1f,this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(0f, 3f, this.TimePastCycleEnd));
+                    this.cam.microShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.005f, this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.4f, 1f, TimePastCycleEnd));
+                    this.ambient = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(0f, 3f, this.TimePastCycleEnd));
                     if (this.exposure > this.ambient)
                     {
                         this.exposure -= 0.0005f;
@@ -149,7 +201,7 @@ public class ExposureController
                         this.player.slowMovementStun = (int)(UnityEngine.Random.Range(0.5f, 2f) * this.exposure);
                         if (UnityEngine.Random.value < 0.3f * this.exposure)
                         {
-                            this.player.Stun(UnityEngine.Random.Range(50,120));
+                            this.player.Stun(UnityEngine.Random.Range(50, 120));
                         }
                     }
                 }
@@ -163,13 +215,13 @@ public class ExposureController
                 if (this.exposure >= 1f && !this.dead && this.player.playerState.playerNumber == 0)
                 {
                     bellCooldown++;
-                    if (bellCooldown > (int)Mathf.Lerp(200f, 50f, Mathf.InverseLerp(0f,22f, bellRing)))
+                    if (bellCooldown > (int)Mathf.Lerp(200f, 50f, Mathf.InverseLerp(0f, 22f, bellRing)))
                     {
                         bellCooldown = 0;
                         bellRing++;
                         Debug.Log(bellRing);
                         this.player.room.PlaySound(SoundID.MENU_Start_New_Game, this.player.mainBodyChunk, false, Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)), 1.3f);
-                        if(bellRing == 25)
+                        if (bellRing == 25)
                         {
                             if (!this.dead)
                             {
@@ -186,7 +238,7 @@ public class ExposureController
                 else
                 {
                     bellCooldown++;
-                    if(bellCooldown > 150)
+                    if (bellCooldown > 150)
                     {
                         bellCooldown = 0;
                         bellRing--;
@@ -265,56 +317,56 @@ public class Blizzard : UpdatableAndDeletable
         this.particleLimit = 70;
         if (this.room.roomSettings.RainIntensity > 0f)
         {
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, "overlay1", 4.5f, 0.3f));
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, "overlay1", 8.5f, 0.31f));
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, "overlay2", 5f, 1f));
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, "overlay2", 6.3f, 1f));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay1", 4.5f, 0.3f));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay1", 8.5f, 0.31f));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay2", 5f, 1f));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay2", 6.3f, 1f));
         }
-            this.sfx = new OmniDirectionalSound[3];
-            for (int i = 0; i < this.sfx.Length; i++)
+        this.sfx = new OmniDirectionalSound[3];
+        for (int i = 0; i < this.sfx.Length; i++)
+        {
+            string sample = "";
+            switch (i)
             {
-                string sample = "";
-                switch (i)
-                {
-                    case 0:
-                        sample = "AM_WIN-HowlingWnd.ogg";
-                        break;
-                    case 1:
-                        sample = "AM_WIN-NatWind.ogg";
-                        break;
-                    case 2:
-                        sample = "AM_IND-Midsex02.ogg";
-                        break;
-                }
-                this.sfx[i] = new OmniDirectionalSound(sample, false)
-                {
-                    volume = 0f,
-                    pitch = 1f,
-                    type = AmbientSound.Type.Omnidirectional
-                };
-                this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[i]));
+                case 0:
+                    sample = "AM_WIN-HowlingWnd.ogg";
+                    break;
+                case 1:
+                    sample = "AM_WIN-NatWind.ogg";
+                    break;
+                case 2:
+                    sample = "AM_IND-Midsex02.ogg";
+                    break;
             }
+            this.sfx[i] = new OmniDirectionalSound(sample, false)
+            {
+                volume = 0f,
+                pitch = 1f,
+                type = AmbientSound.Type.Omnidirectional
+            };
+            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[i]));
+        }
 
     }
     public override void Update(bool eu)
     {
-        if(this.room.roomSettings.RainIntensity == 0f)
+        if (this.room.roomSettings.RainIntensity == 0f)
         {
             return;
         }
         //Particles
         cooldown++;
-        if (cooldown >= Mathf.Lerp(50, 10, Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette)))
+        if (cooldown >= Mathf.Lerp(50, 10, Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd))))
         {
             cooldown = 0;
-            if (this.particleCount < this.particleLimit)
+            if (this.particleCount < Mathf.Lerp(0f, this.particleLimit, Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd)))
             {
                 this.particleCount++;
                 this.room.AddObject(new Blizzard.Particle(this));
             }
         }
         //Wind
-        this.intensity = Mathf.Lerp(0f, 0.081f, this.room.world.rainCycle.RainDarkPalette);
+        this.intensity = Mathf.Lerp(0f, 0.081f, Mathf.InverseLerp(-0.5f, 0.5f, this.TimePastCycleEnd));
         this.ThrowAroundObjects();
         //Sound
         bool sfx1 = false;
@@ -340,11 +392,11 @@ public class Blizzard : UpdatableAndDeletable
                 {
                     if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[2])
                     {
-                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, this.room.world.rainCycle.RainDarkPalette, Mathf.InverseLerp(-1f, 0f, TimePastCycleEnd));
+                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd);
                     }
                     else
                     {
-                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette);
+                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd);
                     }
                 }
                 else
@@ -368,7 +420,7 @@ public class Blizzard : UpdatableAndDeletable
         //Camera Shake
         if (this.room.BeingViewed)
         {
-            this.room.game.cameras[0].screenShake = Mathf.Lerp(0f, Mathf.InverseLerp(0f,0.3f, this.room.world.rainCycle.RainDarkPalette), Mathf.InverseLerp(-1f, 0f, TimePastCycleEnd));
+            this.room.game.cameras[0].screenShake = Mathf.Lerp(0f, 0.3f, Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd));
         }
         base.Update(eu);
     }
@@ -424,7 +476,7 @@ public class Blizzard : UpdatableAndDeletable
                                 //Apply rainDeath
                                 if (bodyChunk == (bodyChunk.owner as Creature).mainBodyChunk)
                                 {
-                                    (bodyChunk.owner as Creature).rainDeath += num;
+                                    (bodyChunk.owner as Creature).rainDeath += num * 0.05f;
                                 }
                                 //Random Stun
                                 if (Mathf.Pow(UnityEngine.Random.value, 1.2f) * 2f * (float)bodyChunk.owner.bodyChunks.Length < num)
@@ -494,7 +546,7 @@ public class Blizzard : UpdatableAndDeletable
 
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
-            if (sLeaser.sprites[0].alpha < Mathf.Lerp(0f, 0.55f, Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette)))
+            if (sLeaser.sprites[0].alpha < Mathf.Lerp(0f, 0.55f, Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, this.owner.TimePastCycleEnd))))
             {
                 this.alpha += 0.015f * timeStacker;
             }
@@ -517,8 +569,10 @@ public class Blizzard : UpdatableAndDeletable
         public string spriteName;
         public float scrollSpeed;
         public float alpha;
-        public ScrollingTexture(Room room, string sprite, float scrollSpeed, float alpha)
+        public Blizzard owner;
+        public ScrollingTexture(Room room, Blizzard owner, string sprite, float scrollSpeed, float alpha)
         {
+            this.owner = owner;
             this.spriteName = sprite;
             this.scrollSpeed = scrollSpeed;
             this.alpha = Mathf.Lerp(0f, alpha, room.roomSettings.RainIntensity);
@@ -550,7 +604,7 @@ public class Blizzard : UpdatableAndDeletable
 
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
-            sLeaser.sprites[0].alpha = Mathf.Lerp(0f, this.alpha, rCam.room.world.rainCycle.RainDarkPalette);
+            sLeaser.sprites[0].alpha = Mathf.Lerp(0f, this.alpha, Mathf.InverseLerp(-0.5f, 0.5f, this.owner.TimePastCycleEnd));
             (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, new Vector2(0f, 0f));
             (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, new Vector2(0f, rCam.sSize.y));
             (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, new Vector2(rCam.sSize.x, 0f));
