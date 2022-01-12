@@ -95,7 +95,7 @@ class RainPalette
                 //Modify paletteTexture before orig is called.
                 Color[] origPalette = texture.GetPixels();
                 Color[] modifiedPalette = new Color[origPalette.Length];
-                float darknessFade = 1f - texture.GetPixel(30, 7).r;
+                float darknessFade = 1f - Mathf.Lerp(0f, texture.GetPixel(30, 7).r, room.roomSettings.RainIntensity);
                 if (self.game.IsArenaSession)
                 {
                     Color[] colors = texture.GetPixels();

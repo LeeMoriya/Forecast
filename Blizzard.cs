@@ -9,6 +9,7 @@ using Music;
 public class ExposureController
 {
     public Player player;
+    public RoomCamera cam;
     public Blizzard blizzard;
     public float exposure = 0;
     public float ambient = 0f;
@@ -24,7 +25,9 @@ public class ExposureController
     public ExposureController(Player player)
     {
         this.player = player;
+        this.cam = this.player.room.game.cameras[0];
         this.dead = false;
+
         Debug.Log("EXPOSURE CONTROLLER - PLAYER " + this.player.playerState.playerNumber);
 
         if (Downpour.debug)
@@ -113,9 +116,9 @@ public class ExposureController
                 SwitchBlizzard();
                 if (this.TimePastCycleEnd != -1f)
                 {
-                    //this.exposure -= 0.0005f;
-                    this.ambient = Mathf.Lerp(0f, 0.69f, Mathf.InverseLerp(0f, 2f, this.TimePastCycleEnd));
-                    if (this.exposure >= this.ambient)
+                    this.cam.screenShake = Mathf.Lerp(0f, Mathf.InverseLerp(0f,0.2f,this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(-1f, 0.5f, TimePastCycleEnd));
+                    this.ambient = Mathf.Lerp(0f, Mathf.Lerp(0f,1f,this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(0f, 3f, this.TimePastCycleEnd));
+                    if (this.exposure > this.ambient)
                     {
                         this.exposure -= 0.0005f;
                     }
@@ -125,7 +128,7 @@ public class ExposureController
                     }
                 }
             }
-            if (this.exposure > 0f)
+            if (this.exposure > 0f && !dead)
             {
                 //Stun
                 if (this.exposure < 0.4f)
@@ -260,37 +263,45 @@ public class Blizzard : UpdatableAndDeletable
         this.preciptator = preciptator;
         this.room = this.preciptator.room;
         this.particleLimit = 70;
-        this.room.AddObject(new Blizzard.ScrollingTexture("overlay1", 4.5f, 0.3f));
-        this.room.AddObject(new Blizzard.ScrollingTexture("overlay1", 8.5f, 0.31f));
-        this.room.AddObject(new Blizzard.ScrollingTexture("overlay2", 5f, 1f));
-        this.room.AddObject(new Blizzard.ScrollingTexture("overlay2", 6.3f, 1f));
-        this.sfx = new OmniDirectionalSound[3];
-        for (int i = 0; i < this.sfx.Length; i++)
+        if (this.room.roomSettings.RainIntensity > 0f)
         {
-            string sample = "";
-            switch (i)
-            {
-                case 0:
-                    sample = "AM_WIN-HowlingWnd.ogg";
-                    break;
-                case 1:
-                    sample = "AM_WIN-NatWind.ogg";
-                    break;
-                case 2:
-                    sample = "AM_IND-Midsex02.ogg";
-                    break;
-            }
-            this.sfx[i] = new OmniDirectionalSound(sample, false)
-            {
-                volume = 0f,
-                pitch = 1f,
-                type = AmbientSound.Type.Omnidirectional
-            };
-            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[i]));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, "overlay1", 4.5f, 0.3f));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, "overlay1", 8.5f, 0.31f));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, "overlay2", 5f, 1f));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, "overlay2", 6.3f, 1f));
         }
+            this.sfx = new OmniDirectionalSound[3];
+            for (int i = 0; i < this.sfx.Length; i++)
+            {
+                string sample = "";
+                switch (i)
+                {
+                    case 0:
+                        sample = "AM_WIN-HowlingWnd.ogg";
+                        break;
+                    case 1:
+                        sample = "AM_WIN-NatWind.ogg";
+                        break;
+                    case 2:
+                        sample = "AM_IND-Midsex02.ogg";
+                        break;
+                }
+                this.sfx[i] = new OmniDirectionalSound(sample, false)
+                {
+                    volume = 0f,
+                    pitch = 1f,
+                    type = AmbientSound.Type.Omnidirectional
+                };
+                this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[i]));
+            }
+
     }
     public override void Update(bool eu)
     {
+        if(this.room.roomSettings.RainIntensity == 0f)
+        {
+            return;
+        }
         //Particles
         cooldown++;
         if (cooldown >= Mathf.Lerp(50, 10, Mathf.Lerp(0f, 1f, this.room.world.rainCycle.RainDarkPalette)))
@@ -303,10 +314,7 @@ public class Blizzard : UpdatableAndDeletable
             }
         }
         //Wind
-        if (this.intensity <= 0.08f)
-        {
-            this.intensity = Mathf.Lerp(0f, 0.081f, this.room.world.rainCycle.RainDarkPalette);
-        }
+        this.intensity = Mathf.Lerp(0f, 0.081f, this.room.world.rainCycle.RainDarkPalette);
         this.ThrowAroundObjects();
         //Sound
         bool sfx1 = false;
@@ -332,7 +340,7 @@ public class Blizzard : UpdatableAndDeletable
                 {
                     if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[2])
                     {
-                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-1f, 0f, TimePastCycleEnd));
+                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, this.room.world.rainCycle.RainDarkPalette, Mathf.InverseLerp(-1f, 0f, TimePastCycleEnd));
                     }
                     else
                     {
@@ -360,7 +368,7 @@ public class Blizzard : UpdatableAndDeletable
         //Camera Shake
         if (this.room.BeingViewed)
         {
-            this.room.game.cameras[0].screenShake = Mathf.Lerp(0f, 0.3f, Mathf.InverseLerp(-1f, 0f, TimePastCycleEnd));
+            this.room.game.cameras[0].screenShake = Mathf.Lerp(0f, Mathf.InverseLerp(0f,0.3f, this.room.world.rainCycle.RainDarkPalette), Mathf.InverseLerp(-1f, 0f, TimePastCycleEnd));
         }
         base.Update(eu);
     }
@@ -509,11 +517,11 @@ public class Blizzard : UpdatableAndDeletable
         public string spriteName;
         public float scrollSpeed;
         public float alpha;
-        public ScrollingTexture(string sprite, float scrollSpeed, float alpha)
+        public ScrollingTexture(Room room, string sprite, float scrollSpeed, float alpha)
         {
             this.spriteName = sprite;
             this.scrollSpeed = scrollSpeed;
-            this.alpha = alpha;
+            this.alpha = Mathf.Lerp(0f, alpha, room.roomSettings.RainIntensity);
             Debug.Log("DOWNPOUR: ScrollingTexture Added");
         }
 

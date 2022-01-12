@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class SnowPile : UpdatableAndDeletable, IDrawable
 {
+    public float maxAlpha;
     public SnowPile(Vector2 pos, float scale)
     {
         this.near = 0f;
@@ -80,8 +81,7 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
         TriangleMesh triangleMesh = TriangleMesh.MakeGridMesh("snowpile", this.gridDiv);
         sLeaser.sprites[0] = triangleMesh;
         sLeaser.sprites[0].shader = rCam.room.game.rainWorld.Shaders["Decal"];
-        //sLeaser.sprites[0].rotation = UnityEngine.Random.value * 360f;
-        alphaFade = UnityEngine.Random.Range(0.7f, 1f) - rCam.currentPalette.darkness;
+        maxAlpha = UnityEngine.Random.Range(0.7f, 1f) - rCam.currentPalette.darkness;
         this.verts = new Vector2[(sLeaser.sprites[0] as TriangleMesh).vertices.Length];
         this.AddToContainer(sLeaser, rCam, null);
         this.meshDirty = true;
@@ -112,6 +112,7 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
 
     public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
+        alphaFade = Mathf.Lerp(0f, maxAlpha, this.room.roomSettings.RainIntensity);
         if (this.meshDirty)
         {
             this.UpdateVerts(sLeaser, rCam);
