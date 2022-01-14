@@ -168,15 +168,22 @@ public class ExposureController
                 SwitchBlizzard();
                 if (this.TimePastCycleEnd != -1f)
                 {
-                    this.cam.microShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.005f, this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.4f, 1f, TimePastCycleEnd));
-                    this.ambient = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(0f, 3f, this.TimePastCycleEnd));
-                    if (this.exposure > this.ambient)
+                    if (!this.player.room.abstractRoom.shelter)
                     {
-                        this.exposure -= 0.0005f;
+                        this.cam.microShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.005f, this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.4f, 1f, TimePastCycleEnd));
+                        this.ambient = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(0f, 3f, this.TimePastCycleEnd));
+                        if (this.exposure > this.ambient)
+                        {
+                            this.exposure -= 0.0005f;
+                        }
+                        else
+                        {
+                            this.exposure += 0.0005f;
+                        }
                     }
-                    else
+                    else if(this.player.room.shelterDoor.IsClosing)
                     {
-                        this.exposure += 0.0005f;
+                        this.exposure -= 0.005f;
                     }
                 }
             }
@@ -266,7 +273,10 @@ public class ExposureController
                 if (this.player.room.updateList[i] is Blizzard)
                 {
                     this.blizzard = this.player.room.updateList[i] as Blizzard;
-                    Debug.Log("UPDATED BLIZZARD TO " + this.player.room.abstractRoom.name);
+                    if (Downpour.debug)
+                    {
+                        Debug.Log("UPDATED BLIZZARD TO " + this.player.room.abstractRoom.name);
+                    }
                     return;
                 }
             }
@@ -311,7 +321,10 @@ public class Blizzard : UpdatableAndDeletable
 
     public Blizzard(Preciptator preciptator)
     {
-        Debug.Log("DOWNPOUR: Blizzard Created");
+        if (Downpour.debug)
+        {
+            Debug.Log("DOWNPOUR: Blizzard Created");
+        }
         this.preciptator = preciptator;
         this.room = this.preciptator.room;
         this.particleLimit = 70;
