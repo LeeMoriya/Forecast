@@ -42,7 +42,17 @@ public class RainFall
     private static void StoryGameSession_ctor(On.StoryGameSession.orig_ctor orig, StoryGameSession self, int saveStateNumber, RainWorldGame game)
     {
         orig.Invoke(self, saveStateNumber, game);
-        Downpour.exposureControllers = new List<ExposureController>();
+        if(Downpour.debug && Downpour.exposureControllers != null)
+        {
+            for (int i = 0; i < Downpour.exposureControllers.Count; i++)
+            {
+                Downpour.exposureControllers[i].RemoveDebugLabels();
+            }
+        }
+        if (Downpour.snow && Downpour.blizzard)
+        {
+            Downpour.exposureControllers = new List<ExposureController>();
+        }
     }
 
     private static void RoomSettings_LoadAmbientSounds(On.RoomSettings.orig_LoadAmbientSounds orig, RoomSettings self, string[] s)
@@ -63,7 +73,7 @@ public class RainFall
 
     private static void RoomRain_Update(On.RoomRain.orig_Update orig, RoomRain self, bool eu)
     {
-        if (Downpour.snow)
+        if (Downpour.snow && Downpour.blizzard)
         {
             return;
         }
@@ -72,7 +82,7 @@ public class RainFall
 
     private static void RainCycle_RainHit(On.RainCycle.orig_RainHit orig, RainCycle self)
     {
-        if (Downpour.snow)
+        if (Downpour.snow && Downpour.blizzard)
         {
             return;
         }
@@ -82,7 +92,7 @@ public class RainFall
     private static void Player_ctor(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
     {
         orig.Invoke(self, abstractCreature, world);
-        if (Downpour.snow && self.room.game.session is StoryGameSession)
+        if (Downpour.snow && Downpour.blizzard && self.room.game.session is StoryGameSession)
         {
             Downpour.exposureControllers.Add(new ExposureController(self));
         }
@@ -296,7 +306,7 @@ public class RainFall
                 self.AddObject(new RainSound(self));
             }
         }
-        if (Downpour.snow)
+        if (Downpour.snow && Downpour.blizzard)
         {
             if (self.game != null && !self.abstractRoom.shelter)
             {
@@ -307,7 +317,7 @@ public class RainFall
     private static void Room_Update(On.Room.orig_Update orig, Room self)
     {
         orig.Invoke(self);
-        if (Downpour.snow && self.world.rainCycle.RainDarkPalette > 0f)
+        if (Downpour.snow && Downpour.blizzard && self.world.rainCycle.RainDarkPalette > 0f)
         {
             //Update exposure
             if(Downpour.exposureControllers != null & Downpour.exposureControllers.Count > 0)
@@ -365,7 +375,7 @@ public class RainFall
             //Fast Forward Cycle Timer
             if (Input.GetKey(KeyCode.Alpha5))
             {
-                self.world.rainCycle.timer += 20;
+                self.world.rainCycle.timer += 25;
             }
 
         }

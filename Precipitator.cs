@@ -182,26 +182,13 @@ public class Preciptator : UpdatableAndDeletable
         this.isSnow = Downpour.snow;
         if (isSnow)
         {
-            if ((this.room.world.rainCycle.timer - this.room.world.rainCycle.cycleLength) / 2400f > -0.5f && this.blizzard == null)
+            if (Downpour.blizzard && (this.room.world.rainCycle.timer - this.room.world.rainCycle.cycleLength) / 2400f > -0.5f && this.blizzard == null)
             {
                 this.blizzard = new Blizzard(this);
                 this.room.AddObject(this.blizzard);
             }
             this.rainAmount = Mathf.Lerp(Downpour.rainAmount * 0.5f, Downpour.rainAmount, RainFall.rainIntensity);
             this.rainLimit = (int)Mathf.Lerp(this.rainAmount * 50, (this.rainAmount * 60), RainFall.rainIntensity);
-            if (this.room.game.world.rainCycle.RainDarkPalette > 0f)
-            {
-                for (int i = 0; i < this.room.updateList.Count; i++)
-                {
-                    if (this.room.updateList[i] is Player)
-                    {
-                        if ((this.room.updateList[i] as Player).slugcatStats.runspeedFac > 0.7f)
-                        {
-                            (this.room.updateList[i] as Player).slugcatStats.runspeedFac -= 0.001f;
-                        }
-                    }
-                }
-            }
         }
         else
         {

@@ -50,7 +50,7 @@ public class Downpour : PartialityMod
     public Downpour()
     {
         this.ModID = "Downpour";
-        this.Version = "v0.8.3";
+        this.Version = "v0.9a";
         this.author = "LeeMoriya";
     }
     public override void OnEnable()
@@ -139,7 +139,7 @@ public class Downpour : PartialityMod
 
     private float RainCycle_get_MicroScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
     {
-        if (Downpour.snow)
+        if (Downpour.snow && Downpour.blizzard)
         {
             return 0f;
         }
@@ -148,7 +148,7 @@ public class Downpour : PartialityMod
 
     private float RainCycle_get_ScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
     {
-        if (Downpour.snow)
+        if (Downpour.snow && Downpour.blizzard)
         {
             return 0f;
         }
@@ -163,15 +163,15 @@ public class Downpour : PartialityMod
     public static int intensity = 0;
     public static bool rainbow = false;
     public static bool configLoaded = false;
-    public static bool debug = true;
+    public static bool debug = false;
     public static bool snow = false;
     public static bool bg = false;
     public static bool water = true;
     public static bool decals = true;
     public static bool dust = true;
-    public static bool effectColors = false;
+    public static bool blizzard = true;
+    public static bool effectColors = true;
     public static List<string> rainRegions = new List<string>();
-    public static float[] runspeedArray;
     public static List<ExposureController> exposureControllers;
     public static int rainAmount = 50;
     public static int direction = 0;

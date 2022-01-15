@@ -49,6 +49,8 @@ public class DownpourConfig : OptionInterface
     public OpCheckBox bgOn;
     public OpCheckBox dustCheck;
     public OpLabel dustLabel;
+    public OpCheckBox blizzardCheck;
+    public OpLabel blizzardLabel;
     public OpCheckBox decalCheck;
     public OpLabel decalLabel;
     public OpCheckBox strikeCheck;
@@ -97,6 +99,7 @@ public class DownpourConfig : OptionInterface
         this.snowWeather = new OpRadioButton(new Vector2(0f, 800f));
         this.snowButton = new OpSimpleButton(new Vector2(130f, 540f), new Vector2(70f, 25f), "snowButton", "Snow");
         this.weatherType.SetButtons(new OpRadioButton[] { rainWeather, snowWeather });
+        this.weatherType.valueInt = 1;
         this.versionNumber = new OpLabel(new Vector2(10f, -5f), new Vector2(0f, 0f), "Version: " + Downpour.mod.Version, FLabelAlignment.Left, false);
         this.snowWarning = new OpLabel(305f, 525f, "Snow is experimental, use at your own risk!", false);
         this.snowWarning.color = new Color(0.85f, 0f, 0f);
@@ -118,7 +121,7 @@ public class DownpourConfig : OptionInterface
         this.Tabs[0].AddItems(rainIntensity, weatherIntensity, intensitySliderLabel, directionSliderLabel, weatherDirection, topRect, logo, logo2, rainChanceSlider, rainChanceLabel);
 
         //Checkboxes
-        this.lightningCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 30f), "Lightning", true);
+        this.lightningCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 30f), "Lightning", false);
         this.lightningLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 36f), new Vector2(400f, 40f), "Lightning", FLabelAlignment.Left, false);
         this.paletteCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y + 10), "Palette", true);
         this.paletteLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y +4f), new Vector2(400f, 40f), "Palette changes", FLabelAlignment.Left, false);
@@ -136,7 +139,9 @@ public class DownpourConfig : OptionInterface
         this.decalLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 36f), new Vector2(400f, 40f), "Surface decals", FLabelAlignment.Left, false);
         this.dustCheck = new OpCheckBox(new Vector2(checkAnchor.x+150f, checkAnchor.y - 70f), "Dust", true);
         this.dustLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 76f), new Vector2(400f, 40f), "Snow dust", FLabelAlignment.Left, false);
-        this.effectCheck = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y + 10), "Effect", false);
+        this.blizzardCheck = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y - 110f), "Blizzard", true);
+        this.blizzardLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 116f), new Vector2(400f, 40f), "Blizzard", FLabelAlignment.Left, false);
+        this.effectCheck = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y + 10), "Effect", true);
         this.effectLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y + 4f), new Vector2(400f, 40f), "Effect Colors", FLabelAlignment.Left, false);
         this.dustCheck.description = "Puffs of snow appear when landing on the ground.";
         this.decalCheck.description = "Adds snowy decals to surfaces.";
@@ -148,7 +153,8 @@ public class DownpourConfig : OptionInterface
         this.strikeDamage.description = "Adjust the damage type of Lightning Strikes";
         this.strikeCheck.description = "When weather intensity is high enough, lightning strikes can occur.";
         this.effectCheck.description = "Whitens things like plants and signs so they better match the snowy palette, can ruin some custom props";
-        this.Tabs[0].AddItems(lightningLabel, lightningCheck, strikeCheck, strikeLabel, strikeDamage, damageLabel, rainSettingsDescription, paletteCheck, muteCheck, waterCheck, bgOn, paletteLabel, muteLabel, waterLabel, bgLabel, dustCheck,dustLabel,decalCheck,decalLabel, effectCheck, effectLabel);
+        this.blizzardCheck.description = "Replaces the end-of-cycle rain with a roaring blizzard and affects normal gameplay";
+        this.Tabs[0].AddItems(lightningLabel, lightningCheck, strikeCheck, strikeLabel, strikeDamage, damageLabel, rainSettingsDescription, paletteCheck, muteCheck, waterCheck, bgOn, paletteLabel, muteLabel, waterLabel, bgLabel, dustCheck,dustLabel,decalCheck,decalLabel, effectCheck, effectLabel, blizzardCheck,blizzardLabel);
 
         //Particle Limit
         this.rainOption = new OpLabel(new Vector2(topAnchor.x + 366f, topAnchor.y - 223f), new Vector2(400f, 40f), "Particle Limit", FLabelAlignment.Left, false);
@@ -229,11 +235,13 @@ public class DownpourConfig : OptionInterface
             decalCheck.Hide();
             dustCheck.Hide();
             effectCheck.Hide();
+            blizzardCheck.Hide();
             //Hide snow labels
             decalLabel.Hide();
             dustLabel.Hide();
             snowWarning.Hide();
             effectLabel.Hide();
+            blizzardLabel.Hide();
         }
         else
         {
@@ -258,11 +266,13 @@ public class DownpourConfig : OptionInterface
             decalCheck.Show();
             dustCheck.Show();
             effectCheck.Show();
+            blizzardCheck.Show();
             //Hide snow labels
             decalLabel.Show();
             dustLabel.Show();
             snowWarning.Show();
             effectLabel.Show();
+            blizzardLabel.Show();
         }
         if(lightningCheck.valueBool == false)
         {
@@ -372,6 +382,14 @@ public class DownpourConfig : OptionInterface
         else
         {
             Downpour.effectColors = true;
+        }
+        if(config["Blizzard"] == "false")
+        {
+            Downpour.blizzard = false;
+        }
+        else
+        {
+            Downpour.blizzard = true;
         }
         if (config["Mute"] == "false")
         {
