@@ -296,6 +296,13 @@ public class RainFall
                 self.AddObject(new RainSound(self));
             }
         }
+        if (Downpour.snow)
+        {
+            if (self.game != null && !self.abstractRoom.shelter)
+            {
+                self.AddObject(new WeatherSounds(self));
+            }
+        }
     }
     private static void Room_Update(On.Room.orig_Update orig, Room self)
     {

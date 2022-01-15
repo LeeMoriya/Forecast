@@ -226,7 +226,10 @@ public class ExposureController
                     {
                         bellCooldown = 0;
                         bellRing++;
-                        Debug.Log(bellRing);
+                        if (Downpour.debug && bellRing > 0)
+                        {
+                            Debug.Log(bellRing);
+                        }
                         this.player.room.PlaySound(SoundID.MENU_Start_New_Game, this.player.mainBodyChunk, false, Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)), 1.3f);
                         if (bellRing == 25)
                         {
@@ -249,7 +252,10 @@ public class ExposureController
                     {
                         bellCooldown = 0;
                         bellRing--;
-                        Debug.Log(bellRing);
+                        if (Downpour.debug && bellRing > 0)
+                        {
+                            Debug.Log(bellRing);
+                        }
                     }
                 }
                 bellRing = Mathf.Clamp(bellRing, 0, 25);
@@ -309,32 +315,20 @@ public class ExposureController
     }
 }
 
-public class Blizzard : UpdatableAndDeletable
+public class WeatherSounds : UpdatableAndDeletable
 {
-    public Preciptator preciptator;
     public OmniDirectionalSound[] sfx;
-    public int particleCount;
-    public int particleLimit;
-    public int cooldown;
-    public float intensity = 0f;
-    public float extremelyTemporaryPlayerExposureVariable = 0f;
-
-    public Blizzard(Preciptator preciptator)
+    public bool blizzard;
+    public float TimePastCycleEnd
     {
-        if (Downpour.debug)
+        get
         {
-            Debug.Log("DOWNPOUR: Blizzard Created");
+            return (this.room.world.rainCycle.timer - this.room.world.rainCycle.cycleLength) / 2400f;
         }
-        this.preciptator = preciptator;
-        this.room = this.preciptator.room;
-        this.particleLimit = 70;
-        if (this.room.roomSettings.RainIntensity > 0f)
-        {
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay1", 4.5f, 0.3f));
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay1", 8.5f, 0.31f));
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay2", 5f, 1f));
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay2", 6.3f, 1f));
-        }
+    }
+    public WeatherSounds(Room room)
+    {
+        this.room = room;
         this.sfx = new OmniDirectionalSound[3];
         for (int i = 0; i < this.sfx.Length; i++)
         {
@@ -359,29 +353,26 @@ public class Blizzard : UpdatableAndDeletable
             };
             this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[i]));
         }
-
+        CheckBlizzard();
     }
+    public void CheckBlizzard()
+    {
+        if (this.room != null)
+        {
+            for (int i = 0; i < this.room.updateList.Count; i++)
+            {
+                if (this.room.updateList[i] is Blizzard)
+                {
+                    this.blizzard = true;
+                    return;
+                }
+            }
+            this.blizzard = false;
+        }
+    }
+
     public override void Update(bool eu)
     {
-        if (this.room.roomSettings.RainIntensity == 0f)
-        {
-            return;
-        }
-        //Particles
-        cooldown++;
-        if (cooldown >= Mathf.Lerp(50, 10, Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd))))
-        {
-            cooldown = 0;
-            if (this.particleCount < Mathf.Lerp(0f, this.particleLimit, Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd)))
-            {
-                this.particleCount++;
-                this.room.AddObject(new Blizzard.Particle(this));
-            }
-        }
-        //Wind
-        this.intensity = Mathf.Lerp(0f, 0.081f, Mathf.InverseLerp(-0.5f, 0.5f, this.TimePastCycleEnd));
-        this.ThrowAroundObjects();
-        //Sound
         bool sfx1 = false;
         bool sfx2 = false;
         bool sfx3 = false;
@@ -403,13 +394,20 @@ public class Blizzard : UpdatableAndDeletable
             {
                 if (this.room.BeingViewed)
                 {
-                    if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[2])
+                    //All three sounds play
+                    if (this.blizzard)
                     {
-                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd);
+                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 1.2f, this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0f, TimePastCycleEnd));
                     }
+                    //Indoors, so only sound two plays
+                    else if(this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[2])
+                    {
+                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.5f, this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.3f, TimePastCycleEnd));
+                    }
+                    //Indoors but not sound two
                     else
                     {
-                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd);
+                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = 0f;
                     }
                 }
                 else
@@ -430,6 +428,57 @@ public class Blizzard : UpdatableAndDeletable
         {
             this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[2]));
         }
+        base.Update(eu);
+    }
+}
+
+public class Blizzard : UpdatableAndDeletable
+{
+    public Preciptator preciptator;
+    public int particleCount;
+    public int particleLimit;
+    public int cooldown;
+    public float intensity = 0f;
+    public float extremelyTemporaryPlayerExposureVariable = 0f;
+
+    public Blizzard(Preciptator preciptator)
+    {
+        if (Downpour.debug)
+        {
+            Debug.Log("DOWNPOUR: Blizzard Created");
+        }
+        this.preciptator = preciptator;
+        this.room = this.preciptator.room;
+        this.particleLimit = 70;
+        if (this.room.roomSettings.RainIntensity > 0f)
+        {
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay1", 4.5f, 0.3f));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay1", 8.5f, 0.31f));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay2", 5f, 1f));
+            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay2", 6.3f, 1f));
+        }
+    }
+
+    public override void Update(bool eu)
+    {
+        if (this.room.roomSettings.RainIntensity == 0f)
+        {
+            return;
+        }
+        //Particles
+        cooldown++;
+        if (cooldown >= Mathf.Lerp(50, 10, Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd))))
+        {
+            cooldown = 0;
+            if (this.particleCount < Mathf.Lerp(0f, this.particleLimit, Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd)))
+            {
+                this.particleCount++;
+                this.room.AddObject(new Blizzard.Particle(this));
+            }
+        }
+        //Wind
+        this.intensity = Mathf.Lerp(0f, 0.081f, Mathf.InverseLerp(-0.5f, 0.5f, this.TimePastCycleEnd));
+        this.ThrowAroundObjects();
         //Camera Shake
         if (this.room.BeingViewed)
         {
