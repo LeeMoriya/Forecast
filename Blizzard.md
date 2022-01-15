@@ -41,4 +41,4 @@ The direction the wind will blow at the end of the cycle will be the same as the
 the cycle. If the snowflakes aren't falling in a particular direction then one will be chosen randomly.
 
 This will be something to keep in mind as you play through the cycle, as the wind may make some jumps impossible if you
-are travelling against the wind, and much easier if you're travelling with it.
+are travelling against it, and much easier if you're travelling with it.
