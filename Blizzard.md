@@ -21,7 +21,7 @@ A light vignette is also present around the edges of the screen which grows more
 ## Death
 
 When the Player's exposure is maxed out, you will begin to hear a beating drum that grows louder and faster the 
-longer the Player's is maxed, eventually resulting in death.
+longer the Player's exposure is maxed, eventually resulting in death.
 
 ## Interiors
 
