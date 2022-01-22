@@ -478,7 +478,6 @@ public class Blizzard : UpdatableAndDeletable
     public int particleLimit;
     public int cooldown;
     public float intensity = 0f;
-    public float extremelyTemporaryPlayerExposureVariable = 0f;
 
     public Blizzard(Preciptator preciptator)
     {
@@ -563,12 +562,26 @@ public class Blizzard : UpdatableAndDeletable
                             if (bodyChunk.contactPoint.y < 0)
                             {
                                 //On Ground
-                                bodyChunk.vel += Custom.DegToVec(270f) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
+                                if (Downpour.windDirection == 1)
+                                {
+                                    bodyChunk.vel += Custom.DegToVec(270f) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
+                                }
+                                else
+                                {
+                                    bodyChunk.vel += Custom.DegToVec(90f) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
+                                }
                             }
                             else
                             {
                                 //Off Ground
-                                bodyChunk.vel += Custom.DegToVec(Mathf.Lerp(245f, 270f, UnityEngine.Random.value)) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
+                                if (Downpour.windDirection == 1)
+                                {
+                                    bodyChunk.vel += Custom.DegToVec(Mathf.Lerp(245f, 270f, UnityEngine.Random.value)) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
+                                }
+                                else
+                                {
+                                    bodyChunk.vel += Custom.DegToVec(Mathf.Lerp(90f, 115f, UnityEngine.Random.value)) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
+                                }
                             }
                             //Player
                             if (bodyChunk.owner is Player)
@@ -634,11 +647,24 @@ public class Blizzard : UpdatableAndDeletable
                 this.pos = new Vector2(UnityEngine.Random.Range(-50f, 1600f), UnityEngine.Random.Range(-50f, 1100f));
             }
             this.lastLastPos = this.lastPos;
-            this.pos.x -= this.xSway * 2f;
-            this.pos.y -= this.ySway * 2f;
-            if (this.pos.x < -100f || this.pos.y < -100f)
+
+            if (Downpour.windDirection == 1)
             {
-                this.reset = true;
+                this.pos.x -= this.xSway * 2f;
+                this.pos.y -= this.ySway * 2f;
+                if (this.pos.x < -100f || this.pos.y < -100f)
+                {
+                    this.reset = true;
+                }
+            }
+            else
+            {
+                this.pos.x += this.xSway * 2f;
+                this.pos.y -= this.ySway * 2f;
+                if (this.pos.x > 1400f || this.pos.y < -100f)
+                {
+                    this.reset = true;
+                }
             }
             base.Update(eu);
         }
@@ -714,14 +740,36 @@ public class Blizzard : UpdatableAndDeletable
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             sLeaser.sprites[0].alpha = Mathf.Lerp(0f, this.alpha, Mathf.InverseLerp(-0.5f, 0.5f, this.owner.TimePastCycleEnd));
-            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, new Vector2(0f, 0f));
-            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, new Vector2(0f, rCam.sSize.y));
-            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, new Vector2(rCam.sSize.x, 0f));
-            (sLeaser.sprites[0] as TriangleMesh).MoveVertice(3, new Vector2(rCam.sSize.x, rCam.sSize.y));
-            for (int i = 0; i < (sLeaser.sprites[0] as TriangleMesh).UVvertices.Length; i++)
+
+            ////Left
+            if (Downpour.windDirection == 1)
             {
-                (sLeaser.sprites[0] as TriangleMesh).UVvertices[i] += new Vector2(0.007f, 0.006f) * scrollSpeed * timeStacker;
+                //Bottom Left
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, new Vector2(0f, 0f));
+                //Top Left
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, new Vector2(0f, rCam.sSize.y));
+                //Bottom Right
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, new Vector2(rCam.sSize.x, 0f));
+                //Top Right
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(3, new Vector2(rCam.sSize.x, rCam.sSize.y));
             }
+            else
+            {
+                //Right
+                //Bottom Left
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(2, new Vector2(0f, 0f));
+                //Top Left
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(3, new Vector2(0f, rCam.sSize.y));
+                //Bottom Right
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, new Vector2(rCam.sSize.x, 0f));
+                //Top Right
+                (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, new Vector2(rCam.sSize.x, rCam.sSize.y));
+
+            }
+                            for (int i = 0; i < (sLeaser.sprites[0] as TriangleMesh).UVvertices.Length; i++)
+                {
+                    (sLeaser.sprites[0] as TriangleMesh).UVvertices[i] += new Vector2(0.007f, 0.006f) * scrollSpeed * timeStacker;
+                }
             base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
         }
 

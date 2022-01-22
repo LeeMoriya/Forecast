@@ -99,7 +99,7 @@ public class DownpourConfig : OptionInterface
         this.snowWeather = new OpRadioButton(new Vector2(0f, 800f));
         this.snowButton = new OpSimpleButton(new Vector2(130f, 540f), new Vector2(70f, 25f), "snowButton", "Snow");
         this.weatherType.SetButtons(new OpRadioButton[] { rainWeather, snowWeather });
-        this.weatherType.valueInt = 1;
+        //this.weatherType.valueInt = 1;
         this.versionNumber = new OpLabel(new Vector2(10f, -5f), new Vector2(0f, 0f), "Version: " + Downpour.mod.Version, FLabelAlignment.Left, false);
         this.snowWarning = new OpLabel(305f, 525f, "Snow is experimental, use at your own risk!", false);
         this.snowWarning.color = new Color(0.85f, 0f, 0f);

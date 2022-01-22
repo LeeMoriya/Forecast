@@ -188,7 +188,7 @@ public class Preciptator : UpdatableAndDeletable
                 this.room.AddObject(this.blizzard);
             }
             this.rainAmount = Mathf.Lerp(Downpour.rainAmount * 0.5f, Downpour.rainAmount, RainFall.rainIntensity);
-            this.rainLimit = (int)Mathf.Lerp(this.rainAmount * 50, (this.rainAmount * 60), RainFall.rainIntensity);
+            this.rainLimit = (int)Mathf.Lerp(this.rainAmount * 50, (this.rainAmount * 80), RainFall.rainIntensity);
         }
         else
         {

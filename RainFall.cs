@@ -256,6 +256,7 @@ public class RainFall
         {
             case 0:
                 direction = UnityEngine.Random.Range(1, 4);
+                Downpour.windDirection = direction;
                 break;
             case 1:
                 direction = 1;
@@ -267,6 +268,19 @@ public class RainFall
                 direction = 3;
                 break;
         }
+        int leftOrRight = direction;
+        if(direction == 2)
+        {
+            if(UnityEngine.Random.value >= 0.5f)
+            {
+                leftOrRight = 3;
+            }
+            else
+            {
+                leftOrRight = 1;
+            }
+        }
+        Downpour.windDirection = leftOrRight;
         //Apply Rain Intensity
         if (!noRainThisCycle)
         {
