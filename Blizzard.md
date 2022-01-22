@@ -21,7 +21,7 @@ A light vignette is also present around the edges of the screen which grows more
 ## Death
 
 When the Player's exposure is maxed out, you will begin to hear a beating drum that grows louder and faster the 
-longer the Player's is maxed, eventually resulting in death.
+longer the Player's exposure is maxed, eventually resulting in death.
 
 ## Interiors
 
@@ -36,7 +36,6 @@ the Player's death if they are unable to make it to a shelter.
 ## Wind
 
 Whilst outdoors, the Blizzard is accompanied by a strong wind that will push objects and the player in one direction. 
-At the time of writing the Blizzard will only blow to the left, however in the future this can be either direction.
 The direction the wind will blow at the end of the cycle will be the same as the direction the snowflakes fall during
 the cycle. If the snowflakes aren't falling in a particular direction then one will be chosen randomly.
 

@@ -5,12 +5,14 @@ A dynamic weather mod for Rain World that adds rain and snow.
 ![Snow](https://media.giphy.com/media/vE1qoRyPgkDzCfQbBw/giphy.gif)
 
 ## Features
+- Rain and Snow modes
 - Adds new particle weather effects to outdoor rooms
 - Weather intensity increases as the cycle progresses
 - Adjusted region palettes for each weather type
+- End-of-cycle Blizzard
 - Lightning strikes
-- Config menu with various options.
-- AutoUpdate support.
+- Config menu with various options
+- AutoUpdate support
 
 ## Requirements
 - [ConfigMachine](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
@@ -28,7 +30,7 @@ The following settings can be change in the config menu:
 - And more!
 
 ## Download
-Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.8.1)
+Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.9)
 
 ## Installation
 1. Install BepInEx - [Video Guide](https://youtu.be/brDN_8uN6-U)
