@@ -48,27 +48,30 @@ class RainSound : UpdatableAndDeletable
         {
             this.Destroy();
         }
-        else if(RainFall.rainIntensity >0f)
+        else if(RainFall.rainIntensity > 0f)
         {
-            if (interiorRainSound != null)
+            if (this.room.roomRain != null && this.room.roomSettings.RainIntensity > 0f)
             {
-                interiorRainSound.Volume = Mathf.Lerp(0f, 0.3f, RainFall.rainIntensity);
-                interiorRainSound.Update();
-            }
-            if (normalRainSound != null)
-            {
-                normalRainSound.Volume = Mathf.Lerp(0f, 1f, RainFall.rainIntensity * 1.7f);
-                normalRainSound.Update();
-            }
-            if (heavyRainSound != null)
-            {
-                heavyRainSound.Volume = Mathf.Lerp(0f, 0.55f, RainFall.rainIntensity * 1.2f);
-                heavyRainSound.Update();
-            }
-            if (rumbleSound != null)
-            {
-                rumbleSound.Volume = Mathf.Lerp(0f, 0.4f, RainFall.rainIntensity);
-                rumbleSound.Update();
+                if (interiorRainSound != null)
+                {
+                    interiorRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.3f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity);
+                    interiorRainSound.Update();
+                }
+                if (normalRainSound != null)
+                {
+                    normalRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity * 1.7f);
+                    normalRainSound.Update();
+                }
+                if (heavyRainSound != null)
+                {
+                    heavyRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.55f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity * 1.2f);
+                    heavyRainSound.Update();
+                }
+                if (rumbleSound != null)
+                {
+                    rumbleSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.4f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity);
+                    rumbleSound.Update();
+                }
             }
         }
     }

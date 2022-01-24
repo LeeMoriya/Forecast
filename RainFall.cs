@@ -315,7 +315,7 @@ public class RainFall
         if (!noRain)
         {
             //Add Rain Sound Object
-            if (self.game != null)
+            if (self.game != null && self.roomRain != null)
             {
                 self.AddObject(new RainSound(self));
             }

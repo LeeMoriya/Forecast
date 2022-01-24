@@ -188,12 +188,12 @@ public class Preciptator : UpdatableAndDeletable
                 this.room.AddObject(this.blizzard);
             }
             this.rainAmount = Mathf.Lerp(Downpour.rainAmount * 0.5f, Downpour.rainAmount, RainFall.rainIntensity);
-            this.rainLimit = (int)Mathf.Lerp(this.rainAmount * 50, (this.rainAmount * 80), RainFall.rainIntensity);
+            this.rainLimit = (int)Mathf.Lerp(Mathf.Lerp(0f, this.rainAmount * 50,this.room.roomSettings.RainIntensity), Mathf.Lerp(this.rainAmount * 50,(this.rainAmount * 80), this.room.roomSettings.RainIntensity), RainFall.rainIntensity);
         }
         else
         {
             this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
-            this.rainLimit = (int)Mathf.Lerp(0, (this.rainAmount * 9), RainFall.rainIntensity);
+            this.rainLimit = (int)Mathf.Lerp(0, Mathf.Lerp(0f,(this.rainAmount * 9), this.room.roomSettings.RainIntensity), RainFall.rainIntensity);
         }
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
 
@@ -233,7 +233,7 @@ public class Preciptator : UpdatableAndDeletable
                 {
                     this.AddSnowflakes(rainLimit - this.snowFlakes);
                 }
-                if (this.room.lightning != null && this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.dangerType == RoomRain.DangerType.Rain && UnityEngine.Random.value < 0.0004f)
+                if (this.room.lightning != null && this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.dangerType == RoomRain.DangerType.Rain && Downpour.strike && UnityEngine.Random.value < RainFall.rainIntensity * 0.0010f)
                 {
                     this.room.AddObject(new LightningStrike(this));
                 }
