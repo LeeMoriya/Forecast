@@ -40,6 +40,7 @@ public class LightningStrike : UpdatableAndDeletable
 
     public class LightningPath : CosmeticSprite
     {
+        public float warning = 0f;
         public LightningStrike lightningStrike;
         public Vector2 endPos;
         public List<Vector2> pathPositions;
@@ -87,7 +88,7 @@ public class LightningStrike : UpdatableAndDeletable
 
         public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
         {
-            this.color = new Color(1f, 1f, 0.82f);
+            this.color = new Color(1f, 1f, 0.87f);
             sLeaser.sprites = new FSprite[pathPositions.Count];
             for (int i = 0; i < pathPositions.Count; i++)
             {
@@ -102,14 +103,20 @@ public class LightningStrike : UpdatableAndDeletable
         {
             if (search)
             {
-                if (!spawn)
+                if(warning == 0f)
+                {
+                    this.room.AddObject(new LightningFlash(pathPositions.Last() + new Vector2(0f, 15f), this.color, 15f, 30f, true));
+                    this.room.PlaySound(SoundID.Thunder_Close, pathPositions.Last(), 0.7f, 1f);
+                }
+                warning += 0.024f * timeStacker;
+                if (!spawn && warning >= 1f)
                 {
                     this.InitiateSprites(sLeaser, rCam);
-                    this.room.PlaySound(SoundID.Bomb_Explode, pathPositions.Last(), 2f, 0.8f);
-                    this.room.PlaySound(SoundID.Thunder, pathPositions.Last(), 1.2f, 1f);
+                    this.room.PlaySound(SoundID.Bomb_Explode, pathPositions.Last(), 1.3f, 0.8f);
+                    this.room.PlaySound(SoundID.Thunder, pathPositions.Last(), 1f, 1f);
                     this.room.AddObject(new Smoke.BombSmoke(this.room, pathPositions.Last() + new Vector2(0f, 15f), null, new Color(0.01f, 0.01f, 0.01f)));
                     this.room.AddObject(new SootMark(this.room, pathPositions.Last() + new Vector2(0f, 15f), 50f, false));
-                    this.room.AddObject(new LightningFlash(pathPositions.Last() + new Vector2(0f, 15f), this.color, 90f, 1f));
+                    this.room.AddObject(new LightningFlash(pathPositions.Last() + new Vector2(0f, 15f), this.color, 90f, 1f, false));
                     this.room.AddObject(new LightningImpact(pathPositions.Last() + new Vector2(0f, 10f), 35f, this.color));
                     switch (Downpour.strikeDamage)
                     {
@@ -159,17 +166,25 @@ public class LightningStrike : UpdatableAndDeletable
         public Color color;
         public float rad;
         public float fade;
-        public LightningFlash(Vector2 pos, Color col, float rad, float fade)
+        public bool warn;
+        public float alpha = 0.5f;
+        public LightningFlash(Vector2 pos, Color col, float rad, float fade, bool warn)
         {
             this.pos = pos;
             this.color = col;
             this.rad = rad;
             this.fade = fade;
+            this.warn = warn;
         }
 
         public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
         {
-            rCam.microShake = 0.9f;
+            rCam.microShake = 0.34f;
+            if (!warn)
+            {
+                rCam.microShake = 0.9f;
+                alpha = 0.6f;
+            }
             sLeaser.sprites = new FSprite[2];
             //Flash Sprite
             sLeaser.sprites[0] = new FSprite("Futile_White", true);
@@ -181,6 +196,10 @@ public class LightningStrike : UpdatableAndDeletable
             sLeaser.sprites[1] = new FSprite("Futile_White", true);
             sLeaser.sprites[1].color = new Color(0.01f, 0.01f, 0.01f);
             sLeaser.sprites[1].alpha = 0.6f;
+            if (warn)
+            {
+                sLeaser.sprites[1].alpha = 0f;
+            }
             sLeaser.sprites[1].scale = 1000f;
             //Positions
             sLeaser.sprites[0].x = this.pos.x - rCam.pos.x;
@@ -197,8 +216,13 @@ public class LightningStrike : UpdatableAndDeletable
             sLeaser.sprites[1].x = this.pos.x - camPos.x;
             sLeaser.sprites[1].y = this.pos.y - camPos.y;
             sLeaser.sprites[0].alpha -= 0.025f;
+            if (warn)
+            {
+                sLeaser.sprites[0].alpha = Mathf.Lerp(alpha, 0f, UnityEngine.Random.value);
+                alpha -= 0.01f;
+            }
             sLeaser.sprites[1].alpha -= 0.01f;
-            if (sLeaser.sprites[0].alpha <= -1f)
+            if (sLeaser.sprites[0].alpha <= -1f || alpha < 0f)
             {
                 this.slatedForDeletetion = true;
             }

@@ -171,8 +171,9 @@ public class Preciptator : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
-        if (Downpour.debug && this.room.BeingViewed && Input.GetKeyDown(KeyCode.F5))
+        if (Downpour.debug && this.room.BeingViewed && Input.GetKeyDown(KeyCode.Minus))
         {
+            Debug.Log("LIGHTNING STRIKE!");
             this.room.AddObject(new LightningStrike(this));
         }
         if (this.room.BeingViewed)

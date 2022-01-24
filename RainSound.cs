@@ -59,12 +59,12 @@ class RainSound : UpdatableAndDeletable
                 }
                 if (normalRainSound != null)
                 {
-                    normalRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity * 1.7f);
+                    normalRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.85f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity * 1.7f);
                     normalRainSound.Update();
                 }
                 if (heavyRainSound != null)
                 {
-                    heavyRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.55f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity * 1.2f);
+                    heavyRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.45f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity * 1.2f);
                     heavyRainSound.Update();
                 }
                 if (rumbleSound != null)
