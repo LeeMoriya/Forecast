@@ -1,8 +1,5 @@
 # Rain World - Downpour Mod ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
 ![logo](https://i.imgur.com/9Ied7mA.png)
-
-![Rain](https://i.imgur.com/hPblP6q.gif)
-![Snow](https://media.giphy.com/media/vE1qoRyPgkDzCfQbBw/giphy.gif)
 ##### Logo art by [TamyMew](https://twitter.com/TamyMew)
 
 ## Features
@@ -14,6 +11,9 @@
 - Lightning strikes
 - Config menu with various options
 - AutoUpdate support
+
+![Rain](https://i.imgur.com/hPblP6q.gif)
+![Snow](https://media.giphy.com/media/vE1qoRyPgkDzCfQbBw/giphy.gif)
 
 ## Requirements
 - [ConfigMachine](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
