@@ -3,7 +3,7 @@
 
 ![Rain](https://i.imgur.com/hPblP6q.gif)
 ![Snow](https://media.giphy.com/media/vE1qoRyPgkDzCfQbBw/giphy.gif)
-##### Logo art by Tamy/SleepySpiral
+##### Logo art by [TamyMew](https://twitter.com/TamyMew)
 
 ## Features
 - Rain and Snow modes
