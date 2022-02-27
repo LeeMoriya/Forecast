@@ -1,8 +1,9 @@
 # Rain World - Downpour Mod ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
-A dynamic weather mod for Rain World that adds rain and snow.
+![logo](https://i.imgur.com/9Ied7mA.png)
 
 ![Rain](https://i.imgur.com/hPblP6q.gif)
 ![Snow](https://media.giphy.com/media/vE1qoRyPgkDzCfQbBw/giphy.gif)
+##### Logo art by Tamy/SleepySpiral
 
 ## Features
 - Rain and Snow modes
