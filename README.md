@@ -1,6 +1,6 @@
-# Rain World - More Slugcats Mod ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
+# Rain World - Downpour Mod ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
 
-I figured the name was up for grabs
+### This is not the DLC!
 
 ## Features
 - Rain and Snow modes
