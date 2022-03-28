@@ -1,6 +1,6 @@
-# Rain World - Downpour Mod ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
-![logo](https://i.imgur.com/9Ied7mA.png)
-##### Logo art by [TamyMew](https://twitter.com/TamyMew)
+# Rain World - More Slugcats Mod ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
+
+I figured the name was up for grabs
 
 ## Features
 - Rain and Snow modes
