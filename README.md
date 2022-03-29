@@ -1,8 +1,6 @@
 # Rain World - Downpour Mod ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
-A dynamic weather mod for Rain World that adds rain and snow.
 
-![Rain](https://i.imgur.com/hPblP6q.gif)
-![Snow](https://media.giphy.com/media/vE1qoRyPgkDzCfQbBw/giphy.gif)
+### This is not the DLC!
 
 ## Features
 - Rain and Snow modes
@@ -13,6 +11,9 @@ A dynamic weather mod for Rain World that adds rain and snow.
 - Lightning strikes
 - Config menu with various options
 - AutoUpdate support
+
+![Rain](https://i.imgur.com/hPblP6q.gif)
+![Snow](https://media.giphy.com/media/vE1qoRyPgkDzCfQbBw/giphy.gif)
 
 ## Requirements
 - [ConfigMachine](https://drive.google.com/file/d/1NIE8conaoI1OOHevi4K9tvOG4v-NIfYf/view)
@@ -30,7 +31,7 @@ The following settings can be change in the config menu:
 - And more!
 
 ## Download
-Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.91)
+Get the latest version of the mod from the releases page [here.](https://github.com/LeeMoriya/Downpour/releases/tag/v0.92)
 
 ## Installation
 1. Install BepInEx - [Video Guide](https://youtu.be/brDN_8uN6-U)
