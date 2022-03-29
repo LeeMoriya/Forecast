@@ -23,7 +23,7 @@ class RainSound : UpdatableAndDeletable
                 ceiling++;
             }
         }
-        if (!Downpour.snow)
+        if (!Forecast.snow)
         {
             if (ceiling < (owner.Width * 0.95) && owner.regionGate == null)
             {
@@ -32,7 +32,7 @@ class RainSound : UpdatableAndDeletable
                 heavyRainSound = new DisembodiedDynamicSoundLoop(this);
                 heavyRainSound.sound = SoundID.Heavy_Rain_LOOP;
             }
-            else if (!Downpour.interiorRain)
+            else if (!Forecast.interiorRain)
             {
                 interiorRainSound = new DisembodiedDynamicSoundLoop(this);
                 interiorRainSound.sound = SoundID.Flash_Flood_LOOP;

@@ -40,7 +40,7 @@ public class SnowFlake : CosmeticSprite
         this.splashCounter = 0;
         this.collision = false;
         this.spawner = spawner;
-        if (Downpour.rainbow)
+        if (Forecast.rainbow)
         {
             this.color = Custom.HSL2RGB(UnityEngine.Random.Range(0f, 1f), 0.5f, 0.5f);
         }
@@ -79,7 +79,7 @@ public class SnowFlake : CosmeticSprite
 
     public override void Update(bool eu)
     {
-        if (!Downpour.snow || this.room.world.rainCycle.RainDarkPalette > 0f)
+        if (!Forecast.snow || this.room.world.rainCycle.RainDarkPalette > 0f)
         {
             if(UnityEngine.Random.value > 0.98f)
             {
@@ -125,7 +125,7 @@ public class SnowFlake : CosmeticSprite
         //this.depth = Mathf.Lerp(0f, 0.9f, Mathf.PingPong(Time.time * 0.5f, 1));
 
         //Debug Depth controls
-        if (Downpour.debug)
+        if (Forecast.debug)
         {
             if (Input.GetKey(KeyCode.KeypadPlus))
             {

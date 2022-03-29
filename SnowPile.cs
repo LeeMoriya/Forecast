@@ -34,11 +34,11 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
 
     public override void Update(bool eu)
     {
-        if (!Downpour.snow)
+        if (!Forecast.snow)
         {
             base.slatedForDeletetion = true;
         }
-        if (Downpour.debug)
+        if (Forecast.debug)
         {
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Insert))
             {

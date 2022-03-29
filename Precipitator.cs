@@ -84,7 +84,7 @@ public class Preciptator : UpdatableAndDeletable
                 {
                     this.skyreach.Add(this.room.MiddleOfTile(tile.X, tile.Y - 1));
                     //Add snow decals to surfaces
-                    if (this.isSnow && Downpour.decals)
+                    if (this.isSnow && Forecast.decals)
                     {
                         if (UnityEngine.Random.value > 0.8f)
                         {
@@ -171,7 +171,7 @@ public class Preciptator : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
-        if (Downpour.debug && this.room.BeingViewed && Input.GetKeyDown(KeyCode.Minus))
+        if (Forecast.debug && this.room.BeingViewed && Input.GetKeyDown(KeyCode.Minus))
         {
             Debug.Log("LIGHTNING STRIKE!");
             this.room.AddObject(new LightningStrike(this));
@@ -180,27 +180,27 @@ public class Preciptator : UpdatableAndDeletable
         {
             this.camPos = this.room.game.cameras[0].pos + new Vector2(this.room.game.rainWorld.screenSize.x / 2, this.room.game.rainWorld.screenSize.y / 2);
         }
-        this.isSnow = Downpour.snow;
+        this.isSnow = Forecast.snow;
         if (isSnow)
         {
-            if (Downpour.blizzard && (this.room.world.rainCycle.timer - this.room.world.rainCycle.cycleLength) / 2400f > -0.5f && this.blizzard == null)
+            if (Forecast.blizzard && (this.room.world.rainCycle.timer - this.room.world.rainCycle.cycleLength) / 2400f > -0.5f && this.blizzard == null)
             {
                 this.blizzard = new Blizzard(this);
                 this.room.AddObject(this.blizzard);
             }
-            this.rainAmount = Mathf.Lerp(Downpour.rainAmount * 0.5f, Downpour.rainAmount, RainFall.rainIntensity);
+            this.rainAmount = Mathf.Lerp(Forecast.rainAmount * 0.5f, Forecast.rainAmount, RainFall.rainIntensity);
             this.rainLimit = (int)Mathf.Lerp(Mathf.Lerp(0f, this.rainAmount * 50,this.room.roomSettings.RainIntensity), Mathf.Lerp(this.rainAmount * 50,(this.rainAmount * 80), this.room.roomSettings.RainIntensity), RainFall.rainIntensity);
         }
         else
         {
-            this.rainAmount = Mathf.Lerp(0, Downpour.rainAmount, RainFall.rainIntensity);
+            this.rainAmount = Mathf.Lerp(0, Forecast.rainAmount, RainFall.rainIntensity);
             this.rainLimit = (int)Mathf.Lerp(0, Mathf.Lerp(0f,(this.rainAmount * 9), this.room.roomSettings.RainIntensity), RainFall.rainIntensity);
         }
         this.player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
 
         if (this.room.game != null && this.room != null && !room.abstractRoom.gate && this.room.ReadyForPlayer)
         {
-            if (this.room.game != null && !this.room.abstractRoom.shelter && Downpour.lightning && this.room.roomRain != null)
+            if (this.room.game != null && !this.room.abstractRoom.shelter && Forecast.lightning && this.room.roomRain != null)
             {
                 if (this.room.roomRain.dangerType == RoomRain.DangerType.Rain && RainFall.rainIntensity > 0.7f && this.room.lightning == null)
                 {
@@ -222,7 +222,7 @@ public class Preciptator : UpdatableAndDeletable
                 {
                     this.AddRaindrops(rainLimit - this.rainDrops);
                 }
-                if (this.room.lightning != null && this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.dangerType == RoomRain.DangerType.Rain && Downpour.strike && UnityEngine.Random.value < RainFall.rainIntensity * 0.0010f)
+                if (this.room.lightning != null && this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.dangerType == RoomRain.DangerType.Rain && Forecast.strike && UnityEngine.Random.value < RainFall.rainIntensity * 0.0010f)
                 {
                     this.room.AddObject(new LightningStrike(this));
                 }
@@ -234,13 +234,13 @@ public class Preciptator : UpdatableAndDeletable
                 {
                     this.AddSnowflakes(rainLimit - this.snowFlakes);
                 }
-                if (this.room.lightning != null && this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.dangerType == RoomRain.DangerType.Rain && Downpour.strike && UnityEngine.Random.value < RainFall.rainIntensity * 0.0010f)
+                if (this.room.lightning != null && this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.dangerType == RoomRain.DangerType.Rain && Forecast.strike && UnityEngine.Random.value < RainFall.rainIntensity * 0.0010f)
                 {
                     this.room.AddObject(new LightningStrike(this));
                 }
             }
         }
-        if (Downpour.snow && Downpour.dust && RainFall.rainList.Contains(this.room.abstractRoom.name))
+        if (Forecast.snow && Forecast.dust && RainFall.rainList.Contains(this.room.abstractRoom.name))
         {
             for (int i = 0; i < this.room.game.Players.Count; i++)
             {
@@ -294,7 +294,7 @@ public class RainDrop : CosmeticSprite
         this.splashCounter = 0;
         this.collision = false;
         //Small chance for any raindrop to be a background drop, assign it a random depth value
-        if (Downpour.bg && UnityEngine.Random.value > 0.85f)
+        if (Forecast.bg && UnityEngine.Random.value > 0.85f)
         {
             backgroundDrop = true;
             this.depth = UnityEngine.Random.value;
@@ -304,7 +304,7 @@ public class RainDrop : CosmeticSprite
             backgroundDrop = false;
             this.depth = UnityEngine.Random.Range(0.7f, 1f);
         }
-        if (Downpour.rainbow)
+        if (Forecast.rainbow)
         {
             this.color = Custom.HSL2RGB(UnityEngine.Random.value, 0.5f, 0.5f);
         }
@@ -333,7 +333,7 @@ public class RainDrop : CosmeticSprite
             {
                 this.Destroy();
             }
-            if (Downpour.snow)
+            if (Forecast.snow)
             {
                 this.Destroy();
             }
@@ -419,7 +419,7 @@ public class RainDrop : CosmeticSprite
         }
         //Raindrop hits floor or water
         bool hitWater = this.room.GetTile(this.pos).WaterSurface;
-        if (hitWater && Downpour.water)
+        if (hitWater && Forecast.water)
         {
             if (room.water && UnityEngine.Random.value > 0.98)
             {
@@ -497,7 +497,7 @@ public class RainDrop : CosmeticSprite
         sLeaser.sprites[1].x = vector.x - camPos.x;
         sLeaser.sprites[1].y = vector.y - camPos.y;
         sLeaser.sprites[1].rotation = UnityEngine.Random.value * 360f;
-        if (Downpour.rainbow)
+        if (Forecast.rainbow)
         {
             sLeaser.sprites[0].color = Color.Lerp(color, Color.Lerp(rCam.PixelColorAtCoordinate(this.pos), rCam.PixelColorAtCoordinate(this.lastLastLastPos), 0.5f), 0.36f);
         }

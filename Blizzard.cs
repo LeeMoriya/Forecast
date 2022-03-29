@@ -84,7 +84,7 @@ public class ExposureController
 
         Debug.Log("EXPOSURE CONTROLLER - PLAYER " + this.player.playerState.playerNumber);
 
-        if (Downpour.debug)
+        if (Forecast.debug)
         {
             Vector2 sSize = this.player.abstractCreature.world.game.cameras[0].sSize;
             float offset = 80f * this.player.playerState.playerNumber;
@@ -147,7 +147,7 @@ public class ExposureController
     public bool IsCold()
     {
         //Not a shelter, has RoomRain and is enabled in config
-        if (!this.player.room.abstractRoom.shelter && this.player.room.roomRain != null && this.player.room.roomSettings.RainIntensity > 0f && (this.player.room.world.region != null && Downpour.rainRegions.Contains(this.player.room.world.region.name)))
+        if (!this.player.room.abstractRoom.shelter && this.player.room.roomRain != null && this.player.room.roomSettings.RainIntensity > 0f && (this.player.room.world.region != null && Forecast.rainRegions.Contains(this.player.room.world.region.name)))
         {
             return true;
         }
@@ -252,7 +252,7 @@ public class ExposureController
                     {
                         bellCooldown = 0;
                         bellRing++;
-                        if (Downpour.debug && bellRing > 0)
+                        if (Forecast.debug && bellRing > 0)
                         {
                             Debug.Log(bellRing);
                         }
@@ -278,7 +278,7 @@ public class ExposureController
                     {
                         bellCooldown = 0;
                         bellRing--;
-                        if (Downpour.debug && bellRing > 0)
+                        if (Forecast.debug && bellRing > 0)
                         {
                             Debug.Log(bellRing);
                         }
@@ -287,7 +287,7 @@ public class ExposureController
                 bellRing = Mathf.Clamp(bellRing, 0, 25);
             }
             this.exposure = Mathf.Clamp(this.exposure, 0f, 1f);
-            if (Downpour.debug)
+            if (Forecast.debug)
             {
                 UpdateDebugLabels();
             }
@@ -305,7 +305,7 @@ public class ExposureController
                 if (this.player.room.updateList[i] is Blizzard)
                 {
                     this.blizzard = this.player.room.updateList[i] as Blizzard;
-                    if (Downpour.debug)
+                    if (Forecast.debug)
                     {
                         Debug.Log("UPDATED BLIZZARD TO " + this.player.room.abstractRoom.name);
                     }
@@ -385,7 +385,7 @@ public class WeatherSounds : UpdatableAndDeletable
     {
         if (this.room != null)
         {
-            if(this.room.roomRain == null || (this.room.world.region != null && !Downpour.rainRegions.Contains(this.room.world.region.name)))
+            if(this.room.roomRain == null || (this.room.world.region != null && !Forecast.rainRegions.Contains(this.room.world.region.name)))
             {
                 this.Destroy();
                 return;
@@ -479,7 +479,7 @@ public class Blizzard : UpdatableAndDeletable
 
     public Blizzard(Preciptator preciptator)
     {
-        if (Downpour.debug)
+        if (Forecast.debug)
         {
             Debug.Log("DOWNPOUR: Blizzard Created");
         }
@@ -560,7 +560,7 @@ public class Blizzard : UpdatableAndDeletable
                             if (bodyChunk.contactPoint.y < 0)
                             {
                                 //On Ground
-                                if (Downpour.windDirection == 1)
+                                if (Forecast.windDirection == 1)
                                 {
                                     bodyChunk.vel += Custom.DegToVec(270f) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
                                 }
@@ -572,7 +572,7 @@ public class Blizzard : UpdatableAndDeletable
                             else
                             {
                                 //Off Ground
-                                if (Downpour.windDirection == 1)
+                                if (Forecast.windDirection == 1)
                                 {
                                     bodyChunk.vel += Custom.DegToVec(Mathf.Lerp(245f, 270f, UnityEngine.Random.value)) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
                                 }
@@ -646,7 +646,7 @@ public class Blizzard : UpdatableAndDeletable
             }
             this.lastLastPos = this.lastPos;
 
-            if (Downpour.windDirection == 1)
+            if (Forecast.windDirection == 1)
             {
                 this.pos.x -= this.xSway * 2f;
                 this.pos.y -= this.ySway * 2f;
@@ -740,7 +740,7 @@ public class Blizzard : UpdatableAndDeletable
             sLeaser.sprites[0].alpha = Mathf.Lerp(0f, this.alpha, Mathf.InverseLerp(-0.5f, 0.5f, this.owner.TimePastCycleEnd));
 
             ////Left
-            if (Downpour.windDirection == 1)
+            if (Forecast.windDirection == 1)
             {
                 //Bottom Left
                 (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, new Vector2(0f, 0f));

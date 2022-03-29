@@ -118,7 +118,7 @@ public class LightningStrike : UpdatableAndDeletable
                     this.room.AddObject(new SootMark(this.room, pathPositions.Last() + new Vector2(0f, 15f), 50f, false));
                     this.room.AddObject(new LightningFlash(pathPositions.Last() + new Vector2(0f, 15f), this.color, 90f, 1f, false));
                     this.room.AddObject(new LightningImpact(pathPositions.Last() + new Vector2(0f, 10f), 35f, this.color));
-                    switch (Downpour.strikeDamage)
+                    switch (Forecast.strikeDamage)
                     {
                         case 0:
                             this.room.AddObject(new Explosion(this.room, null, pathPositions.Last() + new Vector2(0f, 15f), 7, 10f, 0f, 0f, 0f, 0.02f, null, 0.7f, 160f, 1f));

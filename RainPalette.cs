@@ -19,7 +19,7 @@ class RainPalette
     private static void RoomCamera_ApplyEffectColorsToPaletteTexture(On.RoomCamera.orig_ApplyEffectColorsToPaletteTexture orig, RoomCamera self, ref Texture2D texture, int color1, int color2)
     {
         orig.Invoke(self, ref texture, color1, color2);
-        if (Downpour.snow && Downpour.effectColors)
+        if (Forecast.snow && Forecast.effectColors)
         {
             if (color1 > -1)
             {
@@ -59,7 +59,7 @@ class RainPalette
                 texture.SetPixels(30, 2, 2, 2, snow2A, 0);
                 texture.SetPixels(30, 10, 2, 2, snow2B, 0);
             }
-            if (Downpour.debug)
+            if (Forecast.debug)
             {
                 byte[] img = texture.EncodeToPNG();
                 File.WriteAllBytes(Custom.RootFolderDirectory() + "snowPalette.png", img);
@@ -70,7 +70,7 @@ class RainPalette
     private static void RoomCamera_ApplyPalette(On.RoomCamera.orig_ApplyPalette orig, RoomCamera self)
     {
         orig.Invoke(self);
-        if (Downpour.snow)
+        if (Forecast.snow)
         {
             self.currentPalette.shortCutSymbol = new Color(1f, 0.7f, 0f);
         }
@@ -79,7 +79,7 @@ class RainPalette
     private static void LoadPalette(On.RoomCamera.orig_LoadPalette orig, RoomCamera self, int pal, ref Texture2D texture)
     {
         orig.Invoke(self, pal, ref texture);
-        if (Downpour.paletteChange)
+        if (Forecast.paletteChange)
         {
             Room room = null;
             if (self.loadingRoom != null)
@@ -100,12 +100,12 @@ class RainPalette
                 {
                     Color[] colors = texture.GetPixels();
                     Color[] newColors = new Color[colors.Length];
-                    Color[] exterior1Cols = Downpour.snowExt1.GetPixels();
-                    Color[] interior1Cols = Downpour.snowInt1.GetPixels();
+                    Color[] exterior1Cols = Forecast.snowExt1.GetPixels();
+                    Color[] interior1Cols = Forecast.snowInt1.GetPixels();
                     for (int i = 0; i < colors.Length; i++)
                     {
                         //Rain
-                        if (!Downpour.snow)
+                        if (!Forecast.snow)
                         {
                             newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
                             newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 0.05f);
@@ -132,15 +132,15 @@ class RainPalette
                 }
                 else
                 {
-                    if (Downpour.snow)
+                    if (Forecast.snow)
                     {
                         //Determine palette needed
-                        if (Downpour.rainRegions.Contains(room.world.region.name))
+                        if (Forecast.rainRegions.Contains(room.world.region.name))
                         {
                             //Exterior
                             if (RainFall.rainList.Contains(room.abstractRoom.name))
                             {
-                                Color[] snowPalette = Downpour.snowExt1.GetPixels();
+                                Color[] snowPalette = Forecast.snowExt1.GetPixels();
                                 for (int i = 0; i < modifiedPalette.Length; i++)
                                 {
                                     modifiedPalette[i] = origPalette[i];
@@ -152,7 +152,7 @@ class RainPalette
                             //Interior
                             else
                             {
-                                Color[] snowPalette = Downpour.snowInt1.GetPixels();
+                                Color[] snowPalette = Forecast.snowInt1.GetPixels();
                                 for (int i = 0; i < modifiedPalette.Length; i++)
                                 {
                                     modifiedPalette[i] = origPalette[i];

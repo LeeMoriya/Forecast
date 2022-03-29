@@ -10,7 +10,7 @@ using Partiality.Modloader;
 using Partiality;
 using System.Reflection;
 
-public class DownpourConfig : OptionInterface
+public class ForecastConfig : OptionInterface
 {
     public static Vector2 topAnchor = new Vector2(30f, 480f);
     public static Vector2 checkAnchor = new Vector2(topAnchor.x + 260f, topAnchor.y - 20f);
@@ -72,7 +72,7 @@ public class DownpourConfig : OptionInterface
     public OpLabel damageLabel;
     public OpLabel snowWarning;
 
-    public DownpourConfig() : base(mod: Downpour.mod)
+    public ForecastConfig() : base(mod: Forecast.mod)
     {
     }
 
@@ -97,13 +97,10 @@ public class DownpourConfig : OptionInterface
         this.rainWeather = new OpRadioButton(new Vector2(0f, 800f));
         this.rainButton = new OpSimpleButton(new Vector2(30f, 540f), new Vector2(70f, 25f), "rainButton", "Rain");
         this.snowWeather = new OpRadioButton(new Vector2(0f, 800f));
-        this.snowButton = new OpSimpleButton(new Vector2(130f, 540f), new Vector2(70f, 25f), "snowButton", "Snow");
+        this.snowButton = new OpSimpleButton(new Vector2(110f, 540f), new Vector2(70f, 25f), "snowButton", "Snow");
+        this.versionNumber = new OpLabel(new Vector2(10f, -5f), new Vector2(0f, 0f), "Version: " + Forecast.mod.Version, FLabelAlignment.Left, false);
         this.weatherType.SetButtons(new OpRadioButton[] { rainWeather, snowWeather });
-        //this.weatherType.valueInt = 1;
-        this.versionNumber = new OpLabel(new Vector2(10f, -5f), new Vector2(0f, 0f), "Version: " + Downpour.mod.Version, FLabelAlignment.Left, false);
-        this.snowWarning = new OpLabel(305f, 525f, "Snow is experimental, use at your own risk!", false);
-        this.snowWarning.color = new Color(0.85f, 0f, 0f);
-        this.Tabs[0].AddItems(rainButton, rainWeather, snowWeather, snowButton, weatherType, weatherTypeLabel, versionNumber, snowWarning);
+        this.Tabs[0].AddItems(rainButton, rainWeather, snowWeather, snowButton, weatherType, weatherTypeLabel, versionNumber);
 
         //Weather Sliders
         this.rainIntensity = new OpLabel(new Vector2(topAnchor.x, topAnchor.y), new Vector2(400f, 40f), "Rain Settings", FLabelAlignment.Left, true);
@@ -198,7 +195,7 @@ public class DownpourConfig : OptionInterface
                 }
             }
         }
-        Downpour.configLoaded = true;
+        Forecast.configLoaded = true;
     }
     public override void Signal(UItrigger trigger, string signal)
     {
@@ -239,7 +236,6 @@ public class DownpourConfig : OptionInterface
             //Hide snow labels
             decalLabel.Hide();
             dustLabel.Hide();
-            snowWarning.Hide();
             effectLabel.Hide();
             blizzardLabel.Hide();
         }
@@ -270,7 +266,6 @@ public class DownpourConfig : OptionInterface
             //Hide snow labels
             decalLabel.Show();
             dustLabel.Show();
-            snowWarning.Show();
             effectLabel.Show();
             blizzardLabel.Show();
         }
@@ -351,125 +346,125 @@ public class DownpourConfig : OptionInterface
     }
     public override void ConfigOnChange()
     {
-        Downpour.rainRegions = new List<string>();
+        Forecast.rainRegions = new List<string>();
         for (int i = 0; i < regionList.Length; i++)
         {
             if (config[regionList[i]] == "true")
             {
-                Downpour.rainRegions.Add(regionList[i]);
+                Forecast.rainRegions.Add(regionList[i]);
             }
         }
         if (config["Type"] == "0")
         {
-            Downpour.snow = false;
+            Forecast.snow = false;
         }
         else
         {
-            Downpour.snow = true;
+            Forecast.snow = true;
         }
         if (config["Palette"] == "false")
         {
-            Downpour.paletteChange = false;
+            Forecast.paletteChange = false;
         }
         else
         {
-            Downpour.paletteChange = true;
+            Forecast.paletteChange = true;
         }
         if(config["Effect"] == "false")
         {
-            Downpour.effectColors = false;
+            Forecast.effectColors = false;
         }
         else
         {
-            Downpour.effectColors = true;
+            Forecast.effectColors = true;
         }
         if(config["Blizzard"] == "false")
         {
-            Downpour.blizzard = false;
+            Forecast.blizzard = false;
         }
         else
         {
-            Downpour.blizzard = true;
+            Forecast.blizzard = true;
         }
         if (config["Mute"] == "false")
         {
-            Downpour.interiorRain = false;
+            Forecast.interiorRain = false;
         }
         else
         {
-            Downpour.interiorRain = true;
+            Forecast.interiorRain = true;
         }
         if (config["Water"] == "false")
         {
-            Downpour.water = false;
+            Forecast.water = false;
         }
         else
         {
-            Downpour.water = true;
+            Forecast.water = true;
         }
         if (config["Background"] == "false")
         {
-            Downpour.bg = false;
+            Forecast.bg = false;
         }
         else
         {
-            Downpour.bg = true;
+            Forecast.bg = true;
         }
         if (config["Lightning"] == "false")
         {
-            Downpour.lightning = false;
+            Forecast.lightning = false;
         }
         else
         {
-            Downpour.lightning = true;
+            Forecast.lightning = true;
         }
         if (config["Strike"] == "false")
         {
-            Downpour.strike = false;
+            Forecast.strike = false;
         }
         else
         {
-            Downpour.strike = true;
+            Forecast.strike = true;
         }
         if (config["Decals"] == "false")
         {
-            Downpour.decals = false;
+            Forecast.decals = false;
         }
         else
         {
-            Downpour.decals = true;
+            Forecast.decals = true;
         }
         if (config["Dust"] == "false")
         {
-            Downpour.dust = false;
+            Forecast.dust = false;
         }
         else
         {
-            Downpour.dust = true;
+            Forecast.dust = true;
         }
         if (config["weatherIntensity"] == "0")
         {
-            Downpour.intensity = 0;
-            Downpour.dynamic = true;
+            Forecast.intensity = 0;
+            Forecast.dynamic = true;
         }
         if (config["weatherIntensity"] == "1")
         {
-            Downpour.intensity = 1;
-            Downpour.dynamic = false;
+            Forecast.intensity = 1;
+            Forecast.dynamic = false;
         }
         if (config["weatherIntensity"] == "2")
         {
-            Downpour.intensity = 2;
-            Downpour.dynamic = false;
+            Forecast.intensity = 2;
+            Forecast.dynamic = false;
         }
         if (config["weatherIntensity"] == "3")
         {
-            Downpour.intensity = 3;
-            Downpour.dynamic = false;
+            Forecast.intensity = 3;
+            Forecast.dynamic = false;
         }
-        Downpour.rainAmount = int.Parse(config["rainAmount"]);
-        Downpour.direction = int.Parse(config["weatherDirection"]);
-        Downpour.rainChance = int.Parse(config["weatherChance"]);
-        Downpour.strikeDamage = int.Parse(config["Damage"]);
+        Forecast.rainAmount = int.Parse(config["rainAmount"]);
+        Forecast.direction = int.Parse(config["weatherDirection"]);
+        Forecast.rainChance = int.Parse(config["weatherChance"]);
+        Forecast.strikeDamage = int.Parse(config["Damage"]);
     }
 }
