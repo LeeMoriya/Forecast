@@ -189,6 +189,7 @@ public class ExposureController
                 SwitchBlizzard();
                 if (this.TimePastCycleEnd != -1f)
                 {
+                    //Exposure matches ambient temp
                     if (IsCold())
                     {
                         this.cam.microShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.005f, this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.4f, 1f, TimePastCycleEnd));
@@ -202,11 +203,8 @@ public class ExposureController
                             this.exposure += 0.0005f;
                         }
                     }
-                    else if(this.player.room.abstractRoom.shelter && this.player.room.shelterDoor.IsClosing)
-                    {
-                        this.exposure -= 0.005f;
-                    }
-                    else
+                    //Safe in a shelter, exposure decreases
+                    else if(this.player.room.abstractRoom.shelter && this.player.room.shelterDoor != null && this.player.room.shelterDoor.IsClosing)
                     {
                         this.exposure -= 0.005f;
                     }
