@@ -1,5 +1,9 @@
 # Rain World - Forecast ![img](https://img.shields.io/github/downloads/LeeMoriya/Forecast/total?style=for-the-badge)
 
+![logo](https://i.imgur.com/Bbxux8D.png)
+
+##### Logo art by [TamyMew](https://twitter.com/TamyMew)
+
 ## Features
 - Rain and Snow modes
 - Adds new particle weather effects to outdoor rooms
