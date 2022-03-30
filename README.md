@@ -1,4 +1,4 @@
-# Rain World - Downpour Mod ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
+# Rain World - Forecast ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
 
 ### This is not the DLC!
 
@@ -35,5 +35,5 @@ Get the latest version of the mod from the releases page [here.](https://github.
 
 ## Installation
 1. Install BepInEx - [Video Guide](https://youtu.be/brDN_8uN6-U)
-2. Drop Downpour.dll and its requirements above into your Mods folder.
+2. Drop Forecast.dll and its requirements above into your Mods folder.
 3. Tick the mods in the BOI Mod Manager and run the game.
