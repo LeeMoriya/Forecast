@@ -1,7 +1,5 @@
 # Rain World - Forecast ![img](https://img.shields.io/github/downloads/LeeMoriya/Downpour/total?style=for-the-badge)
 
-### This is not the DLC!
-
 ## Features
 - Rain and Snow modes
 - Adds new particle weather effects to outdoor rooms
