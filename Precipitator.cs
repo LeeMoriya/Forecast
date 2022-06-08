@@ -27,6 +27,7 @@ public class Preciptator : UpdatableAndDeletable
     public List<IntVector2> ceilingTiles;
     public List<IntVector2> groundTiles;
     public Blizzard blizzard;
+    public Color strikeColor = new Color(0f, 1f, 0f);
 
     public Preciptator(Room room, bool isSnow)
     {
@@ -171,11 +172,6 @@ public class Preciptator : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
-        if (Forecast.debug && this.room.BeingViewed && Input.GetKeyDown(KeyCode.Minus))
-        {
-            Debug.Log("LIGHTNING STRIKE!");
-            this.room.AddObject(new LightningStrike(this));
-        }
         if (this.room.BeingViewed)
         {
             this.camPos = this.room.game.cameras[0].pos + new Vector2(this.room.game.rainWorld.screenSize.x / 2, this.room.game.rainWorld.screenSize.y / 2);
@@ -202,17 +198,18 @@ public class Preciptator : UpdatableAndDeletable
         {
             if (this.room.game != null && !this.room.abstractRoom.shelter && Forecast.lightning && this.room.roomRain != null)
             {
-                if (this.room.roomRain.dangerType == RoomRain.DangerType.Rain && RainFall.rainIntensity > 0.7f && this.room.lightning == null)
+                if ((this.room.roomRain.dangerType == RoomRain.DangerType.Rain || this.room.roomRain.dangerType == RoomRain.DangerType.FloodAndRain) && RainFall.rainIntensity > 0.7f && this.room.lightning == null)
                 {
                     this.room.lightning = new Lightning(this.room, 1f, false);
                     this.room.lightning.bkgOnly = true;
+                    this.room.lightning.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
+                    this.room.lightning.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), RainFall.rainIntensity);
+                    this.strikeColor = new Color(1f, 1f, 0.95f);
                     this.room.AddObject(this.room.lightning);
                 }
-                if (this.room.roomRain.dangerType == RoomRain.DangerType.FloodAndRain && RainFall.rainIntensity > 0.7f && this.room.lightning == null)
+                if (Forecast.strike && this.room.lightning != null && this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.dangerType == RoomRain.DangerType.Rain && Forecast.strike && UnityEngine.Random.value < RainFall.rainIntensity * 0.0010f)
                 {
-                    this.room.lightning = new Lightning(this.room, 1f, false);
-                    this.room.lightning.bkgOnly = true;
-                    this.room.AddObject(this.room.lightning);
+                    this.room.AddObject(new LightningStrike(this, strikeColor));
                 }
             }
             if (!isSnow)
@@ -222,10 +219,6 @@ public class Preciptator : UpdatableAndDeletable
                 {
                     this.AddRaindrops(rainLimit - this.rainDrops);
                 }
-                if (this.room.lightning != null && this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.dangerType == RoomRain.DangerType.Rain && Forecast.strike && UnityEngine.Random.value < RainFall.rainIntensity * 0.0010f)
-                {
-                    this.room.AddObject(new LightningStrike(this));
-                }
             }
             else
             {
@@ -233,10 +226,6 @@ public class Preciptator : UpdatableAndDeletable
                 if (!RainFall.noRainThisCycle && this.snowFlakes < ((this.room.Width - this.ceilingCount) * this.rainLimit) / this.room.Width)
                 {
                     this.AddSnowflakes(rainLimit - this.snowFlakes);
-                }
-                if (this.room.lightning != null && this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.dangerType == RoomRain.DangerType.Rain && Forecast.strike && UnityEngine.Random.value < RainFall.rainIntensity * 0.0010f)
-                {
-                    this.room.AddObject(new LightningStrike(this));
                 }
             }
         }

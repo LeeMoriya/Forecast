@@ -62,8 +62,8 @@ public class ExposureController
     public Blizzard blizzard;
     public float exposure = 0;
     public float ambient = 0f;
-    public int cooldown;
-    public int bellCooldown;
+    public float cooldown;
+    public float bellCooldown;
     public int bellRing;
     public bool dead;
     public FLabel labelPlayer;
@@ -173,15 +173,15 @@ public class ExposureController
                     if (this.blizzard.TimePastCycleEnd > 0f)
                     {
                         float scale = Mathf.Clamp(this.blizzard.TimePastCycleEnd, 0.00143f, 0.45f);
-                        this.exposure += 0.0007f * scale;
+                        this.exposure += 0.075f * scale * Time.deltaTime;
                     }
                     else
                     {
-                        this.exposure += 0.0001f;
+                        this.exposure += 0.025f * Time.deltaTime;
                     }
                     dead = false;
                 }
-                cooldown++;
+                cooldown += 1f * Time.deltaTime;
             }
             //Indoors
             else
@@ -196,17 +196,17 @@ public class ExposureController
                         this.ambient = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(0f, 3f, this.TimePastCycleEnd));
                         if (this.exposure > this.ambient)
                         {
-                            this.exposure -= 0.0005f;
+                            this.exposure -= 0.065f * Time.deltaTime;
                         }
                         else
                         {
-                            this.exposure += 0.0005f;
+                            this.exposure += 0.065f * Time.deltaTime;
                         }
                     }
                     //Safe in a shelter, exposure decreases
-                    else if(this.player.room.abstractRoom.shelter && this.player.room.shelterDoor != null && this.player.room.shelterDoor.IsClosing)
+                    else if (this.player.room.abstractRoom.shelter && this.player.room.shelterDoor != null && this.player.room.shelterDoor.IsClosing)
                     {
-                        this.exposure -= 0.005f;
+                        this.exposure -= 0.65f * Time.deltaTime;
                     }
                 }
             }
@@ -218,18 +218,18 @@ public class ExposureController
                 //Stun
                 if (this.exposure < 0.4f)
                 {
-                    if (cooldown >= UnityEngine.Random.Range(700, 1000))
+                    if (cooldown >= UnityEngine.Random.Range(5, 15))
                     {
-                        cooldown = 0;
+                        cooldown = 0f;
                         this.player.Stun((int)(20 * this.exposure));
                     }
                 }
                 //Exhaustion
                 else
                 {
-                    if (cooldown >= UnityEngine.Random.Range(600, 1000))
+                    if (cooldown >= UnityEngine.Random.Range(10, 25))
                     {
-                        cooldown = 0;
+                        cooldown = 0f;
                         this.player.lungsExhausted = true;
                         this.player.slowMovementStun = (int)(UnityEngine.Random.Range(0.5f, 2f) * this.exposure);
                         if (UnityEngine.Random.value < 0.3f * this.exposure)
@@ -247,10 +247,10 @@ public class ExposureController
                 //Death Bells
                 if (this.exposure >= 1f && !this.dead && this.player.playerState.playerNumber == 0)
                 {
-                    bellCooldown++;
-                    if (bellCooldown > (int)Mathf.Lerp(200f, 50f, Mathf.InverseLerp(0f, 22f, bellRing)))
+                    bellCooldown += 1f * Time.deltaTime;
+                    if (bellCooldown > Mathf.Lerp(1f, 0.3f, Mathf.InverseLerp(0f, 22, bellRing)))
                     {
-                        bellCooldown = 0;
+                        bellCooldown = 0f;
                         bellRing++;
                         if (Forecast.debug && bellRing > 0)
                         {
@@ -273,8 +273,8 @@ public class ExposureController
                 }
                 else
                 {
-                    bellCooldown++;
-                    if (bellCooldown > 150)
+                    bellCooldown += 1f * Time.deltaTime;
+                    if (bellCooldown > Mathf.Lerp(1f, 0.3f, Mathf.InverseLerp(0f, 22, bellRing)))
                     {
                         bellCooldown = 0;
                         bellRing--;
@@ -385,7 +385,7 @@ public class WeatherSounds : UpdatableAndDeletable
     {
         if (this.room != null)
         {
-            if(this.room.roomRain == null || (this.room.world.region != null && !Forecast.rainRegions.Contains(this.room.world.region.name)))
+            if (this.room.roomRain == null || (this.room.world.region != null && !Forecast.rainRegions.Contains(this.room.world.region.name)))
             {
                 this.Destroy();
                 return;
@@ -449,7 +449,7 @@ public class WeatherSounds : UpdatableAndDeletable
                 }
             }
         }
-        if(!sfx1 || !sfx2 || !sfx3)
+        if (!sfx1 || !sfx2 || !sfx3)
         {
             CheckBlizzard();
         }
@@ -513,12 +513,12 @@ public class Blizzard : UpdatableAndDeletable
             }
         }
         //Wind
-        this.intensity = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.081f,this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, this.TimePastCycleEnd));
+        this.intensity = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.081f, this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, this.TimePastCycleEnd));
         this.ThrowAroundObjects();
         //Camera Shake
         if (this.room.BeingViewed)
         {
-            this.room.game.cameras[0].screenShake = Mathf.Lerp(0f, Mathf.Lerp(0f,0.3f, this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd));
+            this.room.game.cameras[0].screenShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.3f, this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd));
         }
         base.Update(eu);
     }
@@ -681,12 +681,12 @@ public class Blizzard : UpdatableAndDeletable
         {
             if (sLeaser.sprites[0].alpha < Mathf.Lerp(0f, Mathf.Lerp(0f, 0.55f, this.room.roomSettings.RainIntensity), Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, this.owner.TimePastCycleEnd))))
             {
-                this.alpha += 0.015f * timeStacker;
+                this.alpha += 1.2f * Time.deltaTime;
             }
             sLeaser.sprites[0].alpha = this.alpha;
-            sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, timeStacker);
-            sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, timeStacker);
-            sLeaser.sprites[0].rotation = Custom.AimFromOneVectorToAnother(Vector2.Lerp(this.lastLastPos, this.lastPos, timeStacker), Vector2.Lerp(this.lastPos, this.pos, timeStacker));
+            sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, Time.deltaTime);
+            sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, Time.deltaTime);
+            sLeaser.sprites[0].rotation = Custom.AimFromOneVectorToAnother(Vector2.Lerp(this.lastLastPos, this.lastPos, Time.deltaTime), Vector2.Lerp(this.lastPos, this.pos, Time.deltaTime));
             base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
         }
 
@@ -764,10 +764,10 @@ public class Blizzard : UpdatableAndDeletable
                 (sLeaser.sprites[0] as TriangleMesh).MoveVertice(1, new Vector2(rCam.sSize.x, rCam.sSize.y));
 
             }
-                            for (int i = 0; i < (sLeaser.sprites[0] as TriangleMesh).UVvertices.Length; i++)
-                {
-                    (sLeaser.sprites[0] as TriangleMesh).UVvertices[i] += new Vector2(0.007f, 0.006f) * scrollSpeed * timeStacker;
-                }
+            for (int i = 0; i < (sLeaser.sprites[0] as TriangleMesh).UVvertices.Length; i++)
+            {
+                (sLeaser.sprites[0] as TriangleMesh).UVvertices[i] += new Vector2(0.35f, 0.25f) * scrollSpeed * Time.deltaTime;
+            }
             base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
         }
 
