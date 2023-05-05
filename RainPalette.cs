@@ -19,52 +19,52 @@ class RainPalette
     private static void RoomCamera_ApplyEffectColorsToPaletteTexture(On.RoomCamera.orig_ApplyEffectColorsToPaletteTexture orig, RoomCamera self, ref Texture2D texture, int color1, int color2)
     {
         orig.Invoke(self, ref texture, color1, color2);
-        if (Forecast.snow && Forecast.effectColors)
-        {
-            if (color1 > -1)
-            {
-                Color[] effects1A = self.allEffectColorsTexture.GetPixels(color1 * 2, 0, 2, 2, 0);
-                Color[] effects1B = self.allEffectColorsTexture.GetPixels(color1 * 2, 2, 2, 2, 0);
-                Color[] snow1A = new Color[effects1A.Length];
-                Color[] snow1B = new Color[effects1B.Length];
-                for (int i = 0; i < snow1A.Length; i++)
-                {
-                    snow1A[i] = Custom.Desaturate(effects1A[i], 0.1f);
-                    snow1A[i] = Color.Lerp(snow1A[i], new Color(1f, 1f, 1f), 0.6f);
-                }
-                for (int i = 0; i < snow1B.Length; i++)
-                {
-                    snow1B[i] = Custom.Desaturate(effects1B[i], 0.1f);
-                    snow1B[i] = Color.Lerp(snow1B[i], new Color(1f, 1f, 1f), 0.6f);
-                }
-                texture.SetPixels(30, 4, 2, 2, snow1A, 0);
-                texture.SetPixels(30, 12, 2, 2, snow1B, 0);
-            }
-            if (color2 > -1)
-            {
-                Color[] effects2A = self.allEffectColorsTexture.GetPixels(color2 * 2, 0, 2, 2, 0);
-                Color[] effects2B = self.allEffectColorsTexture.GetPixels(color2 * 2, 2, 2, 2, 0);
-                Color[] snow2A = new Color[effects2A.Length];
-                Color[] snow2B = new Color[effects2B.Length];
-                for (int i = 0; i < snow2A.Length; i++)
-                {
-                    snow2A[i] = Custom.Desaturate(effects2A[i], 0.1f);
-                    snow2A[i] = Color.Lerp(snow2A[i], new Color(1f, 1f, 1f), 0.6f);
-                }
-                for (int i = 0; i < snow2B.Length; i++)
-                {
-                    snow2B[i] = Custom.Desaturate(effects2B[i], 0.1f);
-                    snow2B[i] = Color.Lerp(snow2B[i], new Color(1f, 1f, 1f), 0.6f);
-                }
-                texture.SetPixels(30, 2, 2, 2, snow2A, 0);
-                texture.SetPixels(30, 10, 2, 2, snow2B, 0);
-            }
-            if (Forecast.debug)
-            {
-                byte[] img = texture.EncodeToPNG();
-                File.WriteAllBytes(Custom.RootFolderDirectory() + "snowPalette.png", img);
-            }
-        }
+        //if (Forecast.snow && Forecast.effectColors)
+        //{
+        //    if (color1 > -1)
+        //    {
+        //        Color[] effects1A = self.allEffectColorsTexture.GetPixels(color1 * 2, 0, 2, 2, 0);
+        //        Color[] effects1B = self.allEffectColorsTexture.GetPixels(color1 * 2, 2, 2, 2, 0);
+        //        Color[] snow1A = new Color[effects1A.Length];
+        //        Color[] snow1B = new Color[effects1B.Length];
+        //        for (int i = 0; i < snow1A.Length; i++)
+        //        {
+        //            snow1A[i] = Custom.Desaturate(effects1A[i], 0.1f);
+        //            snow1A[i] = Color.Lerp(snow1A[i], new Color(1f, 1f, 1f), 0.6f);
+        //        }
+        //        for (int i = 0; i < snow1B.Length; i++)
+        //        {
+        //            snow1B[i] = Custom.Desaturate(effects1B[i], 0.1f);
+        //            snow1B[i] = Color.Lerp(snow1B[i], new Color(1f, 1f, 1f), 0.6f);
+        //        }
+        //        texture.SetPixels(30, 4, 2, 2, snow1A, 0);
+        //        texture.SetPixels(30, 12, 2, 2, snow1B, 0);
+        //    }
+        //    if (color2 > -1)
+        //    {
+        //        Color[] effects2A = self.allEffectColorsTexture.GetPixels(color2 * 2, 0, 2, 2, 0);
+        //        Color[] effects2B = self.allEffectColorsTexture.GetPixels(color2 * 2, 2, 2, 2, 0);
+        //        Color[] snow2A = new Color[effects2A.Length];
+        //        Color[] snow2B = new Color[effects2B.Length];
+        //        for (int i = 0; i < snow2A.Length; i++)
+        //        {
+        //            snow2A[i] = Custom.Desaturate(effects2A[i], 0.1f);
+        //            snow2A[i] = Color.Lerp(snow2A[i], new Color(1f, 1f, 1f), 0.6f);
+        //        }
+        //        for (int i = 0; i < snow2B.Length; i++)
+        //        {
+        //            snow2B[i] = Custom.Desaturate(effects2B[i], 0.1f);
+        //            snow2B[i] = Color.Lerp(snow2B[i], new Color(1f, 1f, 1f), 0.6f);
+        //        }
+        //        texture.SetPixels(30, 2, 2, 2, snow2A, 0);
+        //        texture.SetPixels(30, 10, 2, 2, snow2B, 0);
+        //    }
+        //    if (Forecast.debug)
+        //    {
+        //        byte[] img = texture.EncodeToPNG();
+        //        File.WriteAllBytes(Custom.RootFolderDirectory() + "snowPalette.png", img);
+        //    }
+        //}
     }
 
     private static void RoomCamera_ApplyPalette(On.RoomCamera.orig_ApplyPalette orig, RoomCamera self)

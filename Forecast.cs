@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Partiality.Modloader;
 using UnityEngine;
-using OptionalUI;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security;
@@ -14,55 +12,38 @@ using RWCustom;
 using Menu;
 using System.Security.Permissions;
 using MonoMod.RuntimeDetour;
+using BepInEx;
 
-[assembly: IgnoresAccessChecksTo("Assembly-CSharp")]
-[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 [module: UnverifiableCode]
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
-namespace System.Runtime.CompilerServices
+[BepInPlugin("LeeMoriya.Forecast", "Forecast", "1.03")]
+public class Forecast : BaseUnityPlugin
 {
-    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-    public class IgnoresAccessChecksToAttribute : Attribute
-    {
-        public IgnoresAccessChecksToAttribute(string assemblyName)
-        {
-            AssemblyName = assemblyName;
-        }
-
-        public string AssemblyName { get; }
-    }
-}
-
-public class Forecast : PartialityMod
-{
-    // Update URL - don't touch!
-    // You can go to this in a browser (it's safe), but you might not understand the result.
-    // This URL is specific to this mod, and identifies it on AUDB.
-    public string updateURL = "http://beestuff.pythonanywhere.com/audb/api/mods/4/3";
-    // Version - increase this by 1 when you upload a new version of the mod.
-    // The first upload should be with version 0, the next version 1, the next version 2, etc.
-    // If you ever lose track of the version you're meant to be using, ask Pastebin.
-    public int version = 15;
-    // Public key in base64 - don't touch!
-    public string keyE = "AQAB";
-    public string keyN = "lDaM5h0hJUvZcIdiWXH4qfdia/V8UWzikqRIiC9jVGA87jMrafo4EWOTk0MMIQZWHVy+msVzvEAVR3V45wZShFu7ylUndroL5u4zyqHfVeAeDIALfBrM3J4BIM1rMi4wieYdLIF6t2Uj4GVH7iU59AIfobew1vICUILu9Zib/Aw2QY6Nc+0Cz6Lw3xh7DL/trIMaW7yQfYRZUaEZBHelN2JGyUjKkbby4vL6gySfGlVl1OH0hYYhrhNwnQrOow8WXFMIu/WyTA3cY3wqkjd4/WRJ+EvYtMKTwfG+TZiHGst9Bg1ZTFfvEvrTFiPadTf19iUnfyL/QJaTAD8qe+rba5KwirIElovqFpYNH9tAr7SpjixjbT3Igmz+SlqGa9wSbm1QWt/76QqpyAYV/b5G/VzbytoZrhkEVdGuaotD4tXh462AhK5xoigB8PEt+T3nWuPdoZlVo5hRCxoNleH4yxLpVv8C7TpQgQHDqzHMcEX79xjiYiCvigCq7lLEdxUD0fhnxSYVK0O+y7T+NXkk3is/XqJxdesgyYUMT81MSou9Ur/2nv9H8IvA9QeIqso05hK3c496UOaRJS27WJhrxABtU+HHtxo9SifmXjisDj3IV46uTeVp5bivDTu1yBymgnU8qli/xmwWxKvOisi9ZOZsg4vFHaY31gdUBWOz4dU=";
-    // ------------------------------------------------
+    public bool init = false;
     public Forecast()
     {
-        this.ModID = "Forecast";
-        this.Version = "v1.00";
-        this.author = "LeeMoriya";
+        
     }
-    public override void OnEnable()
+    public void OnEnable()
     {
-        base.OnEnable();
-        mod = this;
+        if (!init)
+        {
+            On.RainWorld.OnModsInit += RainWorld_OnModsInit;
+            init = true;
+        }
+    }
+
+    private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
+    {
+        orig.Invoke(self);
         Initialize();
     }
-    public static OptionInterface LoadOI()
-    {
-        return new ForecastConfig();
-    }
+
+    //public static OptionInterface LoadOI()
+    //{
+    //    return new ForecastConfig();
+    //}
 
     public static int palettecount = 0;
     public static Forecast mod;
@@ -135,6 +116,7 @@ public class Forecast : PartialityMod
         Forecast.overlay2.wrapMode = TextureWrapMode.Repeat;
         byte[] overlay2 = Convert.FromBase64String(Forecast.overlay2Data);
         Forecast.overlay2.LoadImage(overlay2);
+
     }
 
     private float RainCycle_get_MicroScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
@@ -159,11 +141,11 @@ public class Forecast : PartialityMod
     public static bool lightning = true;
     public static bool strike = false;
     public static int strikeDamage = 0;
-    public static bool dynamic = true;
-    public static int intensity = 0;
+    public static bool dynamic = false;
+    public static int intensity = 3;
     public static bool rainbow = false;
     public static bool configLoaded = false;
-    public static bool debug = false;
+    public static bool debug = true;
     public static bool snow = false;
     public static bool bg = false;
     public static bool water = true;
@@ -171,12 +153,15 @@ public class Forecast : PartialityMod
     public static bool dust = true;
     public static bool blizzard = true;
     public static bool effectColors = true;
-    public static List<string> rainRegions = new List<string>();
+    public static List<string> rainRegions = new List<string>()
+    {
+        "SI","SU","CC"
+    };
     public static List<ExposureController> exposureControllers;
     public static int rainAmount = 50;
     public static int direction = 0;
     public static int windDirection = 0;
-    public static int rainChance = 75;
+    public static int rainChance = 100;
     public static bool interiorRain = true;
 
     public static Texture2D snowTex;

@@ -39,7 +39,7 @@ public class RainFall
         On.RoomSettings.LoadAmbientSounds += RoomSettings_LoadAmbientSounds;
     }
 
-    private static void StoryGameSession_ctor(On.StoryGameSession.orig_ctor orig, StoryGameSession self, int saveStateNumber, RainWorldGame game)
+    private static void StoryGameSession_ctor(On.StoryGameSession.orig_ctor orig, StoryGameSession self, SlugcatStats.Name saveStateNumber, RainWorldGame game)
     {
         orig.Invoke(self, saveStateNumber, game);
         if(Forecast.debug && Forecast.exposureControllers != null)
@@ -128,13 +128,13 @@ public class RainFall
 
     private static void RainWorld_LoadResources(On.RainWorld.orig_LoadResources orig, RainWorld self)
     {
-        Futile.atlasManager.LoadAtlasFromTexture("snowpile", Forecast.snowPileTex);
-        Futile.atlasManager.LoadAtlasFromTexture("logo", Forecast.logo);
-        Futile.atlasManager.LoadAtlasFromTexture("logo2", Forecast.logo2);
-        Futile.atlasManager.LoadAtlasFromTexture("blizzard", Forecast.blizzardTexture);
-        Futile.atlasManager.LoadAtlasFromTexture("overlay1", Forecast.overlay1);
-        Futile.atlasManager.LoadAtlasFromTexture("overlay2", Forecast.overlay2);
         orig.Invoke(self);
+        Futile.atlasManager.LoadAtlasFromTexture("snowpile", Forecast.snowPileTex, false);
+        Futile.atlasManager.LoadAtlasFromTexture("logo", Forecast.logo, false);
+        Futile.atlasManager.LoadAtlasFromTexture("logo2", Forecast.logo2, false);
+        Futile.atlasManager.LoadAtlasFromTexture("blizzard", Forecast.blizzardTexture, false);
+        Futile.atlasManager.LoadAtlasFromTexture("overlay1", Forecast.overlay1, false);
+        Futile.atlasManager.LoadAtlasFromTexture("overlay2", Forecast.overlay2, false);
     }
 
     private static void AbstractRoom_Abstractize(On.AbstractRoom.orig_Abstractize orig, AbstractRoom self)
