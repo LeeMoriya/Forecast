@@ -11,27 +11,36 @@ public class LightningStrike : UpdatableAndDeletable
     public float delay;
     public bool contact;
     public int splits;
-    public LightningStrike(Preciptator pre)
+    public bool once = false;
+    public LightningStrike(Preciptator pre, Color col)
     {
         //Assign the starting position of the lightning strike
-        if (pre.room != null && pre.ceilingTiles != null)
+        if (!once)
         {
-            this.room = pre.room;
-            try
+            if (pre.room != null && pre.ceilingTiles != null)
             {
-                this.origin = this.room.MiddleOfTile(pre.ceilingTiles[UnityEngine.Random.Range(0, pre.ceilingTiles.Count - 1)]) + new Vector2(0f, 100f);
+                this.room = pre.room;
+                try
+                {
+                    this.origin = this.room.MiddleOfTile(pre.ceilingTiles[UnityEngine.Random.Range(0, pre.ceilingTiles.Count - 1)]) + new Vector2(0f, 100f);
+                }
+                catch
+                {
+                    Debug.Log("ERROR ASSIGNING ORIGIN");
+                }
+                this.room.AddObject(new LightningPath(this.origin, this, col));
+                once = true;
             }
-            catch
-            {
-                Debug.Log("ERROR ASSIGNING ORIGIN");
-            }
-            this.room.AddObject(new LightningPath(this.origin, this, new Color(1f,1f,1f)));
         }
     }
 
     public override void Update(bool eu)
     {
         base.Update(eu);
+        if (!room.BeingViewed)
+        {
+            slatedForDeletetion = true;
+        }
         if (contact)
         {
             //this.Destroy();
@@ -51,6 +60,7 @@ public class LightningStrike : UpdatableAndDeletable
         public float xVar = 25f;
         public float yVar = 20f;
         public float fadeRate = 0.7f;
+        public float startAlpha = 1f;
         public LightningPath(Vector2 startPos, LightningStrike strike, Color col)
         {
             this.lightningStrike = strike;
@@ -65,9 +75,9 @@ public class LightningStrike : UpdatableAndDeletable
         public override void Update(bool eu)
         {
             base.Update(eu);
-            if (lightningStrike.contact)
+            if (!room.BeingViewed)
             {
-                return;
+                slatedForDeletetion = true;
             }
             if (!search)
             {
@@ -88,11 +98,11 @@ public class LightningStrike : UpdatableAndDeletable
 
         public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
         {
-            this.color = new Color(1f, 1f, 0.87f);
             sLeaser.sprites = new FSprite[pathPositions.Count];
             for (int i = 0; i < pathPositions.Count; i++)
             {
                 sLeaser.sprites[i] = new FSprite("pixel", false);
+                sLeaser.sprites[i].alpha = startAlpha;
                 sLeaser.sprites[i].color = this.color;
                 sLeaser.sprites[i].scaleX = 5f;
             }
@@ -103,7 +113,7 @@ public class LightningStrike : UpdatableAndDeletable
         {
             if (search)
             {
-                if(warning == 0f)
+                if(warning == 0f && !spawn && startAlpha == 1f)
                 {
                     this.room.AddObject(new LightningFlash(pathPositions.Last() + new Vector2(0f, 15f), this.color, 15f, 30f, true));
                     this.room.PlaySound(SoundID.Thunder_Close, pathPositions.Last(), 0.7f, 1f);
@@ -112,6 +122,7 @@ public class LightningStrike : UpdatableAndDeletable
                 if (!spawn && warning >= 1f)
                 {
                     this.InitiateSprites(sLeaser, rCam);
+                    startAlpha = 0f;
                     this.room.PlaySound(SoundID.Bomb_Explode, pathPositions.Last(), 1.3f, 0.8f);
                     this.room.PlaySound(SoundID.Thunder, pathPositions.Last(), 1f, 1f);
                     this.room.AddObject(new Smoke.BombSmoke(this.room, pathPositions.Last() + new Vector2(0f, 15f), null, new Color(0.01f, 0.01f, 0.01f)));
@@ -142,18 +153,21 @@ public class LightningStrike : UpdatableAndDeletable
                 }
                 if (sLeaser.sprites != null)
                 {
-                    for (int i = 0; i < sLeaser.sprites.Length; i++)
+                    if (sLeaser.sprites[0].alpha > 0f)
                     {
-                        if (i + 1 > pathPositions.Count - 1)
+                        for (int i = 0; i < sLeaser.sprites.Length; i++)
                         {
-                            break;
+                            if (i + 1 > pathPositions.Count - 1)
+                            {
+                                break;
+                            }
+                            sLeaser.sprites[i].rotation = Custom.AimFromOneVectorToAnother(pathPositions[i], pathPositions[i + 1]);
+                            sLeaser.sprites[i].x = Mathf.Lerp(pathPositions[i].x, pathPositions[i + 1].x, 0.5f) - camPos.x;
+                            sLeaser.sprites[i].y = Mathf.Lerp(pathPositions[i].y, pathPositions[i + 1].y, 0.5f) - camPos.y;
+                            sLeaser.sprites[i].scaleY = Vector2.Distance(pathPositions[i], pathPositions[i + 1]);
+                            sLeaser.sprites[i].scaleX -= 0.12f;
+                            sLeaser.sprites[i].alpha -= 3f * Time.deltaTime;
                         }
-                        sLeaser.sprites[i].rotation = Custom.AimFromOneVectorToAnother(pathPositions[i], pathPositions[i + 1]);
-                        sLeaser.sprites[i].x = Mathf.Lerp(pathPositions[i].x, pathPositions[i + 1].x, 0.5f) - camPos.x;
-                        sLeaser.sprites[i].y = Mathf.Lerp(pathPositions[i].y, pathPositions[i + 1].y, 0.5f) - camPos.y;
-                        sLeaser.sprites[i].scaleY = Vector2.Distance(pathPositions[i], pathPositions[i + 1]);
-                        sLeaser.sprites[i].scaleX -= 0.12f;
-                        sLeaser.sprites[i].alpha -= 0.03f;
                     }
                 }
             }
@@ -168,6 +182,7 @@ public class LightningStrike : UpdatableAndDeletable
         public float fade;
         public bool warn;
         public float alpha = 0.5f;
+        public bool done = false;
         public LightningFlash(Vector2 pos, Color col, float rad, float fade, bool warn)
         {
             this.pos = pos;
@@ -176,14 +191,24 @@ public class LightningStrike : UpdatableAndDeletable
             this.fade = fade;
             this.warn = warn;
         }
-
+        public override void Update(bool eu)
+        {
+            base.Update(eu);
+            if (!room.BeingViewed)
+            {
+                slatedForDeletetion = true;
+            }
+        }
         public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
         {
-            rCam.microShake = 0.34f;
-            if (!warn)
+            if (!done)
             {
-                rCam.microShake = 0.9f;
-                alpha = 0.6f;
+                rCam.microShake = 0.34f;
+                if (!warn)
+                {
+                    rCam.microShake = 0.9f;
+                    alpha = 0.6f;
+                }
             }
             sLeaser.sprites = new FSprite[2];
             //Flash Sprite
@@ -206,6 +231,11 @@ public class LightningStrike : UpdatableAndDeletable
             sLeaser.sprites[0].y = this.pos.y - rCam.pos.y;
             sLeaser.sprites[1].x = this.pos.x - rCam.pos.x;
             sLeaser.sprites[1].y = this.pos.y - rCam.pos.y;
+            if (done)
+            {
+                sLeaser.sprites[0].alpha = 0f;
+                sLeaser.sprites[1].alpha = 0f;
+            }
             this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("Foreground"));
         }
 
@@ -222,9 +252,9 @@ public class LightningStrike : UpdatableAndDeletable
                 alpha -= 0.01f;
             }
             sLeaser.sprites[1].alpha -= 0.01f;
-            if (sLeaser.sprites[0].alpha <= -1f || alpha < 0f)
+            if (alpha < 0f || !room.BeingViewed)
             {
-                this.slatedForDeletetion = true;
+                done = true;
             }
             base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
         }

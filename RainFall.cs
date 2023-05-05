@@ -193,17 +193,17 @@ public class RainFall
     private static void Lightning_ctor(On.Lightning.orig_ctor orig, Lightning self, Room room, float intensity, bool bkgOnly)
     {
         orig.Invoke(self, room, intensity, bkgOnly);
-        self.bkgGradient = new Color[2];
-        if (!room.game.IsArenaSession && (room.world.region.name == "UW" || room.world.region.name == "TR"))
-        {
-            self.bkgGradient[0] = new Color(0.19607843f, 0.23529412f, 0.78431374f);
-            self.bkgGradient[1] = new Color(0.21176471f, 1f, 0.22352941f);
-        }
-        else
-        {
-            self.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
-            self.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), rainIntensity);
-        }
+        //self.bkgGradient = new Color[2];
+        //if (!room.game.IsArenaSession && (room.world.region.name == "UW" || room.world.region.name == "TR"))
+        //{
+        //    self.bkgGradient[0] = new Color(0.19607843f, 0.23529412f, 0.78431374f);
+        //    self.bkgGradient[1] = new Color(0.21176471f, 1f, 0.22352941f);
+        //}
+        //else
+        //{
+        //    self.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
+        //    self.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), rainIntensity);
+        //}
     }
     private static void StoryGameSession_AddPlayer(On.StoryGameSession.orig_AddPlayer orig, StoryGameSession self, AbstractCreature player)
     {
