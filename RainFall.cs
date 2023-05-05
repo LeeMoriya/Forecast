@@ -5,6 +5,7 @@ using System.Text;
 using UnityEngine;
 using RWCustom;
 using System.Text.RegularExpressions;
+using System.IO;
 
 public class RainFall
 {
@@ -129,12 +130,56 @@ public class RainFall
     private static void RainWorld_LoadResources(On.RainWorld.orig_LoadResources orig, RainWorld self)
     {
         orig.Invoke(self);
-        Futile.atlasManager.LoadAtlasFromTexture("snowpile", Forecast.snowPileTex, false);
-        Futile.atlasManager.LoadAtlasFromTexture("logo", Forecast.logo, false);
-        Futile.atlasManager.LoadAtlasFromTexture("logo2", Forecast.logo2, false);
-        Futile.atlasManager.LoadAtlasFromTexture("blizzard", Forecast.blizzardTexture, false);
-        Futile.atlasManager.LoadAtlasFromTexture("overlay1", Forecast.overlay1, false);
-        Futile.atlasManager.LoadAtlasFromTexture("overlay2", Forecast.overlay2, false);
+        Forecast.snowExt1 = new Texture2D(0, 0);
+        Forecast.snowExt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowExt1.png")));
+        Forecast.snowExt1.filterMode = FilterMode.Point;
+
+        Forecast.snowInt1 = new Texture2D(0, 0);
+        Forecast.snowInt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowInt1.png")));
+        Forecast.snowInt1.filterMode = FilterMode.Point;
+
+        if (!Futile.atlasManager.DoesContainAtlas("snowpile"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowDecal.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("snowpile", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("logo"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainLogo.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("logo", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("logo2"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowLogo.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("logo", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("blizzard"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\blizzTex.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("blizzard", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("overlay1"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\overlay1.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("overlay1", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("overlay2"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\overlay2.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("overlay2", texture, false);
+        }
     }
 
     private static void AbstractRoom_Abstractize(On.AbstractRoom.orig_Abstractize orig, AbstractRoom self)
