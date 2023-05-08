@@ -1,14 +1,35 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using OptionalUI;
-//using UnityEngine;
-//using RWCustom;
-//using System.IO;
-//using Partiality.Modloader;
-//using Partiality;
-//using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UnityEngine;
+using RWCustom;
+using System.IO;
+using System.Reflection;
+using Menu.Remix;
+using Menu.Remix.MixedUI;
+
+public class ForecastConfig : OptionInterface
+{
+    public ForecastConfig(Forecast mod) 
+    { 
+        
+    }
+
+    public override void Initialize()
+    {
+        var opTab = new OpTab(this, "Options");
+        Tabs = new[]
+        {
+            opTab
+        };
+
+        OpImage banner = new OpImage(new Vector2(0f, 420f), "logo");
+        OpLabel version = new OpLabel(300f, 425f, $"Version: {Forecast.version}     -     By LeeMoriya", false);
+        version.label.alignment = FLabelAlignment.Center;
+        opTab.AddItems(version, banner);
+    }
+}
 
 //public class ForecastConfig : OptionInterface
 //{

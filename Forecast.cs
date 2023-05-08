@@ -20,6 +20,7 @@ using BepInEx;
 [BepInPlugin("LeeMoriya.Forecast", "Forecast", "1.03")]
 public class Forecast : BaseUnityPlugin
 {
+    public static string version = "1.03";
     public bool init = false;
     public Forecast()
     {
@@ -30,7 +31,18 @@ public class Forecast : BaseUnityPlugin
         if (!init)
         {
             On.RainWorld.OnModsInit += RainWorld_OnModsInit;
+            On.OverWorld.ctor += OverWorld_ctor;
             init = true;
+        }
+    }
+
+    private void OverWorld_ctor(On.OverWorld.orig_ctor orig, OverWorld self, RainWorldGame game)
+    {
+        orig.Invoke(self,game);
+        rainRegions = new List<string>();
+        foreach(Region r in self.regions)
+        {
+            rainRegions.Add(r.name);
         }
     }
 
@@ -41,6 +53,8 @@ public class Forecast : BaseUnityPlugin
         RainPalette.Patch();
         new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_ScreenShake);
         new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.MicroScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_MicroScreenShake);
+        Options = new ForecastConfig(this);
+        MachineConnector.SetRegisteredOI("forecast", Options);
     }
 
     private float RainCycle_get_MicroScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
@@ -61,17 +75,18 @@ public class Forecast : BaseUnityPlugin
         return orig.Invoke(rainCycle);
     }
 
+    public static ForecastConfig Options;
     public static int palettecount = 0;
     public static bool paletteChange = true;
     public static bool lightning = true;
-    public static bool strike = false;
+    public static bool strike = true;
     public static int strikeDamage = 0;
     public static bool dynamic = false;
-    public static int intensity = 3;
+    public static int intensity = 2;
     public static bool rainbow = false;
     public static bool configLoaded = false;
     public static bool debug = true;
-    public static bool snow = true;
+    public static bool snow = false;
     public static bool bg = false;
     public static bool water = true;
     public static bool decals = true;

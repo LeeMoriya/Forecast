@@ -36,8 +36,6 @@ public class RainFall
         On.RainCycle.RainHit += RainCycle_RainHit;
         On.RoomRain.Update += RoomRain_Update;
         On.StoryGameSession.ctor += StoryGameSession_ctor;
-        //Debug
-        On.RoomSettings.LoadAmbientSounds += RoomSettings_LoadAmbientSounds;
     }
 
     private static void StoryGameSession_ctor(On.StoryGameSession.orig_ctor orig, StoryGameSession self, SlugcatStats.Name saveStateNumber, RainWorldGame game)
@@ -53,22 +51,6 @@ public class RainFall
         if (Forecast.snow && Forecast.blizzard)
         {
             Forecast.exposureControllers = new List<ExposureController>();
-        }
-    }
-
-    private static void RoomSettings_LoadAmbientSounds(On.RoomSettings.orig_LoadAmbientSounds orig, RoomSettings self, string[] s)
-    {
-        orig.Invoke(self, s);
-        if (Forecast.debug)
-        {
-            for (int i = 0; i < s.Length; i++)
-            {
-                string[] array = Regex.Split(s[i], "><");
-                if (array[0] == "OMNI")
-                {
-                    Debug.Log("SOUND: " + array[1]);
-                }
-            }
         }
     }
 
@@ -131,6 +113,7 @@ public class RainFall
     {
         orig.Invoke(self);
         Forecast.snowExt1 = new Texture2D(0, 0);
+        Debug.Log("Loaded: " + AssetManager.ResolveFilePath("sprites\\snowExt1.png"));
         Forecast.snowExt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowExt1.png")));
         Forecast.snowExt1.filterMode = FilterMode.Point;
 
@@ -387,7 +370,7 @@ public class RainFall
                 }
             }
         }
-        if (Forecast.debug)
+        if (Forecast.debug && self.BeingViewed)
         {
             //Decrease Intensity
             if (Input.GetKey(KeyCode.Alpha1))
