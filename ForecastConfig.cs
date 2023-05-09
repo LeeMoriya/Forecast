@@ -11,9 +11,13 @@ using Menu.Remix.MixedUI;
 
 public class ForecastConfig : OptionInterface
 {
+    //Rain amount - controls max number of particles
+    public Configurable<float> rainAmount;
+    public Configurable<int> intensity;
+
     public ForecastConfig(Forecast mod) 
-    { 
-        
+    {
+        intensity = new Configurable<int>(0);
     }
 
     public override void Initialize()
@@ -24,10 +28,16 @@ public class ForecastConfig : OptionInterface
             opTab
         };
 
-        OpImage banner = new OpImage(new Vector2(0f, 420f), "logo");
-        OpLabel version = new OpLabel(300f, 425f, $"Version: {Forecast.version}     -     By LeeMoriya", false);
+        OpImage banner = new OpImage(new Vector2(300f, 540f), "logo");
+        banner.anchor = new Vector2(0.5f, 0f);
+
+        OpLabel version = new OpLabel(300f, 518f, $"Version: {Forecast.version}     -     By LeeMoriya", false);
         version.label.alignment = FLabelAlignment.Center;
-        opTab.AddItems(version, banner);
+
+        OpSlider intensitySlider = new OpSlider(intensity, new Vector2(300f, 300f), 300, true);
+        intensitySlider.max = 2;
+
+        opTab.AddItems(version, banner, intensitySlider);
     }
 }
 
