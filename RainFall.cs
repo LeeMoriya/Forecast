@@ -121,6 +121,18 @@ public class RainFall
         Forecast.snowInt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowInt1.png")));
         Forecast.snowInt1.filterMode = FilterMode.Point;
 
+        byte[] rainbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainButton.png"));
+        Texture2D raintexture = new Texture2D(0, 0);
+        raintexture.filterMode = FilterMode.Point;
+        raintexture.LoadImage(rainbytes);
+        Futile.atlasManager.LoadAtlasFromTexture("rainbutton", raintexture, false);
+
+        byte[] snowbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowButton.png"));
+        Texture2D snowtexture = new Texture2D(0, 0);
+        snowtexture.filterMode = FilterMode.Point;
+        snowtexture.LoadImage(snowbytes);
+        Futile.atlasManager.LoadAtlasFromTexture("snowbutton", snowtexture, false);
+
         if (!Futile.atlasManager.DoesContainAtlas("snowpile"))
         {
             Texture2D texture = new Texture2D(0, 0);

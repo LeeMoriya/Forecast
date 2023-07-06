@@ -10,11 +10,13 @@ using Menu;
 using Menu.Remix;
 using Menu.Remix.MixedUI;
 using RWCustom;
+using UnityEngine.Video;
 
 public class ForecastConfig : OptionInterface
 {
     public OpSimpleImageButton rainButton;
     public OpSimpleImageButton snowButton;
+    public Dictionary<string, VideoPlayer> weatherPreviews = new Dictionary<string, VideoPlayer>();
     public ForecastConfig(Forecast mod) 
     { 
         
@@ -39,16 +41,80 @@ public class ForecastConfig : OptionInterface
         version.label.alignment = FLabelAlignment.Center;
         opTab.AddItems(version, banner);
 
+        //Init weather previews
+        var rainObject = new GameObject("rainPreviewVideo");
+        var rainVideo = rainObject.AddComponent<VideoPlayer>();
+        rainVideo.audioOutputMode = VideoAudioOutputMode.None;
+        rainVideo.url = AssetManager.ResolveFilePath("sprites\\rainPreview.mp4");
+        rainVideo.playOnAwake = false;
+        rainVideo.isLooping = true;
+
+        var rt1 = new RenderTexture(210, 160, 0);
+        rainVideo.targetTexture = rt1;
+
+        HeavyTexturesCache.LoadAndCacheAtlasFromTexture("rainPreview", rt1, false);
+        weatherPreviews.Add("rainPreview", rainVideo);
+
+
+        var snowObject = new GameObject("snowPreviewVideo");
+        var snowVideo = snowObject.AddComponent<VideoPlayer>();
+        snowVideo.audioOutputMode = VideoAudioOutputMode.None;
+        snowVideo.url = AssetManager.ResolveFilePath("sprites\\snowPreview.mp4");
+        snowVideo.playOnAwake = false;
+        snowVideo.isLooping = true;
+
+        var rt2 = new RenderTexture(210, 160, 0);
+        snowVideo.targetTexture = rt2;
+
+        HeavyTexturesCache.LoadAndCacheAtlasFromTexture("snowPreview", rt2, false);
+        weatherPreviews.Add("snowPreview", snowVideo);
+
         //Weather type select
-        rainButton = new OpSimpleImageButton(new Vector2(50f, 240f), new Vector2(220f, 170f), "rainbutton");
-        snowButton = new OpSimpleImageButton(new Vector2(325f, 240f), new Vector2(220f, 170f), "snowbutton");
+        rainButton = new OpSimpleImageButton(new Vector2(50f, 300f), new Vector2(220f, 170f), "rainPreview");
+        snowButton = new OpSimpleImageButton(new Vector2(325f, 300f), new Vector2(220f, 170f), "snowPreview");
         rainButton.OnClick += RainButton_OnClick;
         snowButton.OnClick += SnowButton_OnClick;
+        snowButton.OnFocusGet += SnowButton_OnFocusGet;
+        snowButton.OnFocusLose += SnowButton_OnFocusLose;
+        rainButton.OnFocusGet += RainButton_OnFocusGet;
+        rainButton.OnFocusLose += RainButton_OnFocusLose;
         opTab.AddItems(rainButton, snowButton);
 
         OpSimpleButton custom = new OpSimpleButton(new Vector2(300f - 70f, 80f), new Vector2(140f, 60f), "CHANGE SETTINGS");
         custom.OnClick += Custom_OnClick;
         opTab.AddItems(custom);
+    }
+
+    private void RainButton_OnFocusLose(UIfocusable trigger)
+    {
+        if (weatherPreviews["rainPreview"].isPlaying)
+        {
+            weatherPreviews["rainPreview"].Pause();
+        }
+    }
+
+    private void RainButton_OnFocusGet(UIfocusable trigger)
+    {
+        if (!weatherPreviews["rainPreview"].isPlaying)
+        {
+            weatherPreviews["rainPreview"].Play();
+        }
+    }
+
+    private void SnowButton_OnFocusLose(UIfocusable trigger)
+    {
+        if (weatherPreviews["snowPreview"].isPlaying)
+        {
+            weatherPreviews["snowPreview"].Pause();
+        }
+    }
+
+    private void SnowButton_OnFocusGet(UIfocusable trigger)
+    {
+        if (!weatherPreviews["snowPreview"].isPlaying)
+        {
+            weatherPreviews["snowPreview"].Play();
+        }
     }
 
     private void SnowButton_OnClick(UIfocusable trigger)

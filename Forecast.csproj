@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Rain World\RainWorld_Data\StreamingAssets\mods\forecast\plugins\</OutputPath>
+    <OutputPath>F:\Steam Games\steamapps\common\Rain World\RainWorld_Data\StreamingAssets\mods\forecast\plugins\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -35,19 +35,20 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BepInEx">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\BepInEx.dll</HintPath>
+      <HintPath>F:\Steam Games\steamapps\common\Rain World\BepInEx\core\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HOOKS-Assembly-CSharp">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\plugins\HOOKS-Assembly-CSharp.dll</HintPath>
+      <HintPath>F:\Steam Games\steamapps\common\Rain World\BepInEx\plugins\HOOKS-Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
+      <HintPath>F:\Steam Games\steamapps\common\Rain World\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="PUBLIC-Assembly-CSharp">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\utils\PUBLIC-Assembly-CSharp.dll</HintPath>
+      <HintPath>F:\Steam Games\steamapps\common\Rain World\BepInEx\utils\PUBLIC-Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -56,20 +57,23 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>F:\Steam Games\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>F:\Steam Games\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>F:\Steam Games\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>F:\Steam Games\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.VideoModule">
+      <HintPath>F:\Steam Games\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.VideoModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

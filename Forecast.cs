@@ -8,6 +8,7 @@ using System.Reflection.Emit;
 using System.Security;
 using System.Runtime.CompilerServices;
 using System.IO;
+using UnityEngine.Video;
 using RWCustom;
 using Menu;
 using System.Security.Permissions;
@@ -49,7 +50,6 @@ public class Forecast : BaseUnityPlugin
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
     {
         orig.Invoke(self);
-        LoadAssets();
         RainFall.Patch();
         RainPalette.Patch();
         new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_ScreenShake);
@@ -76,39 +76,18 @@ public class Forecast : BaseUnityPlugin
         return orig.Invoke(rainCycle);
     }
 
-    public void LoadAssets()
-    {
-        On.RainWorld.LoadResources += RainWorld_LoadResources;
-    }
-
-    private void RainWorld_LoadResources(On.RainWorld.orig_LoadResources orig, RainWorld self)
-    {
-        orig.Invoke(self);
-        byte[] rainbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainButton.png"));
-        Texture2D raintexture = new Texture2D(0, 0);
-        raintexture.filterMode = FilterMode.Point;
-        raintexture.LoadImage(rainbytes);
-        Futile.atlasManager.LoadAtlasFromTexture("rainbutton", raintexture, false);
-
-        byte[] snowbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowButton.png"));
-        Texture2D snowtexture = new Texture2D(0, 0);
-        snowtexture.filterMode = FilterMode.Point;
-        snowtexture.LoadImage(snowbytes);
-        Futile.atlasManager.LoadAtlasFromTexture("snowbutton", snowtexture, false);
-    }
-
     public static ForecastConfig Options;
     public static int palettecount = 0;
     public static bool paletteChange = true;
-    public static bool lightning = true;
-    public static bool strike = true;
+    public static bool lightning = false;
+    public static bool strike = false;
     public static int strikeDamage = 0;
     public static bool dynamic = false;
     public static int intensity = 2;
     public static bool rainbow = false;
     public static bool configLoaded = false;
     public static bool debug = true;
-    public static bool snow = true;
+    public static bool snow = false;
     public static bool bg = false;
     public static bool water = true;
     public static bool decals = true;
