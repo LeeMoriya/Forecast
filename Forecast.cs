@@ -49,6 +49,7 @@ public class Forecast : BaseUnityPlugin
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
     {
         orig.Invoke(self);
+        LoadAssets();
         RainFall.Patch();
         RainPalette.Patch();
         new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_ScreenShake);
@@ -75,6 +76,27 @@ public class Forecast : BaseUnityPlugin
         return orig.Invoke(rainCycle);
     }
 
+    public void LoadAssets()
+    {
+        On.RainWorld.LoadResources += RainWorld_LoadResources;
+    }
+
+    private void RainWorld_LoadResources(On.RainWorld.orig_LoadResources orig, RainWorld self)
+    {
+        orig.Invoke(self);
+        byte[] rainbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainButton.png"));
+        Texture2D raintexture = new Texture2D(0, 0);
+        raintexture.filterMode = FilterMode.Point;
+        raintexture.LoadImage(rainbytes);
+        Futile.atlasManager.LoadAtlasFromTexture("rainbutton", raintexture, false);
+
+        byte[] snowbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowButton.png"));
+        Texture2D snowtexture = new Texture2D(0, 0);
+        snowtexture.filterMode = FilterMode.Point;
+        snowtexture.LoadImage(snowbytes);
+        Futile.atlasManager.LoadAtlasFromTexture("snowbutton", snowtexture, false);
+    }
+
     public static ForecastConfig Options;
     public static int palettecount = 0;
     public static bool paletteChange = true;
@@ -86,7 +108,7 @@ public class Forecast : BaseUnityPlugin
     public static bool rainbow = false;
     public static bool configLoaded = false;
     public static bool debug = true;
-    public static bool snow = false;
+    public static bool snow = true;
     public static bool bg = false;
     public static bool water = true;
     public static bool decals = true;

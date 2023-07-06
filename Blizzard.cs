@@ -16,40 +16,40 @@ public class Vignette : ISingleCameraDrawable
     public Vignette(ExposureController controller)
     {
         this.controller = controller;
-        this.camera = this.controller.cam;
-        this.vignette = new FSprite("Futile_White", true);
-        this.vignette.alpha = 0f;
-        this.vignette.color = Color.white;
-        this.vignette.SetAnchor(0.5f, 0.5f);
-        this.vignette.x = this.camera.game.rainWorld.screenSize.x / 2f;
-        this.vignette.y = this.camera.game.rainWorld.screenSize.y / 2f;
-        this.vignette.scaleX = this.camera.game.rainWorld.screenSize.x;
-        this.vignette.scaleY = this.camera.game.rainWorld.screenSize.y;
-        this.vignette.shader = this.camera.game.rainWorld.Shaders["EdgeFade"];
-        this.camera.AddSingleCameraDrawable(this);
-        this.camera.ReturnFContainer("HUD").AddChild(this.vignette);
+        camera = controller.cam;
+        vignette = new FSprite("Futile_White", true);
+        vignette.alpha = 0f;
+        vignette.color = Color.white;
+        vignette.SetAnchor(0.5f, 0.5f);
+        vignette.x = camera.game.rainWorld.screenSize.x / 2f;
+        vignette.y = camera.game.rainWorld.screenSize.y / 2f;
+        vignette.scaleX = camera.game.rainWorld.screenSize.x;
+        vignette.scaleY = camera.game.rainWorld.screenSize.y;
+        vignette.shader = camera.game.rainWorld.Shaders["EdgeFade"];
+        camera.AddSingleCameraDrawable(this);
+        camera.ReturnFContainer("HUD").AddChild(vignette);
         Debug.Log("VIGNETTE CREATED");
     }
 
     public void Draw(RoomCamera camera, float timeStacker, Vector2 camPos)
     {
-        if (!this.camera.ReturnFContainer("HUD")._childNodes.Contains(this.vignette))
+        if (!camera.ReturnFContainer("HUD")._childNodes.Contains(vignette))
         {
-            this.camera.ReturnFContainer("HUD").AddChild(this.vignette);
+            camera.ReturnFContainer("HUD").AddChild(vignette);
         }
         if (camera.currentPalette.darkness > 0.5f)
         {
-            this.vignette.color = Color.Lerp(camera.currentPalette.skyColor, new Color(0.2f, 0.2f, 0.2f), 0.4f);
+            vignette.color = Color.Lerp(camera.currentPalette.skyColor, new Color(0.2f, 0.2f, 0.2f), 0.4f);
         }
         else
         {
-            this.vignette.color = Color.Lerp(camera.currentPalette.texture.GetPixel(9, 5), Color.white, 0.4f);
+            vignette.color = Color.Lerp(camera.currentPalette.texture.GetPixel(9, 5), Color.white, 0.4f);
         }
-        this.vignette.x = this.camera.game.rainWorld.screenSize.x / 2f;
-        this.vignette.y = this.camera.game.rainWorld.screenSize.y / 2f;
-        this.vignette.scaleX = (this.camera.game.rainWorld.screenSize.x * Mathf.Lerp(1.5f, 1f, this.controller.exposure) + 2f) / 16f;
-        this.vignette.scaleY = (this.camera.game.rainWorld.screenSize.y * Mathf.Lerp(2.5f, 1.5f, this.controller.exposure) + 2f) / 16f;
-        this.vignette.alpha = Mathf.Lerp(0f, 0.5f, this.controller.exposure);
+        vignette.x = camera.game.rainWorld.screenSize.x / 2f;
+        vignette.y = camera.game.rainWorld.screenSize.y / 2f;
+        vignette.scaleX = (camera.game.rainWorld.screenSize.x * Mathf.Lerp(1.5f, 1f, controller.exposure) + 2f) / 16f;
+        vignette.scaleY = (camera.game.rainWorld.screenSize.y * Mathf.Lerp(2.5f, 1.5f, controller.exposure) + 2f) / 16f;
+        vignette.alpha = Mathf.Lerp(0f, 0.5f, controller.exposure);
     }
 }
 
@@ -74,21 +74,21 @@ public class ExposureController
     public ExposureController(Player player)
     {
         this.player = player;
-        this.stats = this.player.slugcatStats;
-        this.cam = this.player.room.game.cameras[0];
-        if (this.player.playerState.playerNumber == 0)
+        stats = player.slugcatStats;
+        cam = player.room.game.cameras[0];
+        if (player.playerState.playerNumber == 0)
         {
-            this.vignette = new Vignette(this);
+            vignette = new Vignette(this);
         }
-        this.dead = false;
+        dead = false;
 
-        Debug.Log("EXPOSURE CONTROLLER - PLAYER " + this.player.playerState.playerNumber);
+        Debug.Log("EXPOSURE CONTROLLER - PLAYER " + player.playerState.playerNumber);
 
         if (Forecast.debug)
         {
-            Vector2 sSize = this.player.abstractCreature.world.game.cameras[0].sSize;
-            float offset = 80f * this.player.playerState.playerNumber;
-            labelPlayer = new FLabel("font", "Player " + this.player.playerState.playerNumber);
+            Vector2 sSize = player.abstractCreature.world.game.cameras[0].sSize;
+            float offset = 80f * player.playerState.playerNumber;
+            labelPlayer = new FLabel("font", "Player " + player.playerState.playerNumber);
             labelPlayer.SetPosition(30.01f, sSize.y - (25f + offset));
             labelPlayer.color = new Color(0.4f, 0.3f, 0.8f);
             labelPlayer.alignment = FLabelAlignment.Left;
@@ -129,8 +129,8 @@ public class ExposureController
     public void UpdateDebugLabels()
     {
         labelPlayer.alpha = 1f;
-        labelExposure.text = "Exposure: " + this.exposure;
-        labelAmbient.text = "Ambient: " + this.ambient;
+        labelExposure.text = "Exposure: " + exposure;
+        labelAmbient.text = "Ambient: " + ambient;
         if (blizzard == null)
         {
             labelBlizzard.text = "Blizzard: NO";
@@ -141,13 +141,13 @@ public class ExposureController
             labelBlizzard.text = "Blizzard: YES";
             labelBlizzard.color = new Color(0f, 1f, 0f);
         }
-        labelCooldown.text = "Cycle End: " + this.TimePastCycleEnd;
+        labelCooldown.text = "Cycle End: " + TimePastCycleEnd;
     }
 
     public bool IsCold()
     {
         //Not a shelter, has RoomRain and is enabled in config
-        if (!this.player.room.abstractRoom.shelter && this.player.room.roomRain != null && this.player.room.roomSettings.RainIntensity > 0f && (this.player.room.world.region != null && Forecast.rainRegions.Contains(this.player.room.world.region.name)))
+        if (!player.room.abstractRoom.shelter && player.room.roomRain != null && player.room.roomSettings.RainIntensity > 0f && (player.room.world.region != null && Forecast.rainRegions.Contains(player.room.world.region.name)))
         {
             return true;
         }
@@ -156,28 +156,28 @@ public class ExposureController
 
     public void Update()
     {
-        if (this.player.room != null)
+        if (player.room != null)
         {
             //Outdoors
-            if (this.blizzard != null && IsCold())
+            if (blizzard != null && IsCold())
             {
                 //Switch Blizzard
-                if (this.blizzard.room != this.player.room)
+                if (blizzard.room != player.room)
                 {
                     SwitchBlizzard();
                     return;
                 }
                 //Exposed
-                if (this.exposure < 1f)
+                if (exposure < 1f)
                 {
-                    if (this.blizzard.TimePastCycleEnd > 0f)
+                    if (blizzard.TimePastCycleEnd > 0f)
                     {
-                        float scale = Mathf.Clamp(this.blizzard.TimePastCycleEnd, 0.00143f, 0.45f);
-                        this.exposure += 0.075f * scale * Time.deltaTime;
+                        float scale = Mathf.Clamp(blizzard.TimePastCycleEnd, 0.00143f, 0.45f);
+                        exposure += 0.075f * scale * Time.deltaTime;
                     }
                     else
                     {
-                        this.exposure += 0.025f * Time.deltaTime;
+                        exposure += 0.025f * Time.deltaTime;
                     }
                     dead = false;
                 }
@@ -187,41 +187,41 @@ public class ExposureController
             else
             {
                 SwitchBlizzard();
-                if (this.TimePastCycleEnd != -1f)
+                if (TimePastCycleEnd != -1f)
                 {
                     //Exposure matches ambient temp
                     if (IsCold())
                     {
-                        this.cam.microShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.005f, this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.4f, 1f, TimePastCycleEnd));
-                        this.ambient = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, this.player.room.roomSettings.RainIntensity), Mathf.InverseLerp(0f, 3f, this.TimePastCycleEnd));
-                        if (this.exposure > this.ambient)
+                        cam.microShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.005f, player.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.4f, 1f, TimePastCycleEnd));
+                        ambient = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, player.room.roomSettings.RainIntensity), Mathf.InverseLerp(0f, 3f, TimePastCycleEnd));
+                        if (exposure > ambient)
                         {
-                            this.exposure -= 0.065f * Time.deltaTime;
+                            exposure -= 0.065f * Time.deltaTime;
                         }
                         else
                         {
-                            this.exposure += 0.065f * Time.deltaTime;
+                            exposure += 0.065f * Time.deltaTime;
                         }
                     }
                     //Safe in a shelter, exposure decreases
-                    else if (this.player.room.abstractRoom.shelter && this.player.room.shelterDoor != null && this.player.room.shelterDoor.IsClosing)
+                    else if (player.room.abstractRoom.shelter && player.room.shelterDoor != null && player.room.shelterDoor.IsClosing)
                     {
-                        this.exposure -= 0.65f * Time.deltaTime;
+                        exposure -= 0.65f * Time.deltaTime;
                     }
                 }
             }
-            if (this.exposure > 0f && !dead)
+            if (exposure > 0f && !dead)
             {
                 //Stats
-                this.player.slugcatStats.runspeedFac = Mathf.Lerp(this.stats.runspeedFac, 0.75f, Mathf.Lerp(0.2f, 0.7f, this.exposure));
-                this.player.slugcatStats.poleClimbSpeedFac = Mathf.Lerp(this.stats.poleClimbSpeedFac, 0.85f, Mathf.Lerp(0.2f, 0.7f, this.exposure));
+                player.slugcatStats.runspeedFac = Mathf.Lerp(stats.runspeedFac, 0.75f, Mathf.Lerp(0.2f, 0.7f, exposure));
+                player.slugcatStats.poleClimbSpeedFac = Mathf.Lerp(stats.poleClimbSpeedFac, 0.85f, Mathf.Lerp(0.2f, 0.7f, exposure));
                 //Stun
-                if (this.exposure < 0.4f)
+                if (exposure < 0.4f)
                 {
                     if (cooldown >= UnityEngine.Random.Range(5, 15))
                     {
                         cooldown = 0f;
-                        this.player.Stun((int)(20 * this.exposure));
+                        player.Stun((int)(20 * exposure));
                     }
                 }
                 //Exhaustion
@@ -230,22 +230,22 @@ public class ExposureController
                     if (cooldown >= UnityEngine.Random.Range(10, 25))
                     {
                         cooldown = 0f;
-                        this.player.lungsExhausted = true;
-                        this.player.slowMovementStun = (int)(UnityEngine.Random.Range(0.5f, 2f) * this.exposure);
-                        if (UnityEngine.Random.value < 0.3f * this.exposure)
+                        player.lungsExhausted = true;
+                        player.slowMovementStun = (int)(UnityEngine.Random.Range(0.5f, 2f) * exposure);
+                        if (UnityEngine.Random.value < 0.3f * exposure)
                         {
-                            this.player.Stun(UnityEngine.Random.Range(50, 120));
+                            player.Stun(UnityEngine.Random.Range(50, 120));
                         }
                     }
                 }
-                this.player.bodyChunks[0].vel += Custom.RNV() * (0.4f * this.exposure);
+                player.bodyChunks[0].vel += Custom.RNV() * (0.4f * exposure);
                 if (UnityEngine.Random.value < 0.0015)
                 {
-                    this.player.Blink(30);
+                    player.Blink(30);
                 }
 
                 //Death Bells
-                if (this.exposure >= 1f && !this.dead && this.player.playerState.playerNumber == 0)
+                if (exposure >= 1f && !dead && player.playerState.playerNumber == 0)
                 {
                     bellCooldown += 1f * Time.deltaTime;
                     if (bellCooldown > Mathf.Lerp(1f, 0.3f, Mathf.InverseLerp(0f, 22, bellRing)))
@@ -256,18 +256,18 @@ public class ExposureController
                         {
                             Debug.Log(bellRing);
                         }
-                        this.player.room.PlaySound(SoundID.MENU_Start_New_Game, this.player.mainBodyChunk, false, Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)), 1.3f);
+                        player.room.PlaySound(SoundID.MENU_Start_New_Game, player.mainBodyChunk, false, Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)), 1.3f);
                         if (bellRing == 25)
                         {
-                            if (!this.dead)
+                            if (!dead)
                             {
-                                this.player.Die();
-                                this.dead = true;
+                                player.Die();
+                                dead = true;
                             }
                         }
                         else
                         {
-                            this.dead = false;
+                            dead = false;
                         }
                     }
                 }
@@ -286,7 +286,7 @@ public class ExposureController
                 }
                 bellRing = Mathf.Clamp(bellRing, 0, 25);
             }
-            this.exposure = Mathf.Clamp(this.exposure, 0f, 1f);
+            exposure = Mathf.Clamp(exposure, 0f, 1f);
             if (Forecast.debug)
             {
                 UpdateDebugLabels();
@@ -298,21 +298,21 @@ public class ExposureController
 
     public void SwitchBlizzard()
     {
-        if (this.player.room != null)
+        if (player.room != null)
         {
-            for (int i = 0; i < this.player.room.updateList.Count; i++)
+            for (int i = 0; i < player.room.updateList.Count; i++)
             {
-                if (this.player.room.updateList[i] is Blizzard)
+                if (player.room.updateList[i] is Blizzard)
                 {
-                    this.blizzard = this.player.room.updateList[i] as Blizzard;
+                    blizzard = player.room.updateList[i] as Blizzard;
                     if (Forecast.debug)
                     {
-                        Debug.Log("UPDATED BLIZZARD TO " + this.player.room.abstractRoom.name);
+                        Debug.Log("UPDATED BLIZZARD TO " + player.room.abstractRoom.name);
                     }
                     return;
                 }
             }
-            this.blizzard = null;
+            blizzard = null;
         }
     }
 
@@ -320,9 +320,9 @@ public class ExposureController
     {
         get
         {
-            if (this.player.room != null)
+            if (player.room != null)
             {
-                return (this.player.room.world.rainCycle.timer - this.player.room.world.rainCycle.cycleLength) / 2400f;
+                return (player.room.world.rainCycle.timer - player.room.world.rainCycle.cycleLength) / 2400f;
             }
             return -1f;
         }
@@ -332,9 +332,9 @@ public class ExposureController
     {
         get
         {
-            if (this.player != null)
+            if (player != null)
             {
-                return this.player.rainDeath;
+                return player.rainDeath;
             }
             return 0f;
         }
@@ -349,14 +349,14 @@ public class WeatherSounds : UpdatableAndDeletable
     {
         get
         {
-            return (this.room.world.rainCycle.timer - this.room.world.rainCycle.cycleLength) / 2400f;
+            return (room.world.rainCycle.timer - room.world.rainCycle.cycleLength) / 2400f;
         }
     }
     public WeatherSounds(Room room)
     {
         this.room = room;
-        this.sfx = new OmniDirectionalSound[3];
-        for (int i = 0; i < this.sfx.Length; i++)
+        sfx = new OmniDirectionalSound[3];
+        for (int i = 0; i < sfx.Length; i++)
         {
             string sample = "";
             switch (i)
@@ -371,34 +371,34 @@ public class WeatherSounds : UpdatableAndDeletable
                     sample = "AM_IND-Midsex02.ogg";
                     break;
             }
-            this.sfx[i] = new OmniDirectionalSound(sample, false)
+            sfx[i] = new OmniDirectionalSound(sample, false)
             {
                 volume = 0f,
                 pitch = 1f,
                 type = AmbientSound.Type.Omnidirectional
             };
-            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[i]));
+            room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(room.game.cameras[0].virtualMicrophone, sfx[i]));
         }
         CheckBlizzard();
     }
     public void CheckBlizzard()
     {
-        if (this.room != null)
+        if (room != null)
         {
-            if (this.room.roomRain == null || (this.room.world.region != null && !Forecast.rainRegions.Contains(this.room.world.region.name)))
+            if (room.roomRain == null || (room.world.region != null && !Forecast.rainRegions.Contains(room.world.region.name)))
             {
-                this.Destroy();
+                Destroy();
                 return;
             }
-            for (int i = 0; i < this.room.updateList.Count; i++)
+            for (int i = 0; i < room.updateList.Count; i++)
             {
-                if (this.room.updateList[i] is Blizzard)
+                if (room.updateList[i] is Blizzard)
                 {
-                    this.blizzard = true;
+                    blizzard = true;
                     return;
                 }
             }
-            this.blizzard = false;
+            blizzard = false;
         }
     }
 
@@ -407,45 +407,45 @@ public class WeatherSounds : UpdatableAndDeletable
         bool sfx1 = false;
         bool sfx2 = false;
         bool sfx3 = false;
-        for (int i = 0; i < this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Count; i++)
+        for (int i = 0; i < room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Count; i++)
         {
-            if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[0])
+            if (room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == sfx[0])
             {
                 sfx1 = true;
             }
-            if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[1])
+            if (room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == sfx[1])
             {
                 sfx2 = true;
             }
-            if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[2])
+            if (room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == sfx[2])
             {
                 sfx3 = true;
             }
-            if (this.sfx.Contains(this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound))
+            if (sfx.Contains(room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound))
             {
-                if (this.room.BeingViewed)
+                if (room.BeingViewed)
                 {
                     //All three sounds play
-                    if (this.blizzard)
+                    if (blizzard)
                     {
-                        this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 1.2f, this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0f, TimePastCycleEnd));
+                        room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 1.2f, room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0f, TimePastCycleEnd));
                     }
                     //Indoors, so only sound two plays
                     else
                     {
-                        if (this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == this.sfx[2])
+                        if (room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == sfx[2])
                         {
-                            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.65f, this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.3f, TimePastCycleEnd));
+                            room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.65f, room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.3f, TimePastCycleEnd));
                         }
                         else
                         {
-                            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = 0f;
+                            room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = 0f;
                         }
                     }
                 }
                 else
                 {
-                    this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = 0f;
+                    room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = 0f;
                 }
             }
         }
@@ -455,15 +455,15 @@ public class WeatherSounds : UpdatableAndDeletable
         }
         if (!sfx1)
         {
-            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[0]));
+            room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(room.game.cameras[0].virtualMicrophone, sfx[0]));
         }
         if (!sfx2)
         {
-            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[1]));
+            room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(room.game.cameras[0].virtualMicrophone, sfx[1]));
         }
         if (!sfx3)
         {
-            this.room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(this.room.game.cameras[0].virtualMicrophone, this.sfx[2]));
+            room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(room.game.cameras[0].virtualMicrophone, sfx[2]));
         }
         base.Update(eu);
     }
@@ -484,20 +484,20 @@ public class Blizzard : UpdatableAndDeletable
             Debug.Log("DOWNPOUR: Blizzard Created");
         }
         this.preciptator = preciptator;
-        this.room = this.preciptator.room;
-        this.particleLimit = 70;
-        if (this.room.roomSettings.RainIntensity > 0f)
+        room = preciptator.room;
+        particleLimit = 70;
+        if (room.roomSettings.RainIntensity > 0f)
         {
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay1", 4.5f, 0.3f));
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay1", 8.5f, 0.31f));
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay2", 5f, 1f));
-            this.room.AddObject(new Blizzard.ScrollingTexture(this.room, this, "overlay2", 6.3f, 1f));
+            room.AddObject(new Blizzard.ScrollingTexture(room, this, "overlay1", 4.5f, 0.3f));
+            room.AddObject(new Blizzard.ScrollingTexture(room, this, "overlay1", 8.5f, 0.31f));
+            room.AddObject(new Blizzard.ScrollingTexture(room, this, "overlay2", 5f, 1f));
+            room.AddObject(new Blizzard.ScrollingTexture(room, this, "overlay2", 6.3f, 1f));
         }
     }
 
     public override void Update(bool eu)
     {
-        if (this.room.roomSettings.RainIntensity == 0f)
+        if (room.roomSettings.RainIntensity == 0f)
         {
             return;
         }
@@ -506,19 +506,19 @@ public class Blizzard : UpdatableAndDeletable
         if (cooldown >= Mathf.Lerp(50, 10, Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd))))
         {
             cooldown = 0;
-            if (this.particleCount < Mathf.Lerp(0f, Mathf.Lerp(0f, this.particleLimit, this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd)))
+            if (particleCount < Mathf.Lerp(0f, Mathf.Lerp(0f, particleLimit, room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd)))
             {
-                this.particleCount++;
-                this.room.AddObject(new Blizzard.Particle(this));
+                particleCount++;
+                room.AddObject(new Blizzard.Particle(this));
             }
         }
         //Wind
-        this.intensity = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.081f, this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, this.TimePastCycleEnd));
-        this.ThrowAroundObjects();
+        intensity = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.081f, room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd));
+        ThrowAroundObjects();
         //Camera Shake
-        if (this.room.BeingViewed)
+        if (room.BeingViewed)
         {
-            this.room.game.cameras[0].screenShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.3f, this.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd));
+            room.game.cameras[0].screenShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.3f, room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd));
         }
         base.Update(eu);
     }
@@ -527,32 +527,32 @@ public class Blizzard : UpdatableAndDeletable
     {
         get
         {
-            return (this.room.world.rainCycle.timer - this.room.world.rainCycle.cycleLength) / 2400f;
+            return (room.world.rainCycle.timer - room.world.rainCycle.cycleLength) / 2400f;
         }
     }
 
     public void ThrowAroundObjects()
     {
-        if (this.room.BeingViewed && this.room.roomRain != null && this.room.roomRain.rainReach != null)
+        if (room.BeingViewed && room.roomRain != null && room.roomRain.rainReach != null)
         {
-            for (int i = 0; i < this.room.physicalObjects.Length; i++)
+            for (int i = 0; i < room.physicalObjects.Length; i++)
             {
-                for (int j = 0; j < this.room.physicalObjects[i].Count; j++)
+                for (int j = 0; j < room.physicalObjects[i].Count; j++)
                 {
-                    for (int k = 0; k < this.room.physicalObjects[i][j].bodyChunks.Length; k++)
+                    for (int k = 0; k < room.physicalObjects[i][j].bodyChunks.Length; k++)
                     {
-                        BodyChunk bodyChunk = this.room.physicalObjects[i][j].bodyChunks[k];
-                        IntVector2 tilePosition = this.room.GetTilePosition(bodyChunk.pos + new Vector2(Mathf.Lerp(-bodyChunk.rad, bodyChunk.rad, UnityEngine.Random.value), Mathf.Lerp(-bodyChunk.rad, bodyChunk.rad, UnityEngine.Random.value)));
-                        float num = this.intensity;
+                        BodyChunk bodyChunk = room.physicalObjects[i][j].bodyChunks[k];
+                        IntVector2 tilePosition = room.GetTilePosition(bodyChunk.pos + new Vector2(Mathf.Lerp(-bodyChunk.rad, bodyChunk.rad, UnityEngine.Random.value), Mathf.Lerp(-bodyChunk.rad, bodyChunk.rad, UnityEngine.Random.value)));
+                        float num = intensity;
                         bool flag = false;
-                        if (this.room.roomRain.rainReach[Custom.IntClamp(tilePosition.x, 0, this.room.TileWidth - 1)] < tilePosition.y)
+                        if (room.roomRain.rainReach[Custom.IntClamp(tilePosition.x, 0, room.TileWidth - 1)] < tilePosition.y)
                         {
                             flag = true;
-                            num = this.intensity;
+                            num = intensity;
                         }
-                        if (this.room.water)
+                        if (room.water)
                         {
-                            num *= Mathf.InverseLerp(this.room.FloatWaterLevel(bodyChunk.pos.x) - 100f, this.room.FloatWaterLevel(bodyChunk.pos.x), bodyChunk.pos.y);
+                            num *= Mathf.InverseLerp(room.FloatWaterLevel(bodyChunk.pos.x) - 100f, room.FloatWaterLevel(bodyChunk.pos.x), bodyChunk.pos.y);
                         }
                         if (num > 0f)
                         {
@@ -631,37 +631,37 @@ public class Blizzard : UpdatableAndDeletable
         public Particle(Blizzard owner)
         {
             this.owner = owner;
-            this.xSway = UnityEngine.Random.Range(15f, 25f) * UnityEngine.Random.Range(1f, 1.5f);
-            this.ySway = UnityEngine.Random.Range(7f, 12f) * UnityEngine.Random.Range(1f, 1.5f);
-            this.pos = new Vector2(UnityEngine.Random.Range(0f, 1400f), UnityEngine.Random.Range(0f, 900f));
+            xSway = UnityEngine.Random.Range(15f, 25f) * UnityEngine.Random.Range(1f, 1.5f);
+            ySway = UnityEngine.Random.Range(7f, 12f) * UnityEngine.Random.Range(1f, 1.5f);
+            pos = new Vector2(UnityEngine.Random.Range(0f, 1400f), UnityEngine.Random.Range(0f, 900f));
         }
 
         public override void Update(bool eu)
         {
-            if (this.reset)
+            if (reset)
             {
-                this.reset = false;
-                this.alpha = 0f;
-                this.pos = new Vector2(UnityEngine.Random.Range(-50f, 1600f), UnityEngine.Random.Range(-50f, 1100f));
+                reset = false;
+                alpha = 0f;
+                pos = new Vector2(UnityEngine.Random.Range(-50f, 1600f), UnityEngine.Random.Range(-50f, 1100f));
             }
-            this.lastLastPos = this.lastPos;
+            lastLastPos = lastPos;
 
             if (Forecast.windDirection == 1)
             {
-                this.pos.x -= this.xSway * 2f;
-                this.pos.y -= this.ySway * 2f;
-                if (this.pos.x < -100f || this.pos.y < -100f)
+                pos.x -= xSway * 2f;
+                pos.y -= ySway * 2f;
+                if (pos.x < -100f || pos.y < -100f)
                 {
-                    this.reset = true;
+                    reset = true;
                 }
             }
             else
             {
-                this.pos.x += this.xSway * 2f;
-                this.pos.y -= this.ySway * 2f;
-                if (this.pos.x > 1400f || this.pos.y < -100f)
+                pos.x += xSway * 2f;
+                pos.y -= ySway * 2f;
+                if (pos.x > 1400f || pos.y < -100f)
                 {
-                    this.reset = true;
+                    reset = true;
                 }
             }
             base.Update(eu);
@@ -674,19 +674,19 @@ public class Blizzard : UpdatableAndDeletable
             sLeaser.sprites[0].alpha = 0f;
             sLeaser.sprites[0].scaleY = UnityEngine.Random.Range(1.6f, 3f);
             sLeaser.sprites[0].scaleX = UnityEngine.Random.Range(1f, 1.6f);
-            this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
+            AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
         }
 
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
-            if (sLeaser.sprites[0].alpha < Mathf.Lerp(0f, Mathf.Lerp(0f, 0.55f, this.room.roomSettings.RainIntensity), Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, this.owner.TimePastCycleEnd))))
+            if (sLeaser.sprites[0].alpha < Mathf.Lerp(0f, Mathf.Lerp(0f, 0.55f, room.roomSettings.RainIntensity), Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, owner.TimePastCycleEnd))))
             {
-                this.alpha += 1.2f * Time.deltaTime;
+                alpha += 1.2f * Time.deltaTime;
             }
-            sLeaser.sprites[0].alpha = this.alpha;
-            sLeaser.sprites[0].x = Mathf.Lerp(this.lastPos.x, this.pos.x, Time.deltaTime);
-            sLeaser.sprites[0].y = Mathf.Lerp(this.lastPos.y, this.pos.y, Time.deltaTime);
-            sLeaser.sprites[0].rotation = Custom.AimFromOneVectorToAnother(Vector2.Lerp(this.lastLastPos, this.lastPos, Time.deltaTime), Vector2.Lerp(this.lastPos, this.pos, Time.deltaTime));
+            sLeaser.sprites[0].alpha = alpha;
+            sLeaser.sprites[0].x = Mathf.Lerp(lastPos.x, pos.x, Time.deltaTime);
+            sLeaser.sprites[0].y = Mathf.Lerp(lastPos.y, pos.y, Time.deltaTime);
+            sLeaser.sprites[0].rotation = Custom.AimFromOneVectorToAnother(Vector2.Lerp(lastLastPos, lastPos, Time.deltaTime), Vector2.Lerp(lastPos, pos, Time.deltaTime));
             base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
         }
 
@@ -706,7 +706,7 @@ public class Blizzard : UpdatableAndDeletable
         public ScrollingTexture(Room room, Blizzard owner, string sprite, float scrollSpeed, float alpha)
         {
             this.owner = owner;
-            this.spriteName = sprite;
+            spriteName = sprite;
             this.scrollSpeed = scrollSpeed;
             this.alpha = Mathf.Lerp(0f, alpha, room.roomSettings.RainIntensity);
             Debug.Log("DOWNPOUR: ScrollingTexture Added");
@@ -732,12 +732,12 @@ public class Blizzard : UpdatableAndDeletable
             mesh.UVvertices[3] = new Vector2(2f, 2f);
             sLeaser.sprites[0] = mesh;
             sLeaser.sprites[0].alpha = 0f;
-            this.AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
+            AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
         }
 
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
-            sLeaser.sprites[0].alpha = Mathf.Lerp(0f, this.alpha, Mathf.InverseLerp(-0.5f, 0.5f, this.owner.TimePastCycleEnd));
+            sLeaser.sprites[0].alpha = Mathf.Lerp(0f, alpha, Mathf.InverseLerp(-0.5f, 0.5f, owner.TimePastCycleEnd));
 
             ////Left
             if (Forecast.windDirection == 1)

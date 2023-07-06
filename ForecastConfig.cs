@@ -13,6 +13,8 @@ using RWCustom;
 
 public class ForecastConfig : OptionInterface
 {
+    public OpSimpleImageButton rainButton;
+    public OpSimpleImageButton snowButton;
     public ForecastConfig(Forecast mod) 
     { 
         
@@ -30,16 +32,51 @@ public class ForecastConfig : OptionInterface
         Texture2D texture = new Texture2D(0, 0);
         texture.filterMode = FilterMode.Point;
         texture.LoadImage(bytes);
-        OpImage banner = new OpImage(new Vector2(300f, 440f), texture);
+        OpImage banner = new OpImage(new Vector2(300f, 540f), texture);
         banner.anchor = new Vector2(0.5f, 0f);
 
-        OpLabel version = new OpLabel(300f, 425f, $"Version: {Forecast.version}     -     By LeeMoriya", false);
+        OpLabel version = new OpLabel(300f, 525f, $"Version: {Forecast.version}     -     By LeeMoriya", false);
         version.label.alignment = FLabelAlignment.Center;
         opTab.AddItems(version, banner);
 
-        OpSimpleButton custom = new OpSimpleButton(new Vector2(300f - 70f, 50f), new Vector2(140f, 60f), "CHANGE SETTINGS");
+        //Weather type select
+        rainButton = new OpSimpleImageButton(new Vector2(50f, 240f), new Vector2(220f, 170f), "rainbutton");
+        snowButton = new OpSimpleImageButton(new Vector2(325f, 240f), new Vector2(220f, 170f), "snowbutton");
+        rainButton.OnClick += RainButton_OnClick;
+        snowButton.OnClick += SnowButton_OnClick;
+        opTab.AddItems(rainButton, snowButton);
+
+        OpSimpleButton custom = new OpSimpleButton(new Vector2(300f - 70f, 80f), new Vector2(140f, 60f), "CHANGE SETTINGS");
         custom.OnClick += Custom_OnClick;
         opTab.AddItems(custom);
+    }
+
+    private void SnowButton_OnClick(UIfocusable trigger)
+    {
+        if (!Forecast.snow)
+        {
+            Forecast.snow = true;
+            trigger.PlaySound(SoundID.MENU_Player_Join_Game);
+        }
+    }
+
+    private void RainButton_OnClick(UIfocusable trigger)
+    {
+        if (Forecast.snow)
+        {
+            Forecast.snow = false;
+            trigger.PlaySound(SoundID.MENU_Player_Join_Game);
+        }
+    }
+
+    public override void Update()
+    {
+        base.Update();
+        if(rainButton != null && snowButton != null )
+        {
+            rainButton.sprite.alpha = Forecast.snow ? 0.3f : 1f;
+            snowButton.sprite.alpha = Forecast.snow ? 1f : 0.3f;
+        }
     }
 
     private void Custom_OnClick(UIfocusable trigger)
@@ -51,6 +88,7 @@ public class ForecastConfig : OptionInterface
     {
         public ForecastDialog(ProcessManager manager, ForecastConfig config) : base(manager)
         {
+
         }
 
         public bool GetChecked(CheckBox box)
