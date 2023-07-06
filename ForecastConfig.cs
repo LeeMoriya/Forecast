@@ -6,8 +6,10 @@ using UnityEngine;
 using RWCustom;
 using System.IO;
 using System.Reflection;
+using Menu;
 using Menu.Remix;
 using Menu.Remix.MixedUI;
+using RWCustom;
 
 public class ForecastConfig : OptionInterface
 {
@@ -24,12 +26,46 @@ public class ForecastConfig : OptionInterface
             opTab
         };
 
-        OpImage banner = new OpImage(new Vector2(0f, 420f), "logo");
+        byte[] bytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainLogo.png"));
+        Texture2D texture = new Texture2D(0, 0);
+        texture.filterMode = FilterMode.Point;
+        texture.LoadImage(bytes);
+        OpImage banner = new OpImage(new Vector2(300f, 440f), texture);
+        banner.anchor = new Vector2(0.5f, 0f);
+
         OpLabel version = new OpLabel(300f, 425f, $"Version: {Forecast.version}     -     By LeeMoriya", false);
         version.label.alignment = FLabelAlignment.Center;
         opTab.AddItems(version, banner);
+
+        OpSimpleButton custom = new OpSimpleButton(new Vector2(300f - 70f, 50f), new Vector2(140f, 60f), "CHANGE SETTINGS");
+        custom.OnClick += Custom_OnClick;
+        opTab.AddItems(custom);
+    }
+
+    private void Custom_OnClick(UIfocusable trigger)
+    {
+        Dialog dialog = new ForecastDialog(Custom.rainWorld.processManager, this);
+    }
+
+    public class ForecastDialog : Dialog, CheckBox.IOwnCheckBox, Slider.ISliderOwner
+    {
+        public ForecastDialog(ProcessManager manager, ForecastConfig config) : base(manager)
+        {
+        }
+
+        public bool GetChecked(CheckBox box)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetChecked(CheckBox box, bool c)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
+
+
 
 //public class ForecastConfig : OptionInterface
 //{
