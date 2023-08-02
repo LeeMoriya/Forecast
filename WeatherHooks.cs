@@ -6,9 +6,12 @@ using UnityEngine;
 using RWCustom;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Runtime.CompilerServices;
 
-public class RainFall
+public class WeatherHooks
 {
+    public static ConditionalWeakTable<Room, WeatherController.WeatherSettings> roomSettings = new ConditionalWeakTable<Room, WeatherController.WeatherSettings>();
+
     public static float rainIntensity;
     public static List<string> roomRainList;
     public static float startingIntensity;
@@ -48,7 +51,7 @@ public class RainFall
                 Forecast.exposureControllers[i].RemoveDebugLabels();
             }
         }
-        if (Forecast.snow && Forecast.blizzard)
+        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value)
         {
             Forecast.exposureControllers = new List<ExposureController>();
         }
@@ -56,7 +59,7 @@ public class RainFall
 
     private static void RoomRain_Update(On.RoomRain.orig_Update orig, RoomRain self, bool eu)
     {
-        if (Forecast.snow && Forecast.blizzard)
+        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value)
         {
             return;
         }
@@ -65,7 +68,7 @@ public class RainFall
 
     private static void RainCycle_RainHit(On.RainCycle.orig_RainHit orig, RainCycle self)
     {
-        if (Forecast.snow && Forecast.blizzard)
+        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value)
         {
             return;
         }
@@ -75,7 +78,7 @@ public class RainFall
     private static void Player_ctor(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
     {
         orig.Invoke(self, abstractCreature, world);
-        if (Forecast.snow && Forecast.blizzard && self.room.game.session is StoryGameSession)
+        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value && self.room.game.session is StoryGameSession)
         {
             Forecast.exposureControllers.Add(new ExposureController(self));
         }
@@ -102,7 +105,7 @@ public class RainFall
                     if (ceilingCount < (self.realizedRoom.Width * 0.95))
                     {
                         rainList.Add(self.name);
-                        self.realizedRoom.AddObject(new Preciptator(self.realizedRoom, Forecast.snow));
+                        self.realizedRoom.AddObject(new WeatherController(self.realizedRoom, ForecastConfig.weatherType.Value));
                     }
                 }
             }
@@ -113,11 +116,18 @@ public class RainFall
     {
         orig.Invoke(self);
         Forecast.snowExt1 = new Texture2D(0, 0);
-        Debug.Log("Loaded: " + AssetManager.ResolveFilePath("sprites\\snowExt1.png"));
+        if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowExt1.png")))
+        {
+            ForecastLog.Log("FORECAST: Loaded snowExt1.png");
+        }
         Forecast.snowExt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowExt1.png")));
         Forecast.snowExt1.filterMode = FilterMode.Point;
 
         Forecast.snowInt1 = new Texture2D(0, 0);
+        if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowInt1.png")))
+        {
+            ForecastLog.Log("FORECAST: Loaded snowInt1.png");
+        }
         Forecast.snowInt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowInt1.png")));
         Forecast.snowInt1.filterMode = FilterMode.Point;
 
@@ -189,31 +199,27 @@ public class RainFall
     private static void ArenaGameSession_SpawnPlayers(On.ArenaGameSession.orig_SpawnPlayers orig, ArenaGameSession self, Room room, List<int> suggestedDens)
     {
         orig.Invoke(self, room, suggestedDens);
-        if (!Forecast.dynamic)
+        if (ForecastConfig.weatherIntensity.Value > 0)
         {
-            if (Forecast.intensity == 1)
+            if (ForecastConfig.weatherIntensity.Value == 1)
             {
                 rainIntensity = 0.31f;
-                Forecast.dynamic = false;
             }
-            if (Forecast.intensity == 2)
+            if (ForecastConfig.weatherIntensity.Value == 2)
             {
                 rainIntensity = 0.6f;
-                Forecast.dynamic = false;
             }
-            if (Forecast.intensity == 3)
+            if (ForecastConfig.weatherIntensity.Value == 3)
             {
                 rainIntensity = 1f;
-                Forecast.dynamic = false;
             }
         }
         else
         {
-            Forecast.dynamic = true;
             rainIntensity = UnityEngine.Random.Range(0.3f, 1f);
         }
         startingIntensity = rainIntensity;
-        Debug.Log("Current rain intensity: " + rainIntensity);
+        ForecastLog.Log("Current rain intensity: " + rainIntensity);
         if (self != null && room.roomRain != null)
         {
             for (int r = 0; r < room.TileWidth; r++)
@@ -225,7 +231,7 @@ public class RainFall
             }
             if (ceilingCount < (room.Width * 0.95) && !noRain)
             {
-                room.AddObject(new Preciptator(room, Forecast.snow));
+                room.AddObject(new WeatherController(room, ForecastConfig.weatherType.Value));
             }
             ceilingCount = 0;
         }
@@ -251,7 +257,7 @@ public class RainFall
         rainList.Clear();
 
         //Rain Chance
-        if (UnityEngine.Random.Range(0, 100) < Forecast.rainChance)
+        if (UnityEngine.Random.Range(0, 100) < ForecastConfig.weatherChance.Value)
         {
             noRainThisCycle = false;
         }
@@ -260,29 +266,25 @@ public class RainFall
             noRainThisCycle = true;
         }
         //Rain Starting Intensity (Non-Dynamic)
-        if (!Forecast.dynamic)
+        if (ForecastConfig.weatherIntensity.Value > 0)
         {
-            if (Forecast.intensity == 1)
+            if (ForecastConfig.weatherIntensity.Value == 1)
             {
                 rainIntensity = 0.31f;
-                Forecast.dynamic = false;
             }
-            if (Forecast.intensity == 2)
+            if (ForecastConfig.weatherIntensity.Value == 2)
             {
                 rainIntensity = 0.6f;
-                Forecast.dynamic = false;
             }
-            if (Forecast.intensity == 3)
+            if (ForecastConfig.weatherIntensity.Value == 3)
             {
                 rainIntensity = 0.9f;
-                Forecast.dynamic = false;
             }
         }
         //Rain Starting Intensity (Dynamic)
         else
         {
-            Forecast.dynamic = true;
-            if (!Forecast.snow)
+            if (ForecastConfig.weatherType.Value != 0)
             {
                 rainIntensity = UnityEngine.Random.Range(-1.5f, 0.8f);
             }
@@ -292,11 +294,11 @@ public class RainFall
             }
         }
         //Rain Direction
-        switch (Forecast.direction)
+        switch (ForecastConfig.windDirection.Value)
         {
             case 0:
                 direction = UnityEngine.Random.Range(1, 4);
-                Forecast.windDirection = direction;
+                Forecast.blizzardDirection = direction;
                 break;
             case 1:
                 direction = 1;
@@ -320,7 +322,7 @@ public class RainFall
                 leftOrRight = 1;
             }
         }
-        Forecast.windDirection = leftOrRight;
+        Forecast.blizzardDirection = leftOrRight;
         //Apply Rain Intensity
         if (!noRainThisCycle)
         {
@@ -351,16 +353,7 @@ public class RainFall
         {
             noRain = false;
         }
-        //Add lightning effect to rooms.
-        if (!noRain)
-        {
-            //Add Rain Sound Object
-            if (self.game != null && self.roomRain != null)
-            {
-                self.AddObject(new RainSound(self));
-            }
-        }
-        if (Forecast.snow && Forecast.blizzard)
+        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value)
         {
             if (self.game != null && !self.abstractRoom.shelter)
             {
@@ -371,7 +364,7 @@ public class RainFall
     private static void Room_Update(On.Room.orig_Update orig, Room self)
     {
         orig.Invoke(self);
-        if (Forecast.snow && Forecast.blizzard && self.world.rainCycle.RainDarkPalette > 0f)
+        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value && self.world.rainCycle.RainDarkPalette > 0f)
         {
             //Update exposure
             if(Forecast.exposureControllers != null & Forecast.exposureControllers.Count > 0)
@@ -392,7 +385,7 @@ public class RainFall
                 {
                     rainIntensity = 0f;
                 }
-                Debug.Log("Rain Intensity = " + rainIntensity);
+                ForecastLog.Log("Rain Intensity = " + rainIntensity);
             }
             //Increase Intensity
             if (Input.GetKey(KeyCode.Alpha2))
@@ -402,28 +395,16 @@ public class RainFall
                 {
                     rainIntensity = 1f;
                 }
-                Debug.Log("Rain Intensity = " + rainIntensity);
+                ForecastLog.Log("Rain Intensity = " + rainIntensity);
             }
             //Show Room X and Y pos
             if (Input.GetKey(KeyCode.Alpha3))
             {
                 if (self.BeingViewed)
                 {
-                    Debug.Log("---ROOM POSITION---");
-                    Debug.Log("X POS: " + self.abstractRoom.mapPos.x.ToString());
-                    Debug.Log("Y POS: " + self.abstractRoom.mapPos.y.ToString());
-                }
-            }
-            if (Input.GetKeyDown(KeyCode.Alpha4))
-            {
-                if (self.BeingViewed)
-                {
-                    Forecast.direction++;
-                    if (Forecast.direction > 3)
-                    {
-                        Forecast.direction = 1;
-                    }
-                    Debug.Log("Direction: " + Forecast.direction);
+                    ForecastLog.Log("---ROOM POSITION---");
+                    ForecastLog.Log("X POS: " + self.abstractRoom.mapPos.x.ToString());
+                    ForecastLog.Log("Y POS: " + self.abstractRoom.mapPos.y.ToString());
                 }
             }
             //Fast Forward Cycle Timer
@@ -433,18 +414,18 @@ public class RainFall
             }
 
         }
-        //Rain intensity increases with cycle duration if in dynamic mode
-        if (Forecast.dynamic && !noRainThisCycle && self.BeingViewed)
-        {
-            if (self.world.rainCycle.RainDarkPalette <= 0)
-            {
-                rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
-            }
-            else
-            {
-                rainIntensity = Mathf.Lerp(0.95f, 0f, self.world.rainCycle.RainDarkPalette);
-            }
-        }
+        ////Rain intensity increases with cycle duration if in dynamic mode
+        //if (ForecastConfig.weatherIntensity.Value == 0 && !noRainThisCycle && self.BeingViewed)
+        //{
+        //    if (self.world.rainCycle.RainDarkPalette <= 0)
+        //    {
+        //        rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
+        //    }
+        //    else
+        //    {
+        //        rainIntensity = Mathf.Lerp(0.95f, 0f, self.world.rainCycle.RainDarkPalette);
+        //    }
+        //}
     }
 }
 

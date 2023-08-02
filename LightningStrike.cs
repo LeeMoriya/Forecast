@@ -12,7 +12,7 @@ public class LightningStrike : UpdatableAndDeletable
     public bool contact;
     public int splits;
     public bool once = false;
-    public LightningStrike(Preciptator pre, Color col)
+    public LightningStrike(WeatherController pre, Color col)
     {
         //Assign the starting position of the lightning strike
         if (!once)
@@ -26,7 +26,7 @@ public class LightningStrike : UpdatableAndDeletable
                 }
                 catch
                 {
-                    Debug.Log("ERROR ASSIGNING ORIGIN");
+                    ForecastLog.Log("ERROR ASSIGNING ORIGIN");
                 }
                 this.room.AddObject(new LightningPath(this.origin, this, col));
                 once = true;
@@ -129,7 +129,7 @@ public class LightningStrike : UpdatableAndDeletable
                     this.room.AddObject(new SootMark(this.room, pathPositions.Last() + new Vector2(0f, 15f), 50f, false));
                     this.room.AddObject(new LightningFlash(pathPositions.Last() + new Vector2(0f, 15f), this.color, 90f, 1f, false));
                     this.room.AddObject(new LightningImpact(pathPositions.Last() + new Vector2(0f, 10f), 35f, this.color));
-                    switch (Forecast.strikeDamage)
+                    switch (ForecastConfig.strikeDamageType.Value)
                     {
                         case 0:
                             this.room.AddObject(new Explosion(this.room, null, pathPositions.Last() + new Vector2(0f, 15f), 7, 10f, 0f, 0f, 0f, 0.02f, null, 0.7f, 160f, 1f));

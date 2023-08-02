@@ -23,7 +23,7 @@ public class SnowFlake : CosmeticSprite
     public bool reset;
     public Player player;
     public Vector2 resetPos;
-    public Preciptator spawner;
+    public WeatherController spawner;
     public Vector2 offset;
     public bool randomOffset;
     public bool screenReset;
@@ -33,7 +33,7 @@ public class SnowFlake : CosmeticSprite
     public float directionAdjust;
     public bool simulate = false;
     public bool drawn = false;
-    public SnowFlake(Vector2 pos, Color color, float rainIntensity, Preciptator spawner)
+    public SnowFlake(Vector2 pos, Color color, float rainIntensity, WeatherController spawner)
     {
         this.screenReset = false;
         this.foreground = false;
@@ -57,7 +57,7 @@ public class SnowFlake : CosmeticSprite
         this.dir = (new Vector2(UnityEngine.Random.Range(-2f, 0.1f), -5f) * rainIntensity);
         this.gravity = Mathf.Lerp(0.4f, 0.9f, UnityEngine.Random.value);
         this.pos += vel * (40f * rainIntensity);
-        this.dir = new Vector2(-this.dir.x + (directionAdjust * RainFall.rainIntensity), this.dir.y);
+        this.dir = new Vector2(-this.dir.x + (directionAdjust * WeatherHooks.rainIntensity), this.dir.y);
         this.vel = this.dir;
         this.pos += vel * (4f * rainIntensity);
         dirCounter = UnityEngine.Random.Range(2f, 10f);
@@ -79,7 +79,7 @@ public class SnowFlake : CosmeticSprite
 
     public override void Update(bool eu)
     {
-        if (!Forecast.snow || this.room.world.rainCycle.RainDarkPalette > 0f)
+        if (ForecastConfig.weatherType.Value == 0 || this.room.world.rainCycle.RainDarkPalette > 0f)
         {
             if(UnityEngine.Random.value > 0.98f)
             {
@@ -110,7 +110,7 @@ public class SnowFlake : CosmeticSprite
                     return;
                 }
             }
-            this.dir = (new Vector2(UnityEngine.Random.Range(-4f, 4f) + (directionAdjust * RainFall.rainIntensity), -5f) * RainFall.rainIntensity);
+            this.dir = (new Vector2(UnityEngine.Random.Range(-4f, 4f) + (directionAdjust * WeatherHooks.rainIntensity), -5f) * WeatherHooks.rainIntensity);
             this.vel = this.dir;
             this.pos = resetPos;
             this.lastPos = this.pos;
@@ -142,24 +142,24 @@ public class SnowFlake : CosmeticSprite
         }
 
         //Vertical Velocity
-        this.vel.y = Mathf.Lerp((-2.5f * RainFall.rainIntensity), (-4f * RainFall.rainIntensity), this.depth);
+        this.vel.y = Mathf.Lerp((-2.5f * WeatherHooks.rainIntensity), (-4f * WeatherHooks.rainIntensity), this.depth);
 
         //Horizontal Velocity
         if (spawner.direction == 1)
         {
-            if ((vel.x > 1f * RainFall.rainIntensity || vel.x < -4f * RainFall.rainIntensity) && dirCounter <= 0f)
+            if ((vel.x > 1f * WeatherHooks.rainIntensity || vel.x < -4f * WeatherHooks.rainIntensity) && dirCounter <= 0f)
             {
                 if (vel.x > 1f)
                 {
                     vel.x = vel.x * 0.03f;
                 }
-                this.dir = new Vector2(-this.dir.x + (directionAdjust * RainFall.rainIntensity), this.dir.y);
+                this.dir = new Vector2(-this.dir.x + (directionAdjust * WeatherHooks.rainIntensity), this.dir.y);
                 dirCounter = UnityEngine.Random.Range(2f, 10f);
             }
         }
         else if (spawner.direction == 2)
         {
-            if ((vel.x > 4f * RainFall.rainIntensity || vel.x < -4f * RainFall.rainIntensity) && dirCounter <= 0f)
+            if ((vel.x > 4f * WeatherHooks.rainIntensity || vel.x < -4f * WeatherHooks.rainIntensity) && dirCounter <= 0f)
             {
                 this.dir = new Vector2(-this.dir.x, this.dir.y);
                 dirCounter = UnityEngine.Random.Range(2f, 10f);
@@ -167,18 +167,18 @@ public class SnowFlake : CosmeticSprite
         }
         else
         {
-            if ((vel.x > 4f * RainFall.rainIntensity || vel.x < -1f * RainFall.rainIntensity) && dirCounter <= 0f)
+            if ((vel.x > 4f * WeatherHooks.rainIntensity || vel.x < -1f * WeatherHooks.rainIntensity) && dirCounter <= 0f)
             {
                 if (vel.x < -1f)
                 {
                     vel.x = vel.x * 0.03f;
                 }
-                this.dir = new Vector2(-this.dir.x + (directionAdjust * RainFall.rainIntensity), this.dir.y);
+                this.dir = new Vector2(-this.dir.x + (directionAdjust * WeatherHooks.rainIntensity), this.dir.y);
                 dirCounter = UnityEngine.Random.Range(2f, 10f);
             }
         }
         this.vel += this.dir * 0.02f;
-        this.dirCounter = this.dirCounter - (0.1f + (RainFall.rainIntensity * UnityEngine.Random.value));
+        this.dirCounter = this.dirCounter - (0.1f + (WeatherHooks.rainIntensity * UnityEngine.Random.value));
         if (dirCounter < 0f)
         {
             dirCounter = 0;

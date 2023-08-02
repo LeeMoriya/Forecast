@@ -14,34 +14,198 @@ using UnityEngine.Video;
 
 public class ForecastConfig : OptionInterface
 {
-    public OpSimpleImageButton rainButton;
-    public OpSimpleImageButton snowButton;
-    public Dictionary<string, VideoPlayer> weatherPreviews = new Dictionary<string, VideoPlayer>();
-    public ForecastConfig(Forecast mod) 
-    { 
-        
+    //Configurables
+    public static Configurable<int> displayMode;
+    public static Configurable<int> weatherType;
+
+    public static Configurable<int> weatherIntensity;
+    public static Configurable<float> weatherChance;
+    public static Configurable<int> windDirection;
+
+    public static Configurable<int> particleLimit;
+
+    public static Configurable<bool> backgroundCollision;
+    public static Configurable<bool> waterCollision;
+
+    public static Configurable<bool> backgroundLightning;
+    public static Configurable<bool> lightningStrikes;
+    public static Configurable<int> strikeDamageType;
+
+    public static Configurable<bool> endBlizzard;
+    public static Configurable<bool> effectColors;
+    public static Configurable<bool> snowPuffs;
+
+    //Manual Configurables
+    public static Dictionary<string, int> regionSettings;
+    public static Dictionary<string, Dictionary<string, List<string>>> customRegionSettings;
+
+    //Menu
+    public OpSimpleImageButton rainButton, snowButton;
+    public OpRect settingsRect;
+    public OpImage rainBanner, snowBanner;
+    public static Dictionary<string, VideoPlayer> weatherPreviews = new Dictionary<string, VideoPlayer>();
+    public UIelement[] settingLabels;
+    public OpHoldButton settingsButton;
+
+    //Region
+    List<OpRect> regionRects;
+    List<OpLabel> regionLabels;
+    List<OpCheckBox> regionCheckBoxes;
+    List<OpSimpleButton> regionButtons;
+
+    public ForecastConfig(Forecast mod)
+    {
+        regionSettings = new Dictionary<string, int>();
+        customRegionSettings = new Dictionary<string, Dictionary<string, List<string>>>();
+        //ForecastLog.Log("FORECAST: Startup");
+        LoadCustomRegionSettings();
+        //ForecastLog.Log("FORECAST: Custom settings loaded");
+
+        weatherType = config.Bind<int>("weatherType", 0);
+
+        weatherIntensity = config.Bind<int>("weatherIntensity", 1);
+        weatherChance = config.Bind<float>("weatherChance", 100f);
+        windDirection = config.Bind<int>("windDirection", 0);
+
+        particleLimit = config.Bind<int>("particleLimit", 100);
+
+        backgroundCollision = config.Bind<bool>("backgroundCollision", true);
+        waterCollision = config.Bind<bool>("waterCollision", true);
+
+        backgroundLightning = config.Bind<bool>("backgroundLightning", true);
+        lightningStrikes = config.Bind<bool>("lightningStrikes", true);
+        strikeDamageType = config.Bind<int>("strikeDamageType", 0);
+
+        endBlizzard = config.Bind<bool>("endBlizzard", true);
+        effectColors = config.Bind<bool>("effectColors", true);
+        snowPuffs = config.Bind<bool>("snowPuffs", true);
+    }
+
+    public void LoadCustomRegionSettings()
+    {
+        string[] array = new string[]
+        {
+            ""
+        };
+        string path = AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar.ToString() + "regions.txt");
+        if (File.Exists(path))
+        {
+            array = File.ReadAllLines(path);
+        }
+
+        for (int i = 0; i < array.Length; i++)
+        {
+            if(File.Exists(AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar + array[i] + Path.DirectorySeparatorChar + array[i] + "_forecast.txt")))
+            {
+                ForecastLog.Log($"FORECAST: Custom settings found for {array[i]}");
+
+                string[] data = File.ReadAllLines(AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar + array[i] + Path.DirectorySeparatorChar + array[i] + "_forecast.txt"));
+                if (!customRegionSettings.ContainsKey(array[i]))
+                {
+                    customRegionSettings.Add(array[i], new Dictionary<string, List<string>>());
+                }
+                bool globalSettings = false;
+                bool roomSection = false;
+                for (int s = 0; s < data.Length; s++)
+                {
+                    if (data[s].StartsWith("GLOBAL:"))
+                    {
+                        globalSettings = true;
+                        customRegionSettings[array[i]].Add("GLOBAL", new List<string>());
+
+                        string[] globalTags = data[s].Split(':')[1].Split(',');
+                        for (int g = 0; g < globalTags.Length; g++)
+                        {
+                            customRegionSettings[array[i]]["GLOBAL"].Add(globalTags[g].Trim());
+                        }
+                    }
+                    if (data[s].StartsWith("END ROOMS"))
+                    {
+                        roomSection = false;
+                    }
+                    if (roomSection)
+                    {
+                        string room = data[s].Split(':')[0].Trim();
+                        if (!customRegionSettings[array[i]].ContainsKey(room))
+                        {
+                            customRegionSettings[array[i]].Add(room, new List<string>());
+                        }
+                        else
+                        {
+                            Debug.LogException(new Exception("FORECAST: Duplicate room name on line " + s));
+                        }
+                        string[] tags = data[s].Split(':')[1].Split(',');
+                        for (int t = 0; t < tags.Length; t++)
+                        {
+                            customRegionSettings[array[i]][room].Add(tags[t].Trim());
+                        }
+                    }
+                    if (data[s].StartsWith("ROOMS"))
+                    {
+                        roomSection = true;
+                    }
+                    
+                }
+                if (!globalSettings)
+                {
+                    Debug.LogException(new Exception($"FORECAST: Custom settings for {array[i]} is missing GLOBAL settings!"));
+                }
+
+            }
+
+        }
+
+        foreach(string reg in customRegionSettings.Keys)
+        {
+            foreach(string key in customRegionSettings[reg].Keys)
+            {
+                string tags = "";
+                foreach(string tag in customRegionSettings[reg][key])
+                {
+                    tags += tag;
+                    tags += " ";
+                }
+                ForecastLog.Log("FORECAST: " + key + ": " + tags);
+            }
+        }
     }
 
     public override void Initialize()
     {
-        var opTab = new OpTab(this, "Options");
+        var options = new OpTab(this, "Options");
+        var regions = new OpTab(this, "Regions");
         Tabs = new[]
         {
-            opTab
+            options, regions
         };
 
+        #region Options Tab
+        weatherPreviews = new Dictionary<string, VideoPlayer>();
+
+        //Rain and snow logos
         byte[] bytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainLogo.png"));
         Texture2D texture = new Texture2D(0, 0);
         texture.filterMode = FilterMode.Point;
         texture.LoadImage(bytes);
-        OpImage banner = new OpImage(new Vector2(300f, 540f), texture);
-        banner.anchor = new Vector2(0.5f, 0f);
+        rainBanner = new OpImage(new Vector2(300f, 540f), texture);
+        rainBanner.anchor = new Vector2(0.5f, 0f);
+        rainBanner.alpha = weatherType.Value == 1 ? 0f : 1f;
 
+        byte[] sbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowLogo.png"));
+        Texture2D stexture = new Texture2D(0, 0);
+        stexture.filterMode = FilterMode.Point;
+        stexture.LoadImage(sbytes);
+        snowBanner = new OpImage(new Vector2(300f, 540f), stexture);
+        snowBanner.anchor = new Vector2(0.5f, 0f);
+        snowBanner.alpha = weatherType.Value == 1 ? 1f : 0f;
+
+        //Version label
         OpLabel version = new OpLabel(300f, 525f, $"Version: {Forecast.version}     -     By LeeMoriya", false);
+        version.color = new Color(0.4f, 0.4f, 0.4f);
         version.label.alignment = FLabelAlignment.Center;
-        opTab.AddItems(version, banner);
+        options.AddItems(version, rainBanner, snowBanner);
 
-        //Init weather previews
+        //Rain preview
         var rainObject = new GameObject("rainPreviewVideo");
         var rainVideo = rainObject.AddComponent<VideoPlayer>();
         rainVideo.audioOutputMode = VideoAudioOutputMode.None;
@@ -51,11 +215,13 @@ public class ForecastConfig : OptionInterface
 
         var rt1 = new RenderTexture(210, 160, 0);
         rainVideo.targetTexture = rt1;
-
         HeavyTexturesCache.LoadAndCacheAtlasFromTexture("rainPreview", rt1, false);
-        weatherPreviews.Add("rainPreview", rainVideo);
+        if (!weatherPreviews.ContainsKey("rainPreview"))
+        {
+            weatherPreviews.Add("rainPreview", rainVideo);
+        }
 
-
+        //Snow preview
         var snowObject = new GameObject("snowPreviewVideo");
         var snowVideo = snowObject.AddComponent<VideoPlayer>();
         snowVideo.audioOutputMode = VideoAudioOutputMode.None;
@@ -65,89 +231,287 @@ public class ForecastConfig : OptionInterface
 
         var rt2 = new RenderTexture(210, 160, 0);
         snowVideo.targetTexture = rt2;
-
         HeavyTexturesCache.LoadAndCacheAtlasFromTexture("snowPreview", rt2, false);
-        weatherPreviews.Add("snowPreview", snowVideo);
+        if (!weatherPreviews.ContainsKey("snowPreview"))
+        {
+            weatherPreviews.Add("snowPreview", snowVideo);
+        }
 
         //Weather type select
-        rainButton = new OpSimpleImageButton(new Vector2(50f, 300f), new Vector2(220f, 170f), "rainPreview");
-        snowButton = new OpSimpleImageButton(new Vector2(325f, 300f), new Vector2(220f, 170f), "snowPreview");
+        rainButton = new OpSimpleImageButton(new Vector2(50f, 320f), new Vector2(220f, 170f), "rainPreview");
+        snowButton = new OpSimpleImageButton(new Vector2(325f, 320f), new Vector2(220f, 170f), "snowPreview");
         rainButton.OnClick += RainButton_OnClick;
         snowButton.OnClick += SnowButton_OnClick;
-        snowButton.OnFocusGet += SnowButton_OnFocusGet;
-        snowButton.OnFocusLose += SnowButton_OnFocusLose;
-        rainButton.OnFocusGet += RainButton_OnFocusGet;
-        rainButton.OnFocusLose += RainButton_OnFocusLose;
-        opTab.AddItems(rainButton, snowButton);
 
-        OpSimpleButton custom = new OpSimpleButton(new Vector2(300f - 70f, 80f), new Vector2(140f, 60f), "CHANGE SETTINGS");
-        custom.OnClick += Custom_OnClick;
-        opTab.AddItems(custom);
+        OpLabel rainLabel = new OpLabel(new Vector2(155f, 290f), new Vector2(), "RAIN", FLabelAlignment.Center, false);
+        OpLabel snowLabel = new OpLabel(new Vector2(430f, 290f), new Vector2(), "SNOW - CLASSIC", FLabelAlignment.Center, false);
+        options.AddItems(rainButton, snowButton, rainLabel, snowLabel);
+
+        //Settings container
+
+        OpLabel settingsHeader = new OpLabel(10f, 203f, "CONFIGURATION", false);
+
+        settingsRect = new OpRect(new Vector2(), new Vector2(600f, 200f));
+
+        settingLabels = new UIelement[]
+        {
+            new OpLabel(12f, 170f, "Intensity:  " + IntensityValue(), false),
+            new OpLabel(12f, 150f, "Weather Chance:  " + weatherChance.Value + "%", false),
+            new OpLabel(12f, 130f, "Wind Direction:  " + WindDirectionValue(), false),
+
+            new OpLabel(12f, 85f, "Particle Limit:  " + particleLimit.Value, false),
+
+            new OpLabel(12f, 40f, "Background Collision:  " + (backgroundCollision.Value ? "ON" : "OFF"), false),
+            new OpLabel(12f, 20f, "Water Collision:  " + (waterCollision.Value ? "ON" : "OFF"), false),
+
+            new OpLabel(222f, 170f, "Background Lightning:  " + (backgroundLightning.Value ? "ON" : "OFF"), false),
+            new OpLabel(222f, 150f, "Lightning Strikes:  " + (lightningStrikes.Value ? "ON" : "OFF"), false),
+            new OpLabel(222f, 130f, "Strike Damage:  " + StrikeDamageValue(), false),
+
+            new OpLabel(222f, 60f, "End-Cycle Blizzard:  " + (endBlizzard.Value ? "ON" : "OFF"), false),
+            new OpLabel(222f, 40f, "Effect Colors:  " + (effectColors.Value ? "ON" : "OFF"), false),
+            new OpLabel(222f, 20f, "Snow Puffs:  " + (snowPuffs.Value ? "ON" : "OFF"), false)
+        };
+
+        settingsButton = new OpHoldButton(new Vector2(450, 80f), new Vector2(140f, 110f), "CHANGE " + (weatherType.Value == 1 ? "SNOW" : "RAIN") + "\nSETTINGS", 20);
+        settingsButton.OnPressDone += SettingsButton_OnPressDone;
+        OpHoldButton defaultButton = new OpHoldButton(new Vector2(450, 10f), new Vector2(140f, 60f), "RESET TO\nDEFAULT");
+        defaultButton.colorEdge = new Color(0.85f, 0.2f, 0.2f);
+        options.AddItems(settingsHeader, settingsRect, settingsButton, defaultButton);
+        options.AddItems(settingLabels);
+        #endregion
+
+        #region Regions Tab
+
+        regionRects = new List<OpRect>();
+        regionLabels = new List<OpLabel>();
+        regionCheckBoxes = new List<OpCheckBox>();
+        regionButtons = new List<OpSimpleButton>();
+
+        string[] array = new string[]
+        {
+            ""
+        };
+        string path = AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar.ToString() + "regions.txt");
+        if (File.Exists(path))
+        {
+            array = File.ReadAllLines(path);
+        }
+
+        float scrollHeight = 70f * array.Length;
+        float itemHeight = scrollHeight - 15f;
+        OpScrollBox scrollBox = new OpScrollBox(regions, scrollHeight, false, true);
+        regions.AddItems(scrollBox);
+
+        for (int i = 0; i < array.Length; i++)
+        {
+            if (!regionSettings.ContainsKey(array[i]))
+            {
+                regionSettings.Add(array[i], 0);
+            }
+
+            OpRect rect = new OpRect(new Vector2(0f, itemHeight - 50f - (70f * i)), new Vector2(580f, 60f));
+            regionRects.Add(rect);
+            OpLabel regionName = new OpLabel(50f, itemHeight - 32f - (70f * i), array[i] + " - " + Region.GetRegionFullName(array[i],SlugcatStats.Name.White), true);
+            regionLabels.Add(regionName);
+            OpCheckBox regionCheck = new OpCheckBox(new Configurable<bool>(true), new Vector2(10f, itemHeight - 32f -(70f * i)));
+            regionCheck.OnValueChanged += RegionCheck_OnValueChanged;
+            regionCheck.description = $"{i}.{array[i]}) Toggle weather this region on or off";
+            regionCheckBoxes.Add(regionCheck);
+            OpSimpleButton weatherSwitch = new OpSimpleButton(new Vector2(470f, itemHeight - 40f -(70f * i)), new Vector2(100f, 40f), "GLOBAL");
+            weatherSwitch.OnClick += WeatherSwitch_OnClick;
+            weatherSwitch.description = $"{i}.{array[i]}) Change this region's weather settings";
+            regionButtons.Add(weatherSwitch);
+            scrollBox.AddItems(rect, regionName, regionCheck, weatherSwitch);
+        }
+
+        #endregion
     }
 
-    private void RainButton_OnFocusLose(UIfocusable trigger)
+    private void WeatherSwitch_OnClick(UIfocusable trigger)
     {
-        if (weatherPreviews["rainPreview"].isPlaying)
+        int index = int.Parse(trigger.description.Split('.')[0]);
+        string region = trigger.description.Split('.')[1].Split(')')[0];
+        regionSettings[region]++;
+        if (regionSettings[region] == 4) { regionSettings[region] = 0; }
+
+        regionButtons[index].text = RegionModText(regionSettings[region]);
+        regionButtons[index].colorEdge = RegionButtonColor(regionSettings[region]);
+    }
+
+    private Color RegionButtonColor(int val)
+    {
+        switch (val)
         {
-            weatherPreviews["rainPreview"].Pause();
+            case 0:
+                return new Color(0.5f,0.5f,0.5f);
+            case 1:
+                return new Color(0f,0.8f,1f);
+            case 2:
+                return new Color(1f,1f,1f);
+            case 3:
+                return new Color(0f, 1f, 0f);
+        }
+        return Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
+    }
+
+    private string RegionModText(int val)
+    {
+        switch (val)
+        {
+            case 0:
+                return "GLOBAL";
+            case 1:
+                return "RAIN";
+            case 2:
+                return "SNOW";
+            case 3:
+                return "CUSTOM";
+        }
+        return "ERROR";
+    }
+
+    private void RegionCheck_OnValueChanged(UIconfig config, string value, string oldValue)
+    {
+        int index = int.Parse(config.description.Split('.')[0]);
+        if (regionCheckBoxes[index].value == "false")
+        {
+            regionRects[index].colorEdge = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
+            regionLabels[index].color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
+            regionButtons[index].greyedOut = true;
+        }
+        else
+        {
+            regionRects[index].colorEdge = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
+            regionLabels[index].color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
+            regionButtons[index].greyedOut = false;
         }
     }
 
-    private void RainButton_OnFocusGet(UIfocusable trigger)
+    private void SettingsButton_OnPressDone(UIfocusable trigger)
     {
-        if (!weatherPreviews["rainPreview"].isPlaying)
-        {
-            weatherPreviews["rainPreview"].Play();
-        }
+        settingsRect.size += new Vector2(0f, 5f);
     }
 
-    private void SnowButton_OnFocusLose(UIfocusable trigger)
+    private string StrikeDamageValue()
     {
-        if (weatherPreviews["snowPreview"].isPlaying)
+        switch (strikeDamageType.Value)
         {
-            weatherPreviews["snowPreview"].Pause();
+            case 0:
+                return "NONE";
+            case 1:
+                return "STUN";
+            case 2:
+                return "LETHAL";
         }
+        return "";
     }
 
-    private void SnowButton_OnFocusGet(UIfocusable trigger)
+    private string IntensityValue()
     {
-        if (!weatherPreviews["snowPreview"].isPlaying)
+        switch (weatherIntensity.Value)
         {
-            weatherPreviews["snowPreview"].Play();
+            case 0:
+                return "DYNAMIC";
+            case 1:
+                return "LOW";
+            case 2:
+                return "MEDIUM";
+            case 3:
+                return "HIGH";
         }
+        return "";
+    }
+
+    private string WindDirectionValue()
+    {
+        switch (windDirection.Value)
+        {
+            case 0:
+                return "RANDOM";
+            case 1:
+                return "LEFT";
+            case 2:
+                return "CENTER";
+            case 3:
+                return "RIGHT";
+        }
+        return "";
     }
 
     private void SnowButton_OnClick(UIfocusable trigger)
     {
-        if (!Forecast.snow)
+        if (weatherType.Value != 1)
         {
-            Forecast.snow = true;
+            weatherType.Value = 1;
             trigger.PlaySound(SoundID.MENU_Player_Join_Game);
+            settingsButton.text = "CHANGE " + (weatherType.Value == 1 ? "SNOW" : "RAIN") + "\nSETTINGS";
         }
     }
 
     private void RainButton_OnClick(UIfocusable trigger)
     {
-        if (Forecast.snow)
+        if (weatherType.Value == 1)
         {
-            Forecast.snow = false;
+            weatherType.Value = 0;
             trigger.PlaySound(SoundID.MENU_Player_Join_Game);
+            settingsButton.text = "CHANGE " + (weatherType.Value == 1 ? "SNOW" : "RAIN") + "\nSETTINGS";
         }
     }
 
     public override void Update()
     {
         base.Update();
-        if(rainButton != null && snowButton != null )
-        {
-            rainButton.sprite.alpha = Forecast.snow ? 0.3f : 1f;
-            snowButton.sprite.alpha = Forecast.snow ? 1f : 0.3f;
-        }
-    }
 
-    private void Custom_OnClick(UIfocusable trigger)
-    {
-        Dialog dialog = new ForecastDialog(Custom.rainWorld.processManager, this);
+        if(settingLabels!= null)
+        {
+            (settingLabels[4] as OpLabel).color = weatherType.Value == 1 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
+            (settingLabels[5] as OpLabel).color = weatherType.Value == 1 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
+
+            (settingLabels[9] as OpLabel).color = weatherType.Value == 1 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
+            (settingLabels[10] as OpLabel).color = weatherType.Value == 1 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
+            (settingLabels[11] as OpLabel).color = weatherType.Value == 1 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
+        }
+
+        if (rainButton != null && snowButton != null)
+        {
+            rainButton.sprite.alpha = weatherType.Value == 1 ? 0.2f : 1f;
+            snowButton.sprite.alpha = weatherType.Value == 1 ? 1f : 0.2f;
+
+            if ((weatherType.Value == 0 || rainButton.MouseOver || rainButton.Focused) && !(snowButton.MouseOver || snowButton.Focused))
+            {
+                rainButton.sprite.alpha = 1f;
+                if (!weatherPreviews["rainPreview"].isPlaying)
+                {
+                    weatherPreviews["rainPreview"].Play();
+                }
+            }
+            else
+            {
+                weatherPreviews["rainPreview"].Pause();
+            }
+
+            if ((weatherType.Value == 1 || snowButton.MouseOver || snowButton.Focused) && !(rainButton.MouseOver || rainButton.Focused))
+            {
+                snowButton.sprite.alpha = 1f;
+                if (!weatherPreviews["snowPreview"].isPlaying)
+                {
+                    weatherPreviews["snowPreview"].Play();
+                }
+            }
+            else
+            {
+                weatherPreviews["snowPreview"].Pause();
+            }
+        }
+        if (rainBanner != null && snowBanner != null)
+        {
+            snowBanner.alpha += weatherType.Value == 1 ? 0.025f : -0.025f;
+            snowBanner.alpha = Mathf.Clamp(snowBanner.alpha, 0f, 1f);
+
+            rainBanner.alpha += weatherType.Value == 1 ? -0.025f : 0.025f;
+            rainBanner.alpha = Mathf.Clamp(rainBanner.alpha, 0f, 1f);
+        }
     }
 
     public class ForecastDialog : Dialog, CheckBox.IOwnCheckBox, Slider.ISliderOwner
@@ -168,8 +532,6 @@ public class ForecastConfig : OptionInterface
         }
     }
 }
-
-
 
 //public class ForecastConfig : OptionInterface
 //{

@@ -34,7 +34,7 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
 
     public override void Update(bool eu)
     {
-        if (!Forecast.snow)
+        if (ForecastConfig.weatherType.Value == 0)
         {
             base.slatedForDeletetion = true;
         }

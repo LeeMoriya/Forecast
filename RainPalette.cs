@@ -70,7 +70,7 @@ class RainPalette
     private static void RoomCamera_ApplyPalette(On.RoomCamera.orig_ApplyPalette orig, RoomCamera self)
     {
         orig.Invoke(self);
-        if (Forecast.snow)
+        if (ForecastConfig.weatherType.Value == 1)
         {
             self.currentPalette.shortCutSymbol = new Color(1f, 0.7f, 0f);
         }
@@ -105,7 +105,7 @@ class RainPalette
                     for (int i = 0; i < colors.Length; i++)
                     {
                         //Rain
-                        if (!Forecast.snow)
+                        if (ForecastConfig.weatherType.Value == 0)
                         {
                             newColors[i] = Custom.Desaturate(colors[i], darkness * 0.05f);
                             newColors[i] = Color.Lerp(newColors[i], new Color(0f, 0f, 0f), darkness * 0.05f);
@@ -114,7 +114,7 @@ class RainPalette
                         //Snow
                         else
                         {
-                            if (RainFall.rainList.Contains(self.loadingRoom.abstractRoom.name))
+                            if (WeatherHooks.rainList.Contains(self.loadingRoom.abstractRoom.name))
                             {
                                 newColors[i] = colors[i];
                                 exterior1Cols[i] = Color.Lerp(exterior1Cols[i], new Color(0f, 0f, 0f), 0f);
@@ -132,13 +132,13 @@ class RainPalette
                 }
                 else
                 {
-                    if (Forecast.snow)
+                    if (ForecastConfig.weatherType.Value == 1)
                     {
                         //Determine palette needed
                         if (Forecast.rainRegions.Contains(room.world.region.name))
                         {
                             //Exterior
-                            if (RainFall.rainList.Contains(room.abstractRoom.name))
+                            if (WeatherHooks.rainList.Contains(room.abstractRoom.name))
                             {
                                 Color[] snowPalette = Forecast.snowExt1.GetPixels();
                                 for (int i = 0; i < modifiedPalette.Length; i++)

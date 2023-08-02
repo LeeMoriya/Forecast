@@ -28,7 +28,7 @@ public class Vignette : ISingleCameraDrawable
         vignette.shader = camera.game.rainWorld.Shaders["EdgeFade"];
         camera.AddSingleCameraDrawable(this);
         camera.ReturnFContainer("HUD").AddChild(vignette);
-        Debug.Log("VIGNETTE CREATED");
+        ForecastLog.Log("VIGNETTE CREATED");
     }
 
     public void Draw(RoomCamera camera, float timeStacker, Vector2 camPos)
@@ -82,7 +82,7 @@ public class ExposureController
         }
         dead = false;
 
-        Debug.Log("EXPOSURE CONTROLLER - PLAYER " + player.playerState.playerNumber);
+        ForecastLog.Log("EXPOSURE CONTROLLER - PLAYER " + player.playerState.playerNumber);
 
         if (Forecast.debug)
         {
@@ -254,7 +254,7 @@ public class ExposureController
                         bellRing++;
                         if (Forecast.debug && bellRing > 0)
                         {
-                            Debug.Log(bellRing);
+                            ForecastLog.Log(bellRing.ToString());
                         }
                         player.room.PlaySound(SoundID.MENU_Start_New_Game, player.mainBodyChunk, false, Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)), 1.3f);
                         if (bellRing == 25)
@@ -280,7 +280,7 @@ public class ExposureController
                         bellRing--;
                         if (Forecast.debug && bellRing > 0)
                         {
-                            Debug.Log(bellRing);
+                            ForecastLog.Log(bellRing.ToString());
                         }
                     }
                 }
@@ -307,7 +307,7 @@ public class ExposureController
                     blizzard = player.room.updateList[i] as Blizzard;
                     if (Forecast.debug)
                     {
-                        Debug.Log("UPDATED BLIZZARD TO " + player.room.abstractRoom.name);
+                        ForecastLog.Log("UPDATED BLIZZARD TO " + player.room.abstractRoom.name);
                     }
                     return;
                 }
@@ -471,17 +471,17 @@ public class WeatherSounds : UpdatableAndDeletable
 
 public class Blizzard : UpdatableAndDeletable
 {
-    public Preciptator preciptator;
+    public WeatherController preciptator;
     public int particleCount;
     public int particleLimit;
     public int cooldown;
     public float intensity = 0f;
 
-    public Blizzard(Preciptator preciptator)
+    public Blizzard(WeatherController preciptator)
     {
         if (Forecast.debug)
         {
-            Debug.Log("DOWNPOUR: Blizzard Created");
+            ForecastLog.Log("DOWNPOUR: Blizzard Created");
         }
         this.preciptator = preciptator;
         room = preciptator.room;
@@ -560,7 +560,7 @@ public class Blizzard : UpdatableAndDeletable
                             if (bodyChunk.contactPoint.y < 0)
                             {
                                 //On Ground
-                                if (Forecast.windDirection == 1)
+                                if (Forecast.blizzardDirection == 1)
                                 {
                                     bodyChunk.vel += Custom.DegToVec(270f) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
                                 }
@@ -572,7 +572,7 @@ public class Blizzard : UpdatableAndDeletable
                             else
                             {
                                 //Off Ground
-                                if (Forecast.windDirection == 1)
+                                if (Forecast.blizzardDirection == 1)
                                 {
                                     bodyChunk.vel += Custom.DegToVec(Mathf.Lerp(245f, 270f, UnityEngine.Random.value)) * UnityEngine.Random.value * ((!flag) ? 1.2f : 1.8f) * num / bodyChunk.mass;
                                 }
@@ -646,7 +646,7 @@ public class Blizzard : UpdatableAndDeletable
             }
             lastLastPos = lastPos;
 
-            if (Forecast.windDirection == 1)
+            if (Forecast.blizzardDirection == 1)
             {
                 pos.x -= xSway * 2f;
                 pos.y -= ySway * 2f;
@@ -709,7 +709,7 @@ public class Blizzard : UpdatableAndDeletable
             spriteName = sprite;
             this.scrollSpeed = scrollSpeed;
             this.alpha = Mathf.Lerp(0f, alpha, room.roomSettings.RainIntensity);
-            Debug.Log("DOWNPOUR: ScrollingTexture Added");
+            ForecastLog.Log("DOWNPOUR: ScrollingTexture Added");
         }
 
         public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
@@ -740,7 +740,7 @@ public class Blizzard : UpdatableAndDeletable
             sLeaser.sprites[0].alpha = Mathf.Lerp(0f, alpha, Mathf.InverseLerp(-0.5f, 0.5f, owner.TimePastCycleEnd));
 
             ////Left
-            if (Forecast.windDirection == 1)
+            if (Forecast.blizzardDirection == 1)
             {
                 //Bottom Left
                 (sLeaser.sprites[0] as TriangleMesh).MoveVertice(0, new Vector2(0f, 0f));

@@ -10,12 +10,14 @@ class RainSound : UpdatableAndDeletable
     public DisembodiedDynamicSoundLoop heavyRainSound;
     public DisembodiedDynamicSoundLoop interiorRainSound;
     public DisembodiedDynamicSoundLoop rumbleSound;
+    public WeatherController controller;
     public Room owner;
     public int ceiling = 0;
 
-    public RainSound(Room room)
+    public RainSound(Room room, WeatherController controller)
     {
         owner = room;
+        this.controller = controller;
         for (int r = 0; r < owner.TileWidth; r++)
         {
             if (owner.Tiles[r, owner.TileHeight - 1].Solid)
@@ -23,7 +25,7 @@ class RainSound : UpdatableAndDeletable
                 ceiling++;
             }
         }
-        if (!Forecast.snow)
+        if (controller.settings.weatherType == 0)
         {
             if (ceiling < (owner.Width * 0.95) && owner.regionGate == null)
             {
@@ -48,28 +50,28 @@ class RainSound : UpdatableAndDeletable
         {
             this.Destroy();
         }
-        else if(RainFall.rainIntensity > 0f)
+        else if(controller.settings != null && controller.settings.currentIntensity > 0f)
         {
             if (this.room.roomRain != null && this.room.roomSettings.RainIntensity > 0f)
             {
                 if (interiorRainSound != null)
                 {
-                    interiorRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.3f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity);
+                    interiorRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.3f, this.room.roomSettings.RainIntensity), controller.settings.currentIntensity);
                     interiorRainSound.Update();
                 }
                 if (normalRainSound != null)
                 {
-                    normalRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.85f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity * 1.7f);
+                    normalRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.85f, this.room.roomSettings.RainIntensity), controller.settings.currentIntensity * 1.7f);
                     normalRainSound.Update();
                 }
                 if (heavyRainSound != null)
                 {
-                    heavyRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.45f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity * 1.2f);
+                    heavyRainSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.45f, this.room.roomSettings.RainIntensity), controller.settings.currentIntensity * 1.2f);
                     heavyRainSound.Update();
                 }
                 if (rumbleSound != null)
                 {
-                    rumbleSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.4f, this.room.roomSettings.RainIntensity), RainFall.rainIntensity);
+                    rumbleSound.Volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.4f, this.room.roomSettings.RainIntensity), controller.settings.currentIntensity);
                     rumbleSound.Update();
                 }
             }

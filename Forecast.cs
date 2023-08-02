@@ -33,7 +33,27 @@ public class Forecast : BaseUnityPlugin
         {
             On.RainWorld.OnModsInit += RainWorld_OnModsInit;
             On.OverWorld.ctor += OverWorld_ctor;
+            On.Menu.MainMenu.ctor += MainMenu_ctor;
+            ForecastLog.ClearLog();
             init = true;
+        }
+    }
+
+    private void MainMenu_ctor(On.Menu.MainMenu.orig_ctor orig, MainMenu self, ProcessManager manager, bool showRegionSpecificBkg)
+    {
+        orig.Invoke(self,manager,showRegionSpecificBkg);
+        if(ForecastConfig.weatherPreviews != null)
+        {
+            if (ForecastConfig.weatherPreviews.ContainsKey("rainPreview"))
+            {
+                UnityEngine.Object.Destroy(ForecastConfig.weatherPreviews["rainPreview"].targetTexture);
+                UnityEngine.Object.Destroy(ForecastConfig.weatherPreviews["rainPreview"].gameObject);
+            }
+            if (ForecastConfig.weatherPreviews.ContainsKey("snowPreview"))
+            {
+                UnityEngine.Object.Destroy(ForecastConfig.weatherPreviews["snowPreview"].targetTexture);
+                UnityEngine.Object.Destroy(ForecastConfig.weatherPreviews["snowPreview"].gameObject);
+            }
         }
     }
 
@@ -50,7 +70,7 @@ public class Forecast : BaseUnityPlugin
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
     {
         orig.Invoke(self);
-        RainFall.Patch();
+        WeatherHooks.Patch();
         RainPalette.Patch();
         new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_ScreenShake);
         new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.MicroScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_MicroScreenShake);
@@ -60,7 +80,7 @@ public class Forecast : BaseUnityPlugin
 
     private float RainCycle_get_MicroScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
     {
-        if (snow && blizzard)
+        if (ForecastConfig.weatherType.Value == 0 && ForecastConfig.endBlizzard.Value)
         {
             return 0f;
         }
@@ -69,7 +89,7 @@ public class Forecast : BaseUnityPlugin
 
     private float RainCycle_get_ScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
     {
-        if (snow && blizzard)
+        if (ForecastConfig.weatherType.Value == 0 && ForecastConfig.endBlizzard.Value)
         {
             return 0f;
         }
@@ -79,30 +99,12 @@ public class Forecast : BaseUnityPlugin
     public static ForecastConfig Options;
     public static int palettecount = 0;
     public static bool paletteChange = true;
-    public static bool lightning = false;
-    public static bool strike = false;
-    public static int strikeDamage = 0;
-    public static bool dynamic = false;
-    public static int intensity = 2;
     public static bool rainbow = false;
-    public static bool configLoaded = false;
     public static bool debug = true;
-    public static bool snow = false;
-    public static bool bg = false;
-    public static bool water = true;
     public static bool decals = true;
-    public static bool dust = true;
-    public static bool blizzard = true;
-    public static bool effectColors = true;
-    public static List<string> rainRegions = new List<string>()
-    {
-        "SI","SU","CC"
-    };
+    public static List<string> rainRegions = new List<string>();
     public static List<ExposureController> exposureControllers;
-    public static int rainAmount = 50;
-    public static int direction = 0;
-    public static int windDirection = 0;
-    public static int rainChance = 100;
+    public static int blizzardDirection;
     public static bool interiorRain = true;
     public static Texture2D snowExt1;
     public static Texture2D snowInt1;
