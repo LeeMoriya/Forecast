@@ -32,6 +32,7 @@ public class WeatherController : UpdatableAndDeletable
     public WeatherSettings settings;
 
     public Color strikeColor = new Color(0f, 1f, 0f);
+    public float lightningCounter;
 
     public WeatherController(Room room, int weatherType)
     {
@@ -111,7 +112,10 @@ public class WeatherController : UpdatableAndDeletable
         //{
         //    ForecastLog.Log("Tile list mismatch!");
         //}
-        room.AddObject(new RainSound(room, this));
+        if (settings.rainVolume)
+        {
+            room.AddObject(new RainSound(room, this));
+        }
     }
 
     public void AddRaindrops(int rainDropsToSpawn)
@@ -206,6 +210,15 @@ public class WeatherController : UpdatableAndDeletable
         }
         player = (room.game.Players.Count <= 0) ? null : (room.game.Players[0].realizedCreature as Player);
 
+        if (settings.dynamicClouds)
+        {
+            room.roomSettings.Clouds = Mathf.Lerp(0f, 1f, settings.currentIntensity * 1.4f);
+        }
+        else
+        {
+            room.roomSettings.Clouds = settings.cloudCover;
+        }
+
         if (room.game != null && room != null && !room.abstractRoom.gate && room.ReadyForPlayer)
         {
             if (room.game != null && !room.abstractRoom.shelter && settings.backgroundLightning && room.roomRain != null)
@@ -216,12 +229,19 @@ public class WeatherController : UpdatableAndDeletable
                     room.lightning.bkgOnly = true;
                     room.lightning.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
                     room.lightning.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), settings.currentIntensity);
-                    strikeColor = new Color(1f, 1f, 0.95f);
                     room.AddObject(room.lightning);
                 }
-                if (settings.lightningStrikes && room.lightning != null && room.BeingViewed && room.roomRain != null && room.roomRain.dangerType == RoomRain.DangerType.Rain && UnityEngine.Random.value < settings.currentIntensity * 0.0010f)
+                if (settings.lightningStrikes && room.BeingViewed && room.roomRain != null && room.roomRain.dangerType == RoomRain.DangerType.Rain)
                 {
-                    room.AddObject(new LightningStrike(this, strikeColor)); //TODO - Use counter for spawning these and tie to spawn chance tag
+                    lightningCounter += 0.025f;
+                    if(lightningCounter >= settings.lightningInterval)
+                    {
+                        lightningCounter = 0;
+                        if(UnityEngine.Random.value < settings.lightningChance)
+                        {
+                            room.AddObject(new LightningStrike(this, settings.strikeColor));
+                        }
+                    }
                 }
             }
             if (!isSnow)
@@ -269,6 +289,8 @@ public class WeatherController : UpdatableAndDeletable
 
     public class WeatherSettings
     {
+        public int reloadDelay;
+
         public WeatherController owner;
         public int weatherType;
         public int weatherIntensity;
@@ -280,17 +302,23 @@ public class WeatherController : UpdatableAndDeletable
         public int particleLimit;
         public bool backgroundCollision;
         public bool waterCollision;
+        public bool dynamicClouds;
+        public float cloudCover;
         public bool backgroundLightning;
+        public bool rainVolume;
         public bool lightningStrikes;
+        public int lightningInterval;
+        public float lightningChance;
         public int strikeDamageType;
-        public List<string> weatherTags;
+        public Color strikeColor;
+        public List<string> globalTags;
+        public List<string> roomTags;
         //Debug HUD
         public FLabel debug;
         public bool show;
 
         public WeatherSettings(string region, string room, WeatherController owner)
         {
-            Debug.Log("New Settings");
             this.owner = owner;
             //Apply generic settings
             weatherType = 0;
@@ -301,8 +329,14 @@ public class WeatherController : UpdatableAndDeletable
             backgroundCollision = ForecastConfig.backgroundCollision.Value;
             waterCollision = ForecastConfig.waterCollision.Value;
             backgroundLightning = ForecastConfig.backgroundLightning.Value;
+            dynamicClouds = ForecastConfig.dynamicClouds.Value;
+            cloudCover = ForecastConfig.cloudCover.Value;
+            rainVolume = ForecastConfig.rainVolume.Value;
+            lightningInterval = ForecastConfig.lightningInterval.Value;
+            lightningChance = ForecastConfig.lightningChance.Value;
             lightningStrikes = ForecastConfig.lightningStrikes.Value;
             strikeDamageType = ForecastConfig.strikeDamageType.Value;
+            strikeColor = ForecastConfig.strikeColor.Value;
 
             switch (weatherIntensity)
             {
@@ -332,19 +366,27 @@ public class WeatherController : UpdatableAndDeletable
                 {
                     if (key == "GLOBAL" || key == room)
                     {
-                        if(weatherTags == null)
+                        if(globalTags == null)
                         {
-                            weatherTags = new List<string>();
+                            globalTags = new List<string>();
+                        }
+                        if (roomTags == null)
+                        {
+                            roomTags = new List<string>();
                         }
                         List<string> tags = ForecastConfig.customRegionSettings[region][key];
                         foreach (string tag in tags)
                         {
-                            if (!weatherTags.Contains(tag))
+                            if(key == "GLOBAL")
                             {
-                                weatherTags.Add(tag);
+                                globalTags.Add(tag);
+                            }
+                            if(key == room)
+                            {
+                                roomTags.Add(tag);
                             }
                             string type = tag.Split('_')[0];
-                            string data = tag.Split('_')[1];
+                            string data = tag.Split(new[] { '_' }, 2)[1];
                             switch (type)
                             {
                                 case "WI": //Weather Intensity
@@ -356,7 +398,7 @@ public class WeatherController : UpdatableAndDeletable
                                     else
                                     {
                                         int.TryParse(data, out int num);
-                                        fixedIntensity = num;
+                                        fixedIntensity = num / 100f;
                                         dynamic = false;
                                     }
                                     break;
@@ -382,11 +424,30 @@ public class WeatherController : UpdatableAndDeletable
                                 case "WA": //Water Collision
                                     waterCollision = data == "ON";
                                     break;
+                                case "RV": //Water Collision
+                                    rainVolume = data == "ON";
+                                    break;
                                 case "BL": //Background Lightning
                                     backgroundLightning = data == "ON";
                                     break;
+                                case "CC": //Cloud Cover
+                                    dynamicClouds = data == "ON";
+                                    if(data != "ON")
+                                    {
+                                        dynamicClouds = false;
+                                        int.TryParse(data, out int num5);
+                                        cloudCover = num5;
+                                    }
+                                    break;
                                 case "LS": //Lightning Strikes
                                     lightningStrikes = data == "ON";
+                                    break;
+                                case "LC": //Lightning interval and chance
+                                    string[] split = data.Split('_');
+                                    int.TryParse(split[0], out int interval);
+                                    float.TryParse(split[1], out float chance);
+                                    lightningInterval = interval;
+                                    lightningChance = chance / 100f;
                                     break;
                                 case "ST": //Strike Damage Type
                                     int dam = 0;
@@ -394,6 +455,18 @@ public class WeatherController : UpdatableAndDeletable
                                     if (data == "STUN") { dam = 1; }
                                     if (data == "LETHAL") { dam = 2; }
                                     strikeDamageType = dam;
+                                    break;
+                                case "SC":
+                                    Color col = new Color();
+                                    string[] RGB = data.Split('_');
+                                    int.TryParse(RGB[0], out int R);
+                                    int.TryParse(RGB[1], out int G);
+                                    int.TryParse(RGB[2], out int B);
+                                    col.r = R / 255f;
+                                    col.g = G / 255f;
+                                    col.b = B / 255f;
+                                    col.a = 1f;
+                                    strikeColor = col;
                                     break;
                             }
                         }
@@ -430,11 +503,24 @@ public class WeatherController : UpdatableAndDeletable
         {
             if (owner.room.BeingViewed)
             {
+                if(reloadDelay <= 0)
+                {
+                    if(Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Q))
+                    {
+                        reloadDelay = 100;
+                        ForecastConfig.customRegionSettings = new Dictionary<string, Dictionary<string, List<string>>>();
+                        ForecastConfig.LoadCustomRegionSettings();
+                    }
+                }
+                else
+                {
+                    reloadDelay--;
+                }
                 if(debug == null)
                 {
                     debug = new FLabel("font", "");
                     debug.alignment = FLabelAlignment.Left;
-                    debug.SetPosition(50f, 700f);
+                    debug.SetPosition(50.01f, 700.01f);
                     debug.SetAnchor(new Vector2(0f, 1f));
                     Futile.stage.AddChild(debug);
                     show = true;
@@ -447,20 +533,37 @@ public class WeatherController : UpdatableAndDeletable
                     }
                     string info = "";
                     info += $"{owner.room.abstractRoom.name} - WEATHER SETTINGS \n";
-                    info += "Intensity: " + (dynamic ? "Dynamic" : "Fixed") + $" - {currentIntensity}\n";
-                    info += "Tags: ";
-                    if(weatherTags == null)
+                    info += "Intensity: " + (dynamic ? "Dynamic" : "Fixed") + $" - {Mathf.RoundToInt(currentIntensity * 100f)}%\n";
+                    info += $"Particle Limit: {particleLimit}\n";
+                    info += "Global Tags: ";
+                    if(globalTags == null)
                     {
                         info += "NONE\n";
                     }
-                    else if(weatherTags.Count > 0)
+                    else if(globalTags.Count > 0)
                     {
-                        for (int i = 0; i < weatherTags.Count; i++)
+                        for (int i = 0; i < globalTags.Count; i++)
                         {
-                            info += weatherTags[i] + ", ";
+                            info += globalTags[i] + ", ";
                         }
                         info += "\n";
                     }
+                    info += "Room Tags: ";
+                    if (roomTags == null)
+                    {
+                        info += "NONE\n";
+                    }
+                    else if (roomTags.Count > 0)
+                    {
+                        for (int i = 0; i < roomTags.Count; i++)
+                        {
+                            info += roomTags[i] + ", ";
+                        }
+                        info += "\n";
+                    }
+                    info += "Lightning Strikes: " + (lightningStrikes ? "ON" : "OFF") + "\n";
+                    info += "Lightning Interval: " + (lightningStrikes ? (lightningInterval + " seconds") : "N/A") + "\n";
+                    info += "Lightning Chance: " + (lightningStrikes ? (lightningChance * 100f + "%") : "N/A") + "\n";
                     debug.text = info;
                 }
             }

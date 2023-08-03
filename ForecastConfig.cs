@@ -9,7 +9,6 @@ using System.Reflection;
 using Menu;
 using Menu.Remix;
 using Menu.Remix.MixedUI;
-using RWCustom;
 using UnityEngine.Video;
 
 public class ForecastConfig : OptionInterface
@@ -26,10 +25,17 @@ public class ForecastConfig : OptionInterface
 
     public static Configurable<bool> backgroundCollision;
     public static Configurable<bool> waterCollision;
+    public static Configurable<bool> dynamicClouds;
+    public static Configurable<float> cloudCover;
+
+    public static Configurable<bool> rainVolume;
 
     public static Configurable<bool> backgroundLightning;
     public static Configurable<bool> lightningStrikes;
+    public static Configurable<int> lightningInterval;
+    public static Configurable<float> lightningChance;
     public static Configurable<int> strikeDamageType;
+    public static Configurable<Color> strikeColor;
 
     public static Configurable<bool> endBlizzard;
     public static Configurable<bool> effectColors;
@@ -63,7 +69,7 @@ public class ForecastConfig : OptionInterface
 
         weatherType = config.Bind<int>("weatherType", 0);
 
-        weatherIntensity = config.Bind<int>("weatherIntensity", 1);
+        weatherIntensity = config.Bind<int>("weatherIntensity", 0);
         weatherChance = config.Bind<float>("weatherChance", 100f);
         windDirection = config.Bind<int>("windDirection", 0);
 
@@ -71,17 +77,24 @@ public class ForecastConfig : OptionInterface
 
         backgroundCollision = config.Bind<bool>("backgroundCollision", true);
         waterCollision = config.Bind<bool>("waterCollision", true);
+        dynamicClouds = config.Bind<bool>("dynamicClouds", true);
+        cloudCover = config.Bind<float>("cloudCover", 0.5f);
+
+        rainVolume = config.Bind<bool>("rainVolume", true);
 
         backgroundLightning = config.Bind<bool>("backgroundLightning", true);
         lightningStrikes = config.Bind<bool>("lightningStrikes", true);
+        lightningInterval = config.Bind<int>("lightningInterval", 10);
+        lightningChance = config.Bind<float>("lightningChance", 0.15f);
         strikeDamageType = config.Bind<int>("strikeDamageType", 0);
+        strikeColor = config.Bind<Color>("strikeColor", new Color(1f, 1f, 0.95f, 1f));
 
         endBlizzard = config.Bind<bool>("endBlizzard", true);
         effectColors = config.Bind<bool>("effectColors", true);
         snowPuffs = config.Bind<bool>("snowPuffs", true);
     }
 
-    public void LoadCustomRegionSettings()
+    public static void LoadCustomRegionSettings()
     {
         string[] array = new string[]
         {

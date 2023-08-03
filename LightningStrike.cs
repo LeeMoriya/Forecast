@@ -12,8 +12,10 @@ public class LightningStrike : UpdatableAndDeletable
     public bool contact;
     public int splits;
     public bool once = false;
+    public WeatherController weatherController;
     public LightningStrike(WeatherController pre, Color col)
     {
+        weatherController = pre;
         //Assign the starting position of the lightning strike
         if (!once)
         {
@@ -129,7 +131,7 @@ public class LightningStrike : UpdatableAndDeletable
                     this.room.AddObject(new SootMark(this.room, pathPositions.Last() + new Vector2(0f, 15f), 50f, false));
                     this.room.AddObject(new LightningFlash(pathPositions.Last() + new Vector2(0f, 15f), this.color, 90f, 1f, false));
                     this.room.AddObject(new LightningImpact(pathPositions.Last() + new Vector2(0f, 10f), 35f, this.color));
-                    switch (ForecastConfig.strikeDamageType.Value)
+                    switch (lightningStrike.weatherController.settings.strikeDamageType)
                     {
                         case 0:
                             this.room.AddObject(new Explosion(this.room, null, pathPositions.Last() + new Vector2(0f, 15f), 7, 10f, 0f, 0f, 0f, 0.02f, null, 0.7f, 160f, 1f));
@@ -252,7 +254,7 @@ public class LightningStrike : UpdatableAndDeletable
                 alpha -= 0.01f;
             }
             sLeaser.sprites[1].alpha -= 0.01f;
-            if (alpha < 0f || !room.BeingViewed)
+            if (alpha <= 0f || !room.BeingViewed)
             {
                 done = true;
             }
