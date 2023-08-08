@@ -11,19 +11,17 @@ using System.Runtime.CompilerServices;
 public class WeatherHooks
 {
     public static ConditionalWeakTable<Room, WeatherController.WeatherSettings> roomSettings = new ConditionalWeakTable<Room, WeatherController.WeatherSettings>();
+    public static WeatherForecast weatherForecast;
 
-    public static float rainIntensity;
-    public static List<string> roomRainList;
-    public static float startingIntensity;
-    public static float rainAmount = 0;
-    public static int ceilingCount = 0;
-    public static Vector2 lastPlayerPos = new Vector2();
-    public static bool noRain = false;
-    public static List<string> rainList = new List<string>();
-    public static int direction;
-    public static bool noRainThisCycle = false;
-    public static float floodLevel = 0;
-    public static bool flooding = false;
+    public static List<RoomRain.DangerType> invalidDangerTypes = new List<RoomRain.DangerType>() //Invalid dangerTypes, don't spawn a WeatherController if the room uses one of these
+    {
+        RoomRain.DangerType.AerieBlizzard,
+        RoomRain.DangerType.Flood,
+        RoomRain.DangerType.None,
+        MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard
+    };
+
+    public static float rainIntensity; //OLD - used for classic snow
 
     public static void Patch()
     {
@@ -33,7 +31,6 @@ public class WeatherHooks
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
         On.Lightning.ctor += Lightning_ctor;
         On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
-        On.AbstractRoom.Abstractize += AbstractRoom_Abstractize;
         On.RainWorld.LoadResources += RainWorld_LoadResources;
         On.Player.ctor += Player_ctor;
         On.RainCycle.RainHit += RainCycle_RainHit;
@@ -44,7 +41,19 @@ public class WeatherHooks
     private static void StoryGameSession_ctor(On.StoryGameSession.orig_ctor orig, StoryGameSession self, SlugcatStats.Name saveStateNumber, RainWorldGame game)
     {
         orig.Invoke(self, saveStateNumber, game);
-        if(Forecast.debug && Forecast.exposureControllers != null)
+
+        if (weatherForecast == null)
+        {
+            weatherForecast = new WeatherForecast();
+            ForecastLog.Log($"FORECAST: Creating WeatherForecast object");
+        }
+        else
+        {
+            weatherForecast.PrepareCycle(); 
+            ForecastLog.Log($"FORECAST: Preparing next forecast");
+        }
+
+        if (Forecast.debug && Forecast.exposureControllers != null)
         {
             for (int i = 0; i < Forecast.exposureControllers.Count; i++)
             {
@@ -87,26 +96,23 @@ public class WeatherHooks
     private static void AbstractRoom_RealizeRoom(On.AbstractRoom.orig_RealizeRoom orig, AbstractRoom self, World world, RainWorldGame game)
     {
         orig.Invoke(self, world, game);
-        if (!noRain)
+        //Add Weather Object
+        int ceilingCount;
+        if (self.realizedRoom != null && self.realizedRoom.roomRain != null)
         {
-            //Add Weather Object
-            if (self.realizedRoom != null && self.realizedRoom.roomRain != null)
+            if (!self.shelter && !self.gate && !invalidDangerTypes.Contains(self.realizedRoom.roomRain.dangerType) && !roomSettings.TryGetValue(self.realizedRoom, out WeatherController.WeatherSettings t))
             {
-                if (!self.shelter && !self.gate && self.realizedRoom.roomRain.dangerType != RoomRain.DangerType.Flood && !rainList.Contains(self.name))
+                ceilingCount = 0;
+                for (int r = 0; r < self.realizedRoom.TileWidth; r++)
                 {
-                    ceilingCount = 0;
-                    for (int r = 0; r < self.realizedRoom.TileWidth; r++)
+                    if (self.realizedRoom.Tiles[r, self.realizedRoom.TileHeight - 1].Solid)
                     {
-                        if (self.realizedRoom.Tiles[r, self.realizedRoom.TileHeight - 1].Solid)
-                        {
-                            ceilingCount++;
-                        }
+                        ceilingCount++;
                     }
-                    if (ceilingCount < (self.realizedRoom.Width * 0.95))
-                    {
-                        rainList.Add(self.name);
-                        self.realizedRoom.AddObject(new WeatherController(self.realizedRoom, ForecastConfig.weatherType.Value));
-                    }
+                }
+                if (ceilingCount < (self.realizedRoom.Width * 0.95))
+                {
+                    self.realizedRoom.AddObject(new WeatherController(self.realizedRoom));
                 }
             }
         }
@@ -187,39 +193,10 @@ public class WeatherHooks
         }
     }
 
-    private static void AbstractRoom_Abstractize(On.AbstractRoom.orig_Abstractize orig, AbstractRoom self)
-    {
-        orig.Invoke(self);
-        if (self != null && self.realizedRoom == null && rainList.Contains(self.name))
-        {
-            rainList.Remove(self.name);
-        }
-    }
-
     private static void ArenaGameSession_SpawnPlayers(On.ArenaGameSession.orig_SpawnPlayers orig, ArenaGameSession self, Room room, List<int> suggestedDens)
     {
         orig.Invoke(self, room, suggestedDens);
-        if (ForecastConfig.weatherIntensity.Value > 0)
-        {
-            if (ForecastConfig.weatherIntensity.Value == 1)
-            {
-                rainIntensity = 0.31f;
-            }
-            if (ForecastConfig.weatherIntensity.Value == 2)
-            {
-                rainIntensity = 0.6f;
-            }
-            if (ForecastConfig.weatherIntensity.Value == 3)
-            {
-                rainIntensity = 1f;
-            }
-        }
-        else
-        {
-            rainIntensity = UnityEngine.Random.Range(0.3f, 1f);
-        }
-        startingIntensity = rainIntensity;
-        ForecastLog.Log("Current rain intensity: " + rainIntensity);
+        int ceilingCount = 0;
         if (self != null && room.roomRain != null)
         {
             for (int r = 0; r < room.TileWidth; r++)
@@ -229,11 +206,10 @@ public class WeatherHooks
                     ceilingCount++;
                 }
             }
-            if (ceilingCount < (room.Width * 0.95) && !noRain)
+            if (ceilingCount < (room.Width * 0.95))
             {
-                room.AddObject(new WeatherController(room, ForecastConfig.weatherType.Value));
+                room.AddObject(new WeatherController(room));
             }
-            ceilingCount = 0;
         }
     }
     private static void Lightning_ctor(On.Lightning.orig_ctor orig, Lightning self, Room room, float intensity, bool bkgOnly)
@@ -254,46 +230,8 @@ public class WeatherHooks
     private static void StoryGameSession_AddPlayer(On.StoryGameSession.orig_AddPlayer orig, StoryGameSession self, AbstractCreature player)
     {
         orig.Invoke(self, player);
-        rainList.Clear();
-
-        //Rain Chance
-        if (UnityEngine.Random.Range(0, 100) < ForecastConfig.weatherChance.Value)
-        {
-            noRainThisCycle = false;
-        }
-        else
-        {
-            noRainThisCycle = true;
-        }
-        //Rain Starting Intensity (Non-Dynamic)
-        if (ForecastConfig.weatherIntensity.Value > 0)
-        {
-            if (ForecastConfig.weatherIntensity.Value == 1)
-            {
-                rainIntensity = 0.31f;
-            }
-            if (ForecastConfig.weatherIntensity.Value == 2)
-            {
-                rainIntensity = 0.6f;
-            }
-            if (ForecastConfig.weatherIntensity.Value == 3)
-            {
-                rainIntensity = 0.9f;
-            }
-        }
-        //Rain Starting Intensity (Dynamic)
-        else
-        {
-            if (ForecastConfig.weatherType.Value != 0)
-            {
-                rainIntensity = UnityEngine.Random.Range(-1.5f, 0.8f);
-            }
-            else
-            {
-                rainIntensity = UnityEngine.Random.Range(0.15f, 0.9f);
-            }
-        }
         //Rain Direction
+        int direction = 2;
         switch (ForecastConfig.windDirection.Value)
         {
             case 0:
@@ -311,9 +249,9 @@ public class WeatherHooks
                 break;
         }
         int leftOrRight = direction;
-        if(direction == 2)
+        if (direction == 2)
         {
-            if(UnityEngine.Random.value >= 0.5f)
+            if (UnityEngine.Random.value >= 0.5f)
             {
                 leftOrRight = 3;
             }
@@ -323,36 +261,10 @@ public class WeatherHooks
             }
         }
         Forecast.blizzardDirection = leftOrRight;
-        //Apply Rain Intensity
-        if (!noRainThisCycle)
-        {
-            startingIntensity = rainIntensity;
-        }
-        else
-        {
-            startingIntensity = 0;
-            rainIntensity = 0;
-        }
     }
     private static void Room_Loaded(On.Room.orig_Loaded orig, Room self)
     {
         orig.Invoke(self);
-        //Enable Weather Per-Region based on Config
-        if (self.game != null && !self.game.IsArenaSession)
-        {
-            if (Forecast.rainRegions.Contains(self.world.region.name))
-            {
-                noRain = false;
-            }
-            else
-            {
-                noRain = true;
-            }
-        }
-        else
-        {
-            noRain = false;
-        }
         if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value)
         {
             if (self.game != null && !self.abstractRoom.shelter)
@@ -367,7 +279,7 @@ public class WeatherHooks
         if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value && self.world.rainCycle.RainDarkPalette > 0f)
         {
             //Update exposure
-            if(Forecast.exposureControllers != null & Forecast.exposureControllers.Count > 0)
+            if (Forecast.exposureControllers != null & Forecast.exposureControllers.Count > 0)
             {
                 for (int i = 0; i < Forecast.exposureControllers.Count; i++)
                 {
@@ -377,55 +289,12 @@ public class WeatherHooks
         }
         if (Forecast.debug && self.BeingViewed)
         {
-            //Decrease Intensity
-            if (Input.GetKey(KeyCode.Alpha1))
-            {
-                rainIntensity -= 0.005f;
-                if (rainIntensity < 0f)
-                {
-                    rainIntensity = 0f;
-                }
-                ForecastLog.Log("Rain Intensity = " + rainIntensity);
-            }
-            //Increase Intensity
-            if (Input.GetKey(KeyCode.Alpha2))
-            {
-                rainIntensity += 0.005f;
-                if (rainIntensity > 1f)
-                {
-                    rainIntensity = 1f;
-                }
-                ForecastLog.Log("Rain Intensity = " + rainIntensity);
-            }
-            //Show Room X and Y pos
-            if (Input.GetKey(KeyCode.Alpha3))
-            {
-                if (self.BeingViewed)
-                {
-                    ForecastLog.Log("---ROOM POSITION---");
-                    ForecastLog.Log("X POS: " + self.abstractRoom.mapPos.x.ToString());
-                    ForecastLog.Log("Y POS: " + self.abstractRoom.mapPos.y.ToString());
-                }
-            }
             //Fast Forward Cycle Timer
             if (Input.GetKey(KeyCode.Alpha5))
             {
                 self.world.rainCycle.timer += 25;
             }
-
         }
-        ////Rain intensity increases with cycle duration if in dynamic mode
-        //if (ForecastConfig.weatherIntensity.Value == 0 && !noRainThisCycle && self.BeingViewed)
-        //{
-        //    if (self.world.rainCycle.RainDarkPalette <= 0)
-        //    {
-        //        rainIntensity = Mathf.Lerp(startingIntensity, 1f, self.world.rainCycle.CycleProgression);
-        //    }
-        //    else
-        //    {
-        //        rainIntensity = Mathf.Lerp(0.95f, 0f, self.world.rainCycle.RainDarkPalette);
-        //    }
-        //}
     }
 }
 

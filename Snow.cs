@@ -61,7 +61,7 @@ public class SnowFlake : CosmeticSprite
         this.vel = this.dir;
         this.pos += vel * (4f * rainIntensity);
         dirCounter = UnityEngine.Random.Range(2f, 10f);
-        switch (spawner.direction)
+        switch (spawner.settings.windDirection)
         {
             case 1:
                 directionAdjust = -1.2f;
@@ -145,7 +145,7 @@ public class SnowFlake : CosmeticSprite
         this.vel.y = Mathf.Lerp((-2.5f * WeatherHooks.rainIntensity), (-4f * WeatherHooks.rainIntensity), this.depth);
 
         //Horizontal Velocity
-        if (spawner.direction == 1)
+        if (spawner.settings.windDirection == 1)
         {
             if ((vel.x > 1f * WeatherHooks.rainIntensity || vel.x < -4f * WeatherHooks.rainIntensity) && dirCounter <= 0f)
             {
@@ -157,7 +157,7 @@ public class SnowFlake : CosmeticSprite
                 dirCounter = UnityEngine.Random.Range(2f, 10f);
             }
         }
-        else if (spawner.direction == 2)
+        else if (spawner.settings.windDirection == 2)
         {
             if ((vel.x > 4f * WeatherHooks.rainIntensity || vel.x < -4f * WeatherHooks.rainIntensity) && dirCounter <= 0f)
             {

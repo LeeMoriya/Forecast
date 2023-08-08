@@ -70,7 +70,7 @@ public class ForecastConfig : OptionInterface
         weatherType = config.Bind<int>("weatherType", 0);
 
         weatherIntensity = config.Bind<int>("weatherIntensity", 0);
-        weatherChance = config.Bind<float>("weatherChance", 100f);
+        weatherChance = config.Bind<float>("weatherChance", 50f);
         windDirection = config.Bind<int>("windDirection", 0);
 
         particleLimit = config.Bind<int>("particleLimit", 100);

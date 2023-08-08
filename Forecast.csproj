@@ -85,6 +85,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RainDrop.cs" />
     <Compile Include="WeatherController.cs" />
+    <Compile Include="WeatherForecast.cs" />
     <Compile Include="WeatherHooks.cs" />
     <Compile Include="RainPalette.cs" />
     <Compile Include="RainSound.cs" />

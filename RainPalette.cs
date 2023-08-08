@@ -114,7 +114,7 @@ class RainPalette
                         //Snow
                         else
                         {
-                            if (WeatherHooks.rainList.Contains(self.loadingRoom.abstractRoom.name))
+                            if (WeatherHooks.roomSettings.TryGetValue(self.loadingRoom, out WeatherController.WeatherSettings s))
                             {
                                 newColors[i] = colors[i];
                                 exterior1Cols[i] = Color.Lerp(exterior1Cols[i], new Color(0f, 0f, 0f), 0f);
@@ -138,7 +138,7 @@ class RainPalette
                         if (Forecast.rainRegions.Contains(room.world.region.name))
                         {
                             //Exterior
-                            if (WeatherHooks.rainList.Contains(room.abstractRoom.name))
+                            if (WeatherHooks.roomSettings.TryGetValue(self.loadingRoom, out WeatherController.WeatherSettings s))
                             {
                                 Color[] snowPalette = Forecast.snowExt1.GetPixels();
                                 for (int i = 0; i < modifiedPalette.Length; i++)
