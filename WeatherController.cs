@@ -225,13 +225,13 @@ public class WeatherController : UpdatableAndDeletable
                     room.lightning.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), settings.currentIntensity);
                     room.AddObject(room.lightning);
                 }
-                if (settings.lightningStrikes && room.BeingViewed && room.roomRain != null && room.roomRain.dangerType == RoomRain.DangerType.Rain)
+                if (settings.lightningStrikes && room.BeingViewed && room.roomRain != null)
                 {
                     lightningCounter += 0.025f;
                     if(lightningCounter >= settings.lightningInterval)
                     {
                         lightningCounter = 0;
-                        if(UnityEngine.Random.value < settings.lightningChance)
+                        if(UnityEngine.Random.Range(0,100) <= settings.lightningChance)
                         {
                             room.AddObject(new LightningStrike(this, settings.strikeColor));
                         }
@@ -292,7 +292,7 @@ public class WeatherController : UpdatableAndDeletable
         public float currentIntensity;
         public float fixedIntensity;
         public bool dynamic;
-        public float weatherChance;
+        public int weatherChance;
         public int windDirection;
         public int particleLimit;
         public bool backgroundCollision;
@@ -303,7 +303,7 @@ public class WeatherController : UpdatableAndDeletable
         public bool rainVolume;
         public bool lightningStrikes;
         public int lightningInterval;
-        public float lightningChance;
+        public int lightningChance;
         public int strikeDamageType;
         public Color strikeColor;
         public List<string> globalTags;
@@ -406,7 +406,7 @@ public class WeatherController : UpdatableAndDeletable
                                     windDirection = dir;
                                     break;
                                 case "WC": //Weather Chance
-                                    float.TryParse(data, out float num3);
+                                    int.TryParse(data, out int num3);
                                     weatherChance = num3;
                                     break;
                                 case "PL": //Particle Limit
@@ -440,9 +440,9 @@ public class WeatherController : UpdatableAndDeletable
                                 case "LC": //Lightning interval and chance
                                     string[] split = data.Split('_');
                                     int.TryParse(split[0], out int interval);
-                                    float.TryParse(split[1], out float chance);
+                                    int.TryParse(split[1], out int chance);
                                     lightningInterval = interval;
-                                    lightningChance = chance / 100f;
+                                    lightningChance = chance;
                                     break;
                                 case "ST": //Strike Damage Type
                                     int dam = 0;
@@ -508,7 +508,7 @@ public class WeatherController : UpdatableAndDeletable
                 }
             }
             //Determine whether chance based on Global or Custom value
-            if(!WeatherHooks.weatherForecast.weatherlessRegions.Contains(region) && weatherChance < UnityEngine.Random.value)
+            if (!WeatherHooks.weatherForecast.weatherlessRegions.Contains(region) && weatherChance < UnityEngine.Random.Range(0, 100))
             {
                 WeatherHooks.weatherForecast.weatherlessRegions.Add(region);
                 ForecastLog.Log($"FORECAST: Region: {region} failed weatherChance - DISABLED this cycle");
@@ -549,10 +549,10 @@ public class WeatherController : UpdatableAndDeletable
                         Futile.stage.AddChild(debug);
                     }
                     string info = "";
-                    info += $"{owner.room.abstractRoom.name} - WEATHER SETTINGS \n";
+                    info += $"{owner.room.abstractRoom.name} - WEATHER SETTINGS \n\n";
                     info += $"Weather Chance: {weatherChance}% - {(owner.disabled ? "DISABLED" : "ENABLED")}\n";
                     info += "Intensity: " + (dynamic ? "Dynamic" : "Fixed") + $" - {Mathf.RoundToInt(currentIntensity * 100f)}%\n";
-                    info += $"Particle Limit: {particleLimit}\n";
+                    info += $"Particle Limit: {particleLimit}\n\n";
                     info += "Global Tags: ";
                     if(globalTags == null)
                     {
@@ -579,9 +579,10 @@ public class WeatherController : UpdatableAndDeletable
                         }
                         info += "\n";
                     }
+                    info += "\n";
                     info += "Lightning Strikes: " + (lightningStrikes ? "ON" : "OFF") + "\n";
-                    info += "Lightning Interval: " + (lightningStrikes ? (lightningInterval + " seconds") : "N/A") + "\n";
-                    info += "Lightning Chance: " + (lightningStrikes ? (lightningChance * 100f + "%") : "N/A") + "\n";
+                    info += "Lightning Interval: " + (lightningStrikes ? ($"{Mathf.RoundToInt(owner.lightningCounter)} / {lightningInterval}") : "N/A") + "\n";
+                    info += "Lightning Chance: " + (lightningStrikes ? (lightningChance + "%") : "N/A") + "\n";
                     debug.text = info;
                 }
             }

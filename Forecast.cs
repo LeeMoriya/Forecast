@@ -28,38 +28,25 @@ public class Forecast : BaseUnityPlugin
         
     }
 
-    public void Awake()
+    public void OnEnable()
     {
-        On.RainWorld.OnModsInit += delegate (On.RainWorld.orig_OnModsInit orig, RainWorld self)
-        {
-            orig.Invoke(self);
-            if (!init)
-            {
-                On.RainWorld.OnModsInit += RainWorld_OnModsInit;
-                On.OverWorld.ctor += OverWorld_ctor;
-                ForecastLog.ClearLog();
-                init = true;
-            }
-        };
-    }
-
-    private void OverWorld_ctor(On.OverWorld.orig_ctor orig, OverWorld self, RainWorldGame game)
-    {
-        orig.Invoke(self,game);
-        rainRegions = new List<string>();
-        foreach(Region r in self.regions)
-        {
-            rainRegions.Add(r.name);
-        }
+        On.RainWorld.OnModsInit += RainWorld_OnModsInit;
     }
 
     private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
     {
         orig.Invoke(self);
-        WeatherHooks.Patch();
-        //RainPalette.Patch();
-        new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_ScreenShake);
-        new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.MicroScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_MicroScreenShake);
+
+        ForecastLog.ClearLog();
+        if (!init)
+        {
+            WeatherHooks.Patch();
+            //RainPalette.Patch();
+            //new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_ScreenShake);
+            //new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.MicroScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_MicroScreenShake);
+            init = true;
+        }
+
         Options = new ForecastConfig(this);
         MachineConnector.SetRegisteredOI("forecast", Options);
     }

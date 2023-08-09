@@ -19,7 +19,7 @@ public class ForecastConfig : OptionInterface
     public static Configurable<int> weatherType;
 
     public static Configurable<int> weatherIntensity;
-    public static Configurable<float> weatherChance;
+    public static Configurable<int> weatherChance;
     public static Configurable<int> windDirection;
 
     public static Configurable<int> particleLimit;
@@ -34,7 +34,7 @@ public class ForecastConfig : OptionInterface
     public static Configurable<bool> backgroundLightning;
     public static Configurable<bool> lightningStrikes;
     public static Configurable<int> lightningInterval;
-    public static Configurable<float> lightningChance;
+    public static Configurable<int> lightningChance;
     public static Configurable<int> strikeDamageType;
     public static Configurable<Color> strikeColor;
 
@@ -50,6 +50,22 @@ public class ForecastConfig : OptionInterface
     public OpImage rainBanner;
     public OpRect supportRect;
     public OpSimpleButton supportModeButton;
+    public bool init = false;
+
+    public UIelement[] settings;
+    public OpSimpleButton intensityToggle;
+    public OpSimpleButton windToggle;
+    public OpScrollBox settingsBox;
+    public OpSimpleButton bgToggle;
+    public OpSimpleButton strikeToggle;
+    public OpLabel supportWarning;
+    public OpLabel supportWarningDesc;
+    public OpSimpleButton strikeTypeToggle;
+    public OpSlider intervalSlider;
+    public OpSlider strikeChanceSlider;
+    public OpSimpleButton backgroundCollisionToggle;
+    public OpSimpleButton waterCollisionToggle;
+
 
     //Region
     List<OpRect> regionRects;
@@ -66,9 +82,9 @@ public class ForecastConfig : OptionInterface
         weatherType = config.Bind<int>("weatherType", 0);
         supportMode = config.Bind<bool>("supportMode", false);
 
-        weatherIntensity = config.Bind<int>("weatherIntensity", 0);
-        weatherChance = config.Bind<float>("weatherChance", 100f);
-        windDirection = config.Bind<int>("windDirection", 0);
+        weatherIntensity = config.Bind<int>("weatherIntensity", 0, new ConfigAcceptableRange<int>(0, 3));
+        weatherChance = config.Bind<int>("weatherChance", 100, new ConfigAcceptableRange<int>(0, 100));
+        windDirection = config.Bind<int>("windDirection", 0, new ConfigAcceptableRange<int>(0, 3));
 
         particleLimit = config.Bind<int>("particleLimit", 100);
 
@@ -81,8 +97,8 @@ public class ForecastConfig : OptionInterface
 
         backgroundLightning = config.Bind<bool>("backgroundLightning", true);
         lightningStrikes = config.Bind<bool>("lightningStrikes", true);
-        lightningInterval = config.Bind<int>("lightningInterval", 10);
-        lightningChance = config.Bind<float>("lightningChance", 0.15f);
+        lightningInterval = config.Bind<int>("lightningInterval", 10, new ConfigAcceptableRange<int>(1,60));
+        lightningChance = config.Bind<int>("lightningChance", 15);
         strikeDamageType = config.Bind<int>("strikeDamageType", 0);
         strikeColor = config.Bind<Color>("strikeColor", new Color(1f, 1f, 0.95f, 1f));
 
@@ -105,7 +121,7 @@ public class ForecastConfig : OptionInterface
 
         for (int i = 0; i < array.Length; i++)
         {
-            if(File.Exists(AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar + array[i] + Path.DirectorySeparatorChar + array[i] + "_forecast.txt")))
+            if (File.Exists(AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar + array[i] + Path.DirectorySeparatorChar + array[i] + "_forecast.txt")))
             {
                 ForecastLog.Log($"FORECAST: Custom settings found for {array[i]}");
 
@@ -154,7 +170,7 @@ public class ForecastConfig : OptionInterface
                     {
                         roomSection = true;
                     }
-                    
+
                 }
                 if (!globalSettings)
                 {
@@ -165,12 +181,12 @@ public class ForecastConfig : OptionInterface
 
         }
 
-        foreach(string reg in customRegionSettings.Keys)
+        foreach (string reg in customRegionSettings.Keys)
         {
-            foreach(string key in customRegionSettings[reg].Keys)
+            foreach (string key in customRegionSettings[reg].Keys)
             {
                 string tags = "";
-                foreach(string tag in customRegionSettings[reg][key])
+                foreach (string tag in customRegionSettings[reg][key])
                 {
                     tags += tag;
                     tags += " ";
@@ -182,6 +198,7 @@ public class ForecastConfig : OptionInterface
 
     public override void Initialize()
     {
+        init = false;
         var options = new OpTab(this, "Options");
         var regions = new OpTab(this, "Regions");
         Tabs = new[]
@@ -207,18 +224,125 @@ public class ForecastConfig : OptionInterface
         options.AddItems(version, rainBanner);
 
         //Support Mode
-        supportRect = new OpRect(new Vector2(10f, 410f), new Vector2(580f, 80f));
+        supportRect = new OpRect(new Vector2(10f, 420f), new Vector2(580f, 80f));
         supportRect.colorEdge = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0.7f, 0.7f, 0.7f);
         supportRect.colorFill = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0f, 0f, 0f);
-        OpLabel supportTitle = new OpLabel(41f, 495f, "SUPPORT MODE");
+        OpLabel supportTitle = new OpLabel(165f, 470f, "SUPPORT MODE");
         OpLabel supportDesc = new OpLabel(165f, 440f, "When support mode is active, Forecast will not generate any weather\nunless a region has custom settings defined.");
 
-        supportModeButton = new OpSimpleButton(new Vector2(33f, 427f), new Vector2(110f, 45f), supportMode.Value ? "DISABLE" : "ENABLE");
+        supportModeButton = new OpSimpleButton(new Vector2(33f, 437f), new Vector2(110f, 45f), supportMode.Value ? "ENABLED" : "DISABLED");
         supportModeButton.OnClick += SupportModeButton_OnClick;
-        options.AddItems(supportRect, supportTitle ,supportDesc, supportModeButton);
+        options.AddItems(supportRect, supportTitle, supportDesc, supportModeButton);
 
-        OpRect settingsRect = new OpRect(new Vector2(0f, 0f), new Vector2(600f, 400f));
-        options.AddItems(settingsRect);
+        float settingsHeight = 1150f;
+        settingsBox = new OpScrollBox(new Vector2(0f, 0f), new Vector2(600f, 400f), settingsHeight, false, true, true);
+        options.AddItems(settingsBox);
+
+        OpLabel globalSettings = new OpLabel(new Vector2(290f, settingsHeight - 35f), new Vector2(), "GLOBAL SETTINGS", FLabelAlignment.Center, true);
+        OpLabel globalDesc = new OpLabel(new Vector2(290f, settingsHeight - 70f), new Vector2(), "Define settings that apply to all rooms and regions where weather is enabled.\nYou can configure which regions receive weather in the 'Regions' tab.", FLabelAlignment.Center);
+
+        //BASIC SETTINGS
+        float basicAnchor = settingsHeight - 140f;
+        OpLabel basicLabel = new OpLabel(new Vector2(290f, basicAnchor + 15f), new Vector2(), "- BASIC SETTINGS -", FLabelAlignment.Center);
+
+        OpRect basicSettingsRect = new OpRect(new Vector2(15f, basicAnchor - 313.5f), new Vector2(555f, 320f));
+        basicSettingsRect.colorFill = new Color(0f, 0f, 1f);
+        settingsBox.AddItems(basicSettingsRect, basicLabel);
+
+        //Weather Intensity
+        OpLabel intensityLabel = new OpLabel(160f, basicAnchor - 30f, "WEATHER INTENSITY");
+        OpLabel intensityDesc = new OpLabel(160f, basicAnchor - 50f, "Adjust whether intensity should change over time or be a fixed value");
+        intensityToggle = new OpSimpleButton(new Vector2(30f, basicAnchor - 55f), new Vector2(110f, 45f), IntensityValue());
+        intensityToggle.OnClick += IntensityToggle_OnClick;
+        settingsBox.AddItems(globalSettings, globalDesc, intensityLabel, intensityDesc, intensityToggle);
+
+        //Weather Chance
+        OpSlider weatherChanceSlider = new OpSlider(weatherChance, new Vector2(30f, basicAnchor - 120f), 110, false);
+        OpLabel chanceLabel = new OpLabel(160f, basicAnchor - 110f, "WEATHER CHANCE");
+        OpLabel chanceDesc = new OpLabel(160f, basicAnchor - 130f, "The chance that weather will occur each cycle");
+        settingsBox.AddItems(weatherChanceSlider, chanceLabel, chanceDesc);
+
+        //Particle Limit
+        OpSlider particleLimitSlider = new OpSlider(particleLimit, new Vector2(30f, basicAnchor - 200f), 110, false);
+        OpLabel particleLimitLabel = new OpLabel(160f, basicAnchor - 190f, "PARTICLE LIMIT");
+        OpLabel particleLimitDesc = new OpLabel(160f, basicAnchor - 210f, "Influences the number of particles that can appear");
+        settingsBox.AddItems(particleLimitSlider, particleLimitLabel, particleLimitDesc);
+
+        //Wind Direction
+        OpLabel windLabel = new OpLabel(160f, basicAnchor - 270f, "WIND DIRECTION");
+        OpLabel windDesc = new OpLabel(160f, basicAnchor - 290f, "The direction particles will fall each cycle");
+        windToggle = new OpSimpleButton(new Vector2(30f, basicAnchor - 295f), new Vector2(110f, 45f), WindDirectionValue());
+        windToggle.OnClick += WindToggle_OnClick;
+        settingsBox.AddItems(windLabel, windDesc, windToggle);
+
+        //VISUAL SETTINGS
+        float visualAnchor = settingsHeight - 510f;
+        OpLabel visualLabel = new OpLabel(new Vector2(290f, visualAnchor + 15f), new Vector2(), "- VISUAL SETTINGS -", FLabelAlignment.Center);
+
+        OpRect visualRect = new OpRect(new Vector2(15f, visualAnchor - 233.5f), new Vector2(555, 240f));
+        visualRect.colorFill = new Color(1f,0f,1f);
+        settingsBox.AddItems(visualRect, visualLabel);
+
+        //Background Lightning
+        OpLabel bgLabel = new OpLabel(160f, visualAnchor - 30f, "BACKGROUND LIGHTNING");
+        OpLabel bgDesc = new OpLabel(160f, visualAnchor - 50f, "When weather intensity is high, lightning flashes can occur");
+        bgToggle = new OpSimpleButton(new Vector2(30f, visualAnchor - 55f), new Vector2(110f, 45f), backgroundLightning.Value ? "ENABLED" : "DISABLED");
+        bgToggle.OnClick += BgToggle_OnClick;
+        settingsBox.AddItems(bgLabel, bgDesc, bgToggle);
+
+        //Background Collision
+        OpLabel backgroundCollisionLabel = new OpLabel(160f, visualAnchor - 110f, "BACKGROUND COLLISION");
+        OpLabel backgroundCollisionDesc = new OpLabel(160f, visualAnchor - 130f, "Whether particles can collide with background elements");
+        backgroundCollisionToggle = new OpSimpleButton(new Vector2(30f, visualAnchor - 135f), new Vector2(110f, 45f), backgroundCollision.Value ? "ENABLED" : "DISABLED");
+        backgroundCollisionToggle.OnClick += BackgroundCollisionToggle_OnClick;
+        settingsBox.AddItems(backgroundCollisionLabel, backgroundCollisionDesc, backgroundCollisionToggle);
+
+        //Water Collision
+        OpLabel waterCollisionLabel = new OpLabel(160f, visualAnchor - 190f, "WATER COLLISION");
+        OpLabel waterCollisionDesc = new OpLabel(160f, visualAnchor - 210f, "Whether particles create ripples on water surfaces");
+        waterCollisionToggle = new OpSimpleButton(new Vector2(30f, visualAnchor - 215f), new Vector2(110f, 45f), waterCollision.Value ? "ENABLED" : "DISABLED");
+        waterCollisionToggle.OnClick += WaterCollisionToggle_OnClick;
+        settingsBox.AddItems(waterCollisionLabel, waterCollisionDesc, waterCollisionToggle);
+
+
+        //LIGHTNING SETTINGS
+        float lightningAnchor = settingsHeight - 800f;
+        OpLabel lightningLabel = new OpLabel(new Vector2(290f, lightningAnchor + 15f), new Vector2(), "- LIGHTNING SETTINGS -", FLabelAlignment.Center);
+
+        OpRect lightningSettingsRect = new OpRect(new Vector2(15f, lightningAnchor - 313.5f), new Vector2(555f, 320f));
+        lightningSettingsRect.colorFill = new Color(1f, 1f, 0f);
+
+        settingsBox.AddItems(lightningLabel, lightningSettingsRect);
+
+        //Lightning Strikes
+        OpLabel strikeLabel = new OpLabel(160f, lightningAnchor - 30f, "LIGHTNING STRIKES");
+        OpLabel strikeDesc = new OpLabel(160f, lightningAnchor - 50f, "Lightning strikes can occur at high intensity");
+        strikeToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 55f), new Vector2(110f, 45f), lightningStrikes.Value ? "ENABLED" : "DISABLED");
+        strikeToggle.OnClick += StrikeToggle_OnClick;
+        settingsBox.AddItems(strikeLabel, strikeDesc, strikeToggle);
+
+        //Strike Interval
+        intervalSlider = new OpSlider(lightningInterval, new Vector2(30f, lightningAnchor - 120f), 110, false);
+        OpLabel intervalLabel = new OpLabel(160f, lightningAnchor - 110f, "LIGHTNING INTERVAL");
+        OpLabel intervalDesc = new OpLabel(160f, lightningAnchor - 130f, "The minimum interval at which lightning can strike in seconds");
+        settingsBox.AddItems(intervalSlider, intervalLabel, intervalDesc);
+
+        //Strike Chance
+        strikeChanceSlider = new OpSlider(lightningChance, new Vector2(30f, lightningAnchor - 200f), 110, false);
+        OpLabel strikeChanceLabel = new OpLabel(160f, lightningAnchor - 190f, "LIGHTNING CHANCE");
+        OpLabel strikeChanceDesc = new OpLabel(160f, lightningAnchor - 210f, "The percentage chance a strike will occur at each interval");
+        settingsBox.AddItems(strikeChanceSlider, strikeChanceLabel, strikeChanceDesc);
+
+        OpLabel strikeTypeLabel = new OpLabel(160f, lightningAnchor - 270f, "DAMAGE TYPE");
+        OpLabel strikeTypeDesc = new OpLabel(160f, lightningAnchor - 290f, "What type of damage a lightning strike will inflict upon hit");
+        strikeTypeToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 295f), new Vector2(110f, 45f), StrikeDamageValue());
+        strikeTypeToggle.OnClick += StrikeTypeToggle_OnClick;
+        settingsBox.AddItems(strikeTypeLabel, strikeTypeDesc, strikeTypeToggle);
+
+        //Support Label
+        supportWarning = new OpLabel(new Vector2(290f, 220f), new Vector2(), "SUPPORT MODE ENABLED", FLabelAlignment.Center, true);
+        supportWarningDesc = new OpLabel(new Vector2(290f, 180f), new Vector2(), "Forecast will only generate weather for regions with their own custom settings.\nTo allow weather for all regions, and to change the global settings, disable support mode.", FLabelAlignment.Center);
+        options.AddItems(supportWarning, supportWarningDesc);
 
         #endregion
 
@@ -253,13 +377,13 @@ public class ForecastConfig : OptionInterface
 
             OpRect rect = new OpRect(new Vector2(0f, itemHeight - 50f - (70f * i)), new Vector2(580f, 60f));
             regionRects.Add(rect);
-            OpLabel regionName = new OpLabel(50f, itemHeight - 32f - (70f * i), array[i] + " - " + Region.GetRegionFullName(array[i],SlugcatStats.Name.White), true);
+            OpLabel regionName = new OpLabel(50f, itemHeight - 32f - (70f * i), array[i] + " - " + Region.GetRegionFullName(array[i], SlugcatStats.Name.White), true);
             regionLabels.Add(regionName);
-            OpCheckBox regionCheck = new OpCheckBox(new Configurable<bool>(true), new Vector2(10f, itemHeight - 32f -(70f * i)));
+            OpCheckBox regionCheck = new OpCheckBox(new Configurable<bool>(true), new Vector2(10f, itemHeight - 32f - (70f * i)));
             regionCheck.OnValueChanged += RegionCheck_OnValueChanged;
             regionCheck.description = $"{i}.{array[i]}) Toggle weather this region on or off";
             regionCheckBoxes.Add(regionCheck);
-            OpSimpleButton weatherSwitch = new OpSimpleButton(new Vector2(470f, itemHeight - 40f -(70f * i)), new Vector2(100f, 40f), "GLOBAL");
+            OpSimpleButton weatherSwitch = new OpSimpleButton(new Vector2(470f, itemHeight - 40f - (70f * i)), new Vector2(100f, 40f), "GLOBAL");
             weatherSwitch.OnClick += WeatherSwitch_OnClick;
             weatherSwitch.description = $"{i}.{array[i]}) Change this region's weather settings";
             regionButtons.Add(weatherSwitch);
@@ -268,7 +392,120 @@ public class ForecastConfig : OptionInterface
 
         #endregion
 
-        
+        ForecastLog.Log($"Support Mode: {(supportMode.Value ? "ON" : "OFF")}");
+        OnConfigReset += ForecastConfig_OnConfigReset;
+    }
+
+    private void WaterCollisionToggle_OnClick(UIfocusable trigger)
+    {
+        if (waterCollision.Value)
+        {
+            waterCollision.Value = false;
+        }
+        else
+        {
+            waterCollision.Value = true;
+        }
+        config.Save();
+    }
+
+    private void BackgroundCollisionToggle_OnClick(UIfocusable trigger)
+    {
+        if (backgroundCollision.Value)
+        {
+            backgroundCollision.Value = false;
+        }
+        else
+        {
+            backgroundCollision.Value = true;
+        }
+        config.Save();
+    }
+
+    private void StrikeTypeToggle_OnClick(UIfocusable trigger)
+    {
+        if (strikeDamageType.Value == 2)
+        {
+            strikeDamageType.Value = 0;
+        }
+        else
+        {
+            strikeDamageType.Value++;
+        }
+        config.Save();
+    }
+
+    private void StrikeToggle_OnClick(UIfocusable trigger)
+    {
+        if (lightningStrikes.Value)
+        {
+            lightningStrikes.Value = false;
+        }
+        else
+        {
+            lightningStrikes.Value = true;
+        }
+        config.Save();
+    }
+
+    private void ForecastConfig_OnConfigReset()
+    {
+        weatherIntensity.Value = 0;
+        weatherChance.Value = 100;
+        windDirection.Value = 0;
+
+        particleLimit.Value = 100;
+
+        backgroundCollision.Value = true;
+        waterCollision.Value = true;
+        dynamicClouds.Value = true;
+
+        backgroundLightning.Value = true;
+        lightningStrikes.Value = true;
+        lightningInterval.Value = 10;
+        lightningChance.Value = 15;
+        strikeDamageType.Value = 1;
+
+        config.Save();
+    }
+
+    private void BgToggle_OnClick(UIfocusable trigger)
+    {
+        if (backgroundLightning.Value)
+        {
+            backgroundLightning.Value = false;
+        }
+        else
+        {
+            backgroundLightning.Value = true;
+        }
+        config.Save();
+    }
+
+    private void WindToggle_OnClick(UIfocusable trigger)
+    {
+        if (windDirection.Value == 3)
+        {
+            windDirection.Value = 0;
+        }
+        else
+        {
+            windDirection.Value++;
+        }
+        config.Save();
+    }
+
+    private void IntensityToggle_OnClick(UIfocusable trigger)
+    {
+        if (weatherIntensity.Value == 3)
+        {
+            weatherIntensity.Value = 0;
+        }
+        else
+        {
+            weatherIntensity.Value++;
+        }
+        config.Save();
     }
 
     private void SupportModeButton_OnClick(UIfocusable trigger)
@@ -281,10 +518,7 @@ public class ForecastConfig : OptionInterface
         {
             supportMode.Value = true;
         }
-        supportRect.colorEdge = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0.7f, 0.7f, 0.7f);
-        supportRect.colorFill = supportMode.Value ? new Color(0f, 0.5f, 0f) : new Color(0f, 0f, 0f);
-
-        supportModeButton.text = supportMode.Value ? "DISABLE" : "ENABLE";
+        config.Save();
     }
 
     private void WeatherSwitch_OnClick(UIfocusable trigger)
@@ -303,11 +537,11 @@ public class ForecastConfig : OptionInterface
         switch (val)
         {
             case 0:
-                return new Color(0.5f,0.5f,0.5f);
+                return new Color(0.5f, 0.5f, 0.5f);
             case 1:
-                return new Color(0f,0.8f,1f);
+                return new Color(0f, 0.8f, 1f);
             case 2:
-                return new Color(1f,1f,1f);
+                return new Color(1f, 1f, 1f);
             case 3:
                 return new Color(0f, 1f, 0f);
         }
@@ -397,464 +631,48 @@ public class ForecastConfig : OptionInterface
     {
         base.Update();
 
+        if (!supportMode.Value)
+        {
+            settingsBox.greyedOut = false;
+            foreach (UIelement ui in settingsBox.items)
+            {
+                ui.Reactivate();
+            }
+            supportWarning.Deactivate();
+            supportWarningDesc.Deactivate();
+        }
+        else
+        {
+            settingsBox.greyedOut = true;
+            foreach (UIelement ui in settingsBox.items)
+            {
+                ui.Deactivate();
+            }
+            supportWarning.Reactivate();
+            supportWarningDesc.Reactivate();
+        }
+        supportRect.colorEdge = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0.7f, 0.7f, 0.7f);
+        supportRect.colorFill = supportMode.Value ? new Color(0f, 0.5f, 0f) : new Color(0f, 0f, 0f);
+        supportModeButton.text = supportMode.Value ? "ENABLED" : "DISABLED";
+        bgToggle.text = backgroundLightning.Value ? "ENABLED" : "DISABLED";
+        strikeToggle.text = lightningStrikes.Value ? "ENABLED" : "DISABLED";
+        waterCollisionToggle.text = waterCollision.Value ? "ENABLED" : "DISABLED";
+        backgroundCollisionToggle.text = backgroundCollision.Value ? "ENABLED" : "DISABLED";
+        windToggle.text = WindDirectionValue();
+        intensityToggle.text = IntensityValue();
+        strikeTypeToggle.text = StrikeDamageValue();
+
+        if(!lightningStrikes.Value)
+        {
+            strikeTypeToggle.greyedOut = true;
+            intervalSlider.greyedOut = true;
+            strikeChanceSlider.greyedOut = true;
+        }
+        else
+        {
+            strikeTypeToggle.greyedOut = false;
+            intervalSlider.greyedOut = false;
+            strikeChanceSlider.greyedOut = false;
+        }
     }
 }
-
-//public class ForecastConfig : OptionInterface
-//{
-//    public static Vector2 topAnchor = new Vector2(30f, 480f);
-//    public static Vector2 checkAnchor = new Vector2(topAnchor.x + 260f, topAnchor.y - 20f);
-//    public OpRect topRect;
-//    public OpRadioButtonGroup weatherType;
-//    public OpRadioButton rainWeather;
-//    public OpRadioButton snowWeather;
-//    public OpLabel weatherTypeLabel;
-//    public OpLabel rainIntensity;
-//    public OpLabel rainSettings;
-//    public OpSlider weatherIntensity;
-//    public OpLabel weatherIntensityDescription;
-//    public OpLabel rainLabel;
-//    public OpLabel snowLabel;
-//    public OpLabel dyn;
-//    public OpLabel low;
-//    public OpLabel med;
-//    public OpLabel hig;
-//    public OpLabel rainSettingsDescription;
-//    public OpCheckBox lightningCheck;
-//    public OpLabel intensitySliderLabel;
-//    public OpLabel bgLabel;
-//    public OpLabel directionSliderLabel;
-//    public OpSlider weatherDirection;
-//    public OpLabel rainChanceLabel;
-//    public OpSlider rainChanceSlider;
-//    public OpLabel lightningLabel;
-//    public OpCheckBox paletteCheck;
-//    public OpLabel paletteLabel;
-//    public OpCheckBox muteCheck;
-//    public OpLabel muteLabel;
-//    public OpCheckBox effectCheck;
-//    public OpLabel effectLabel;
-//    public OpCheckBox waterCheck;
-//    public OpLabel waterLabel;
-//    public OpCheckBox bgOn;
-//    public OpCheckBox dustCheck;
-//    public OpLabel dustLabel;
-//    public OpCheckBox blizzardCheck;
-//    public OpLabel blizzardLabel;
-//    public OpCheckBox decalCheck;
-//    public OpLabel decalLabel;
-//    public OpCheckBox strikeCheck;
-//    public OpLabel strikeLabel;
-//    public OpImage logo;
-//    public OpImage logo2;
-//    public OpLabel rainOption;
-//    public OpSlider rainSlider;
-//    public OpLabel[] regionLabelList;
-//    public OpCheckBox[] regionChecks;
-//    public OpLabel regionLabel;
-//    public OpLabel regionDescription;
-//    public OpLabel versionNumber;
-//    public OpSimpleButton rainButton;
-//    public OpSimpleButton snowButton;
-//    public bool customRegionsEnabled;
-//    public string[] regionList;
-//    public OpSliderSubtle strikeDamage;
-//    public OpLabel damageLabel;
-//    public OpLabel snowWarning;
-
-//    public ForecastConfig() : base(mod: Forecast.mod)
-//    {
-//    }
-
-//    public override bool Configuable()
-//    {
-//        return true;
-//    }
-
-//    public override void Initialize()
-//    {
-//        regionList = RegionFinder.Generate().ToArray();
-
-//        //Tabs
-//        this.Tabs = new OpTab[1];
-//        this.Tabs[0] = new OpTab("Weather");
-
-//        //Weather Type
-//        this.logo = new OpImage(new Vector2(270f, 540f), "logo");
-//        this.logo2 = new OpImage(new Vector2(270f, 540f), "logo2");
-//        this.weatherType = new OpRadioButtonGroup("Type", 0);
-//        this.weatherTypeLabel = new OpLabel(new Vector2(30f, 570f), new Vector2(400f, 40f), "Weather Type", FLabelAlignment.Left, true);
-//        this.rainWeather = new OpRadioButton(new Vector2(0f, 800f));
-//        this.rainButton = new OpSimpleButton(new Vector2(30f, 540f), new Vector2(70f, 25f), "rainButton", "Rain");
-//        this.snowWeather = new OpRadioButton(new Vector2(0f, 800f));
-//        this.snowButton = new OpSimpleButton(new Vector2(110f, 540f), new Vector2(70f, 25f), "snowButton", "Snow");
-//        this.versionNumber = new OpLabel(new Vector2(10f, -5f), new Vector2(0f, 0f), "Version: " + Forecast.mod.Version, FLabelAlignment.Left, false);
-//        this.weatherType.SetButtons(new OpRadioButton[] { rainWeather, snowWeather });
-//        this.Tabs[0].AddItems(rainButton, rainWeather, snowWeather, snowButton, weatherType, weatherTypeLabel, versionNumber);
-
-//        //Weather Sliders
-//        this.rainIntensity = new OpLabel(new Vector2(topAnchor.x, topAnchor.y), new Vector2(400f, 40f), "Rain Settings", FLabelAlignment.Left, true);
-//        this.intensitySliderLabel = new OpLabel(new Vector2(topAnchor.x + 40f, topAnchor.y - 83f), new Vector2(400f, 40f), "Weather Progression", FLabelAlignment.Left, false);
-//        this.weatherIntensity = new OpSlider(new Vector2(topAnchor.x + 25, topAnchor.y - 60f), "weatherIntensity", new IntVector2(0, 3), 50f, false, 0);
-//        this.rainSettingsDescription = new OpLabel(new Vector2(topAnchor.x, topAnchor.y - 20f), new Vector2(400f, 40f), "Enable or disable rain specific settings:", FLabelAlignment.Left, false);
-//        this.directionSliderLabel = new OpLabel(new Vector2(topAnchor.x + 47f, topAnchor.y - 143f), new Vector2(400f, 40f), "Weather Direction", FLabelAlignment.Left, false);
-//        this.weatherDirection = new OpSlider(new Vector2(topAnchor.x + 25, topAnchor.y - 120f), "weatherDirection", new IntVector2(0, 3), 50f, false, 0);
-//        this.rainChanceLabel = new OpLabel(new Vector2(topAnchor.x + 47f, topAnchor.y - 203f), new Vector2(400f, 40f), "Weather Chance", FLabelAlignment.Left, false);
-//        this.rainChanceSlider = new OpSlider(new Vector2(topAnchor.x + 25, topAnchor.y - 180f), "weatherChance", new IntVector2(0, 100), 1.5f, false, 100);
-//        this.weatherIntensity.description = "Configure whether the intensity of the chosen weather increases as the cycle progresses or fix it to a certain intensity.";
-//        this.weatherDirection.description = "Configure whether rain should fall towards a random or chosen direction.";
-//        this.rainChanceSlider.description = "Configure whether the chosen weather will occur during a cycle.";
-//        this.topRect = new OpRect(new Vector2(15f, 250f), new Vector2(570f, 270f), 0.1f);
-//        this.Tabs[0].AddItems(rainIntensity, weatherIntensity, intensitySliderLabel, directionSliderLabel, weatherDirection, topRect, logo, logo2, rainChanceSlider, rainChanceLabel);
-
-//        //Checkboxes
-//        this.lightningCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 30f), "Lightning", false);
-//        this.lightningLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 36f), new Vector2(400f, 40f), "Lightning", FLabelAlignment.Left, false);
-//        this.paletteCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y + 10), "Palette", true);
-//        this.paletteLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y +4f), new Vector2(400f, 40f), "Palette changes", FLabelAlignment.Left, false);
-//        this.muteCheck = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y + 10), "Mute", false);
-//        this.muteLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y +4f), new Vector2(400f, 40f), "Mute interiors", FLabelAlignment.Left, false);
-//        this.waterCheck = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y - 30f), "Water", false);
-//        this.waterLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 36f), new Vector2(400f, 40f), "Water ripples", FLabelAlignment.Left, false);
-//        this.strikeCheck = new OpCheckBox(new Vector2(checkAnchor.x, checkAnchor.y - 70f), "Strike", true);
-//        this.strikeLabel = new OpLabel(new Vector2(checkAnchor.x + 30f, checkAnchor.y - 76f), new Vector2(400f, 40f), "Lightning Strikes", FLabelAlignment.Left, false);
-//        this.strikeDamage = new OpSliderSubtle(new Vector2(checkAnchor.x + 10f, checkAnchor.y - 105f), "Damage", new IntVector2(0, 2), 110, false, 1);
-//        this.damageLabel = new OpLabel(new Vector2(checkAnchor.x + 10f, checkAnchor.y - 123f), new Vector2(), "Damage Type: ", FLabelAlignment.Left, false);
-//        this.bgOn = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y - 70f), "Background", true);
-//        this.bgLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 76f), new Vector2(400f, 40f), "Background", FLabelAlignment.Left, false);
-//        this.decalCheck = new OpCheckBox(new Vector2(checkAnchor.x+150f, checkAnchor.y - 30f), "Decals", true);
-//        this.decalLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 36f), new Vector2(400f, 40f), "Surface decals", FLabelAlignment.Left, false);
-//        this.dustCheck = new OpCheckBox(new Vector2(checkAnchor.x+150f, checkAnchor.y - 70f), "Dust", true);
-//        this.dustLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 76f), new Vector2(400f, 40f), "Snow dust", FLabelAlignment.Left, false);
-//        this.blizzardCheck = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y - 110f), "Blizzard", true);
-//        this.blizzardLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y - 116f), new Vector2(400f, 40f), "Blizzard", FLabelAlignment.Left, false);
-//        this.effectCheck = new OpCheckBox(new Vector2(checkAnchor.x + 150f, checkAnchor.y + 10), "Effect", true);
-//        this.effectLabel = new OpLabel(new Vector2(checkAnchor.x + 180f, checkAnchor.y + 4f), new Vector2(400f, 40f), "Effect Colors", FLabelAlignment.Left, false);
-//        this.dustCheck.description = "Puffs of snow appear when landing on the ground.";
-//        this.decalCheck.description = "Adds snowy decals to surfaces.";
-//        this.lightningCheck.description = "Lightning will appear at higher weather intensities.";
-//        this.paletteCheck.description = "The region will become darker with higher rain intensity.";
-//        this.muteCheck.description = "Mute the sound effect added to interiors when its raining outside.";
-//        this.waterCheck.description = "Rain drops can interact with water surfaces and cause ripples, may impact performance.";
-//        this.bgOn.description = "Enable or disable collision with background elements, may impact performance.";
-//        this.strikeDamage.description = "Adjust the damage type of Lightning Strikes";
-//        this.strikeCheck.description = "When weather intensity is high enough, lightning strikes can occur.";
-//        this.effectCheck.description = "Whitens things like plants and signs so they better match the snowy palette, can ruin some custom props";
-//        this.blizzardCheck.description = "Replaces the end-of-cycle rain with a roaring blizzard and affects normal gameplay";
-//        this.Tabs[0].AddItems(lightningLabel, lightningCheck, strikeCheck, strikeLabel, strikeDamage, damageLabel, rainSettingsDescription, paletteCheck, muteCheck, waterCheck, bgOn, paletteLabel, muteLabel, waterLabel, bgLabel, dustCheck,dustLabel,decalCheck,decalLabel, effectCheck, effectLabel, blizzardCheck,blizzardLabel);
-
-//        //Particle Limit
-//        this.rainOption = new OpLabel(new Vector2(topAnchor.x + 366f, topAnchor.y - 223f), new Vector2(400f, 40f), "Particle Limit", FLabelAlignment.Left, false);
-//        this.rainSlider = new OpSlider(new Vector2(topAnchor.x + 275f, topAnchor.y - 200f), "rainAmount", new IntVector2(10, 80), 3.3f, false, 50);
-//        this.Tabs[0].AddItems(rainSlider, rainOption);
-
-//        //Regions
-//        if (regionList != null)
-//        {
-//            this.regionLabelList = new OpLabel[regionList.Length];
-//            this.regionChecks = new OpCheckBox[regionList.Length];
-//            this.regionLabel = new OpLabel(new Vector2(30f, 200f), new Vector2(400f, 40f), "Region Settings", FLabelAlignment.Left, true);
-//            this.regionDescription = new OpLabel(new Vector2(30f, 175f), new Vector2(400f, 40f), "Enable and Disable weather on a per-region basis.", FLabelAlignment.Left, false);
-//            this.Tabs[0].AddItems(regionLabel, regionDescription);
-//            for (int i = 0; i < regionList.Length; i++)
-//            {
-//                if (i < 10)
-//                {
-//                    regionChecks[i] = new OpCheckBox(new Vector2(30f + (55f * i), 150f), regionList[i], true);
-//                    regionLabelList[i] = new OpLabel(new Vector2(60f + (55f * i), 142f), new Vector2(400f, 40f), regionList[i], FLabelAlignment.Left, false);
-//                }
-//                else if (i >= 10 && i < 20)
-//                {
-//                    regionChecks[i] = new OpCheckBox(new Vector2(-520f + (55f * i), 105f), regionList[i], true);
-//                    regionLabelList[i] = new OpLabel(new Vector2(-490f + (55f * i), 97f), new Vector2(400f, 40f), regionList[i], FLabelAlignment.Left, false);
-//                }
-//                else if (i >= 20 && i < 30)
-//                {
-//                    regionChecks[i] = new OpCheckBox(new Vector2(-1070f + (55f * i), 60f), regionList[i], true);
-//                    regionLabelList[i] = new OpLabel(new Vector2(-1040f + (55f * i), 52f), new Vector2(400f, 40f), regionList[i], FLabelAlignment.Left, false);
-//                }
-//                else if (i >= 30)
-//                {
-//                    regionChecks[i] = new OpCheckBox(new Vector2(-1650f + (55f * i), 15f), regionList[i], true);
-//                    regionLabelList[i] = new OpLabel(new Vector2(-1620f + (55f * i), 7f), new Vector2(400f, 40f), regionList[i], FLabelAlignment.Left, false);
-//                }
-//                this.Tabs[0].AddItems(regionLabelList[i], regionChecks[i]);
-//                if (regionList[i] == "SS")
-//                {
-//                    regionChecks[i].valueBool = false;
-//                }
-//            }
-//        }
-//        Forecast.configLoaded = true;
-//    }
-//    public override void Signal(UItrigger trigger, string signal)
-//    {
-//        base.Signal(trigger, signal);
-//        if (signal == "rainButton")
-//        {
-//            this.rainWeather.valueBool = true;
-//        }
-//        if (signal == "snowButton")
-//        {
-//            this.snowWeather.valueBool = true;
-//        }
-//    }
-//    public override void Update(float dt)
-//    {
-//        base.Update(dt);
-//        //Toggle between rain and snow mode
-//        if (this.rainWeather.valueBool)
-//        {
-//            rainIntensity.text = "Rain Settings";
-//            rainSettingsDescription.text = "Enable or disable rain specific settings:";
-//            paletteCheck.description = "The region will become darker with higher rain intensity.";
-//            logo.Show();
-//            logo2.Hide();
-//            //Hide rain checks
-//            muteCheck.Show();
-//            waterCheck.Show();
-//            bgOn.Show();
-//            //Show rain check labels
-//            bgLabel.Show();
-//            muteLabel.Show();
-//            waterLabel.Show();
-//            //Hide snow checks
-//            decalCheck.Hide();
-//            dustCheck.Hide();
-//            effectCheck.Hide();
-//            blizzardCheck.Hide();
-//            //Hide snow labels
-//            decalLabel.Hide();
-//            dustLabel.Hide();
-//            effectLabel.Hide();
-//            blizzardLabel.Hide();
-//        }
-//        else
-//        {
-//            rainIntensity.text = "Snow Settings";
-//            rainSettingsDescription.text = "Enable or disable snow specific settings:";
-//            paletteCheck.description = "A snowy palette will be overlayed onto the current palette.";
-//            logo.Hide();
-//            logo2.Show();
-//            //Disable rain checks
-//            muteCheck.valueBool = false;
-//            waterCheck.valueBool = false;
-//            bgOn.valueBool = false;
-//            //Hide rain checks
-//            muteCheck.Hide();
-//            waterCheck.Hide();
-//            bgOn.Hide();
-//            //Hide rain check labels
-//            bgLabel.Hide();
-//            muteLabel.Hide();
-//            waterLabel.Hide();
-//            //Hide snow checks
-//            decalCheck.Show();
-//            dustCheck.Show();
-//            effectCheck.Show();
-//            blizzardCheck.Show();
-//            //Hide snow labels
-//            decalLabel.Show();
-//            dustLabel.Show();
-//            effectLabel.Show();
-//            blizzardLabel.Show();
-//        }
-//        if(lightningCheck.valueBool == false)
-//        {
-//            strikeCheck.valueBool = false;
-//            strikeCheck.greyedOut = true;
-//            strikeCheck.colorEdge = Menu.Menu.MenuColor(Menu.Menu.MenuColors.DarkGrey).rgb;
-//            strikeLabel.color = Menu.Menu.MenuColor(Menu.Menu.MenuColors.DarkGrey).rgb;
-//        }
-//        else
-//        {
-//            strikeCheck.greyedOut = false;
-//            strikeCheck.colorEdge = Menu.Menu.MenuColor(Menu.Menu.MenuColors.MediumGrey).rgb;
-//            strikeLabel.color = Menu.Menu.MenuColor(Menu.Menu.MenuColors.MediumGrey).rgb;
-//        }
-//        if (lightningCheck.valueBool == false || strikeCheck.valueBool == false)
-//        {
-//            strikeDamage.greyedOut = true;
-//            strikeDamage.colorEdge = Menu.Menu.MenuColor(Menu.Menu.MenuColors.DarkGrey).rgb;
-//            strikeDamage.colorLine = Menu.Menu.MenuColor(Menu.Menu.MenuColors.DarkGrey).rgb;
-//            damageLabel.color = Menu.Menu.MenuColor(Menu.Menu.MenuColors.DarkGrey).rgb;
-//        }
-//        else
-//        {
-//            strikeDamage.greyedOut = false;
-//            strikeDamage.colorEdge = Menu.Menu.MenuColor(Menu.Menu.MenuColors.MediumGrey).rgb;
-//            strikeDamage.colorLine = Menu.Menu.MenuColor(Menu.Menu.MenuColors.MediumGrey).rgb;
-//            damageLabel.color = Menu.Menu.MenuColor(Menu.Menu.MenuColors.MediumGrey).rgb;
-//        }
-//        if (this.strikeDamage != null)
-//        {
-//            switch (this.strikeDamage.valueInt)
-//            {
-//                case 0:
-//                    this.damageLabel.text = "Damage Type: None";
-//                    break;
-//                case 1:
-//                    this.damageLabel.text = "Damage Type: Stun";
-//                    break;
-//                case 2:
-//                    this.damageLabel.text = "Damage Type: Lethal";
-//                    break;
-//            }
-//        }
-//        //Intensity Slider
-//        switch (weatherIntensity.value)
-//        {
-//            case "0":
-//                (weatherIntensity.subObjects[1] as Menu.MenuLabel).text = "Dynamic";
-//                break;
-//            case "1":
-//                (weatherIntensity.subObjects[1] as Menu.MenuLabel).text = "Low";
-//                break;
-//            case "2":
-//                (weatherIntensity.subObjects[1] as Menu.MenuLabel).text = "Medium";
-//                break;
-//            case "3":
-//                (weatherIntensity.subObjects[1] as Menu.MenuLabel).text = "High";
-//                break;
-//        }
-//        //Direction Slider
-//        switch (weatherDirection.value)
-//        {
-//            case "0":
-//                (weatherDirection.subObjects[1] as Menu.MenuLabel).text = "Random";
-//                break;
-//            case "1":
-//                (weatherDirection.subObjects[1] as Menu.MenuLabel).text = "Left";
-//                break;
-//            case "2":
-//                (weatherDirection.subObjects[1] as Menu.MenuLabel).text = "Center";
-//                break;
-//            case "3":
-//                (weatherDirection.subObjects[1] as Menu.MenuLabel).text = "Right";
-//                break;
-//        }
-//    }
-//    public override void ConfigOnChange()
-//    {
-//        Forecast.rainRegions = new List<string>();
-//        for (int i = 0; i < regionList.Length; i++)
-//        {
-//            if (config[regionList[i]] == "true")
-//            {
-//                Forecast.rainRegions.Add(regionList[i]);
-//            }
-//        }
-//        if (config["Type"] == "0")
-//        {
-//            Forecast.snow = false;
-//        }
-//        else
-//        {
-//            Forecast.snow = true;
-//        }
-//        if (config["Palette"] == "false")
-//        {
-//            Forecast.paletteChange = false;
-//        }
-//        else
-//        {
-//            Forecast.paletteChange = true;
-//        }
-//        if(config["Effect"] == "false")
-//        {
-//            Forecast.effectColors = false;
-//        }
-//        else
-//        {
-//            Forecast.effectColors = true;
-//        }
-//        if(config["Blizzard"] == "false")
-//        {
-//            Forecast.blizzard = false;
-//        }
-//        else
-//        {
-//            Forecast.blizzard = true;
-//        }
-//        if (config["Mute"] == "false")
-//        {
-//            Forecast.interiorRain = false;
-//        }
-//        else
-//        {
-//            Forecast.interiorRain = true;
-//        }
-//        if (config["Water"] == "false")
-//        {
-//            Forecast.water = false;
-//        }
-//        else
-//        {
-//            Forecast.water = true;
-//        }
-//        if (config["Background"] == "false")
-//        {
-//            Forecast.bg = false;
-//        }
-//        else
-//        {
-//            Forecast.bg = true;
-//        }
-//        if (config["Lightning"] == "false")
-//        {
-//            Forecast.lightning = false;
-//        }
-//        else
-//        {
-//            Forecast.lightning = true;
-//        }
-//        if (config["Strike"] == "false")
-//        {
-//            Forecast.strike = false;
-//        }
-//        else
-//        {
-//            Forecast.strike = true;
-//        }
-//        if (config["Decals"] == "false")
-//        {
-//            Forecast.decals = false;
-//        }
-//        else
-//        {
-//            Forecast.decals = true;
-//        }
-//        if (config["Dust"] == "false")
-//        {
-//            Forecast.dust = false;
-//        }
-//        else
-//        {
-//            Forecast.dust = true;
-//        }
-//        if (config["weatherIntensity"] == "0")
-//        {
-//            Forecast.intensity = 0;
-//            Forecast.dynamic = true;
-//        }
-//        if (config["weatherIntensity"] == "1")
-//        {
-//            Forecast.intensity = 1;
-//            Forecast.dynamic = false;
-//        }
-//        if (config["weatherIntensity"] == "2")
-//        {
-//            Forecast.intensity = 2;
-//            Forecast.dynamic = false;
-//        }
-//        if (config["weatherIntensity"] == "3")
-//        {
-//            Forecast.intensity = 3;
-//            Forecast.dynamic = false;
-//        }
-//        Forecast.rainAmount = int.Parse(config["rainAmount"]);
-//        Forecast.direction = int.Parse(config["weatherDirection"]);
-//        Forecast.rainChance = int.Parse(config["weatherChance"]);
-//        Forecast.strikeDamage = int.Parse(config["Damage"]);
-//    }
-//}
