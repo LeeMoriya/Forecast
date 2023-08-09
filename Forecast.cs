@@ -22,39 +22,25 @@ using BepInEx;
 public class Forecast : BaseUnityPlugin
 {
     public static string version = "1.03";
-    public bool init = false;
+    public static bool init = false;
     public Forecast()
     {
         
     }
-    public void OnEnable()
-    {
-        if (!init)
-        {
-            On.RainWorld.OnModsInit += RainWorld_OnModsInit;
-            On.OverWorld.ctor += OverWorld_ctor;
-            On.Menu.MainMenu.ctor += MainMenu_ctor;
-            ForecastLog.ClearLog();
-            init = true;
-        }
-    }
 
-    private void MainMenu_ctor(On.Menu.MainMenu.orig_ctor orig, MainMenu self, ProcessManager manager, bool showRegionSpecificBkg)
+    public void Awake()
     {
-        orig.Invoke(self,manager,showRegionSpecificBkg);
-        if(ForecastConfig.weatherPreviews != null)
+        On.RainWorld.OnModsInit += delegate (On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
-            if (ForecastConfig.weatherPreviews.ContainsKey("rainPreview"))
+            orig.Invoke(self);
+            if (!init)
             {
-                UnityEngine.Object.Destroy(ForecastConfig.weatherPreviews["rainPreview"].targetTexture);
-                UnityEngine.Object.Destroy(ForecastConfig.weatherPreviews["rainPreview"].gameObject);
+                On.RainWorld.OnModsInit += RainWorld_OnModsInit;
+                On.OverWorld.ctor += OverWorld_ctor;
+                ForecastLog.ClearLog();
+                init = true;
             }
-            if (ForecastConfig.weatherPreviews.ContainsKey("snowPreview"))
-            {
-                UnityEngine.Object.Destroy(ForecastConfig.weatherPreviews["snowPreview"].targetTexture);
-                UnityEngine.Object.Destroy(ForecastConfig.weatherPreviews["snowPreview"].gameObject);
-            }
-        }
+        };
     }
 
     private void OverWorld_ctor(On.OverWorld.orig_ctor orig, OverWorld self, RainWorldGame game)
@@ -71,7 +57,7 @@ public class Forecast : BaseUnityPlugin
     {
         orig.Invoke(self);
         WeatherHooks.Patch();
-        RainPalette.Patch();
+        //RainPalette.Patch();
         new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_ScreenShake);
         new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.MicroScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_MicroScreenShake);
         Options = new ForecastConfig(this);

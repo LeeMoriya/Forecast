@@ -74,6 +74,7 @@
     </Reference>
     <Reference Include="UnityEngine.VideoModule">
       <HintPath>F:\Steam Games\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.VideoModule.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>

@@ -14,6 +14,7 @@ using UnityEngine.Video;
 public class ForecastConfig : OptionInterface
 {
     //Configurables
+    public static Configurable<bool> supportMode;
     public static Configurable<int> displayMode;
     public static Configurable<int> weatherType;
 
@@ -46,12 +47,9 @@ public class ForecastConfig : OptionInterface
     public static Dictionary<string, Dictionary<string, List<string>>> customRegionSettings;
 
     //Menu
-    public OpSimpleImageButton rainButton, snowButton;
-    public OpRect settingsRect;
-    public OpImage rainBanner, snowBanner;
-    public static Dictionary<string, VideoPlayer> weatherPreviews = new Dictionary<string, VideoPlayer>();
-    public UIelement[] settingLabels;
-    public OpHoldButton settingsButton;
+    public OpImage rainBanner;
+    public OpRect supportRect;
+    public OpSimpleButton supportModeButton;
 
     //Region
     List<OpRect> regionRects;
@@ -63,14 +61,13 @@ public class ForecastConfig : OptionInterface
     {
         regionSettings = new Dictionary<string, int>();
         customRegionSettings = new Dictionary<string, Dictionary<string, List<string>>>();
-        //ForecastLog.Log("FORECAST: Startup");
         LoadCustomRegionSettings();
-        //ForecastLog.Log("FORECAST: Custom settings loaded");
 
         weatherType = config.Bind<int>("weatherType", 0);
+        supportMode = config.Bind<bool>("supportMode", false);
 
         weatherIntensity = config.Bind<int>("weatherIntensity", 0);
-        weatherChance = config.Bind<float>("weatherChance", 50f);
+        weatherChance = config.Bind<float>("weatherChance", 100f);
         windDirection = config.Bind<int>("windDirection", 0);
 
         particleLimit = config.Bind<int>("particleLimit", 100);
@@ -193,7 +190,6 @@ public class ForecastConfig : OptionInterface
         };
 
         #region Options Tab
-        weatherPreviews = new Dictionary<string, VideoPlayer>();
 
         //Rain and snow logos
         byte[] bytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainLogo.png"));
@@ -204,94 +200,26 @@ public class ForecastConfig : OptionInterface
         rainBanner.anchor = new Vector2(0.5f, 0f);
         rainBanner.alpha = weatherType.Value == 1 ? 0f : 1f;
 
-        byte[] sbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowLogo.png"));
-        Texture2D stexture = new Texture2D(0, 0);
-        stexture.filterMode = FilterMode.Point;
-        stexture.LoadImage(sbytes);
-        snowBanner = new OpImage(new Vector2(300f, 540f), stexture);
-        snowBanner.anchor = new Vector2(0.5f, 0f);
-        snowBanner.alpha = weatherType.Value == 1 ? 1f : 0f;
-
         //Version label
         OpLabel version = new OpLabel(300f, 525f, $"Version: {Forecast.version}     -     By LeeMoriya", false);
         version.color = new Color(0.4f, 0.4f, 0.4f);
         version.label.alignment = FLabelAlignment.Center;
-        options.AddItems(version, rainBanner, snowBanner);
+        options.AddItems(version, rainBanner);
 
-        //Rain preview
-        var rainObject = new GameObject("rainPreviewVideo");
-        var rainVideo = rainObject.AddComponent<VideoPlayer>();
-        rainVideo.audioOutputMode = VideoAudioOutputMode.None;
-        rainVideo.url = AssetManager.ResolveFilePath("sprites\\rainPreview.mp4");
-        rainVideo.playOnAwake = false;
-        rainVideo.isLooping = true;
+        //Support Mode
+        supportRect = new OpRect(new Vector2(10f, 410f), new Vector2(580f, 80f));
+        supportRect.colorEdge = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0.7f, 0.7f, 0.7f);
+        supportRect.colorFill = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0f, 0f, 0f);
+        OpLabel supportTitle = new OpLabel(41f, 495f, "SUPPORT MODE");
+        OpLabel supportDesc = new OpLabel(165f, 440f, "When support mode is active, Forecast will not generate any weather\nunless a region has custom settings defined.");
 
-        var rt1 = new RenderTexture(210, 160, 0);
-        rainVideo.targetTexture = rt1;
-        HeavyTexturesCache.LoadAndCacheAtlasFromTexture("rainPreview", rt1, false);
-        if (!weatherPreviews.ContainsKey("rainPreview"))
-        {
-            weatherPreviews.Add("rainPreview", rainVideo);
-        }
+        supportModeButton = new OpSimpleButton(new Vector2(33f, 427f), new Vector2(110f, 45f), supportMode.Value ? "DISABLE" : "ENABLE");
+        supportModeButton.OnClick += SupportModeButton_OnClick;
+        options.AddItems(supportRect, supportTitle ,supportDesc, supportModeButton);
 
-        //Snow preview
-        var snowObject = new GameObject("snowPreviewVideo");
-        var snowVideo = snowObject.AddComponent<VideoPlayer>();
-        snowVideo.audioOutputMode = VideoAudioOutputMode.None;
-        snowVideo.url = AssetManager.ResolveFilePath("sprites\\snowPreview.mp4");
-        snowVideo.playOnAwake = false;
-        snowVideo.isLooping = true;
+        OpRect settingsRect = new OpRect(new Vector2(0f, 0f), new Vector2(600f, 400f));
+        options.AddItems(settingsRect);
 
-        var rt2 = new RenderTexture(210, 160, 0);
-        snowVideo.targetTexture = rt2;
-        HeavyTexturesCache.LoadAndCacheAtlasFromTexture("snowPreview", rt2, false);
-        if (!weatherPreviews.ContainsKey("snowPreview"))
-        {
-            weatherPreviews.Add("snowPreview", snowVideo);
-        }
-
-        //Weather type select
-        rainButton = new OpSimpleImageButton(new Vector2(50f, 320f), new Vector2(220f, 170f), "rainPreview");
-        snowButton = new OpSimpleImageButton(new Vector2(325f, 320f), new Vector2(220f, 170f), "snowPreview");
-        rainButton.OnClick += RainButton_OnClick;
-        snowButton.OnClick += SnowButton_OnClick;
-
-        OpLabel rainLabel = new OpLabel(new Vector2(155f, 290f), new Vector2(), "RAIN", FLabelAlignment.Center, false);
-        OpLabel snowLabel = new OpLabel(new Vector2(430f, 290f), new Vector2(), "SNOW - CLASSIC", FLabelAlignment.Center, false);
-        options.AddItems(rainButton, snowButton, rainLabel, snowLabel);
-
-        //Settings container
-
-        OpLabel settingsHeader = new OpLabel(10f, 203f, "CONFIGURATION", false);
-
-        settingsRect = new OpRect(new Vector2(), new Vector2(600f, 200f));
-
-        settingLabels = new UIelement[]
-        {
-            new OpLabel(12f, 170f, "Intensity:  " + IntensityValue(), false),
-            new OpLabel(12f, 150f, "Weather Chance:  " + weatherChance.Value + "%", false),
-            new OpLabel(12f, 130f, "Wind Direction:  " + WindDirectionValue(), false),
-
-            new OpLabel(12f, 85f, "Particle Limit:  " + particleLimit.Value, false),
-
-            new OpLabel(12f, 40f, "Background Collision:  " + (backgroundCollision.Value ? "ON" : "OFF"), false),
-            new OpLabel(12f, 20f, "Water Collision:  " + (waterCollision.Value ? "ON" : "OFF"), false),
-
-            new OpLabel(222f, 170f, "Background Lightning:  " + (backgroundLightning.Value ? "ON" : "OFF"), false),
-            new OpLabel(222f, 150f, "Lightning Strikes:  " + (lightningStrikes.Value ? "ON" : "OFF"), false),
-            new OpLabel(222f, 130f, "Strike Damage:  " + StrikeDamageValue(), false),
-
-            new OpLabel(222f, 60f, "End-Cycle Blizzard:  " + (endBlizzard.Value ? "ON" : "OFF"), false),
-            new OpLabel(222f, 40f, "Effect Colors:  " + (effectColors.Value ? "ON" : "OFF"), false),
-            new OpLabel(222f, 20f, "Snow Puffs:  " + (snowPuffs.Value ? "ON" : "OFF"), false)
-        };
-
-        settingsButton = new OpHoldButton(new Vector2(450, 80f), new Vector2(140f, 110f), "CHANGE " + (weatherType.Value == 1 ? "SNOW" : "RAIN") + "\nSETTINGS", 20);
-        settingsButton.OnPressDone += SettingsButton_OnPressDone;
-        OpHoldButton defaultButton = new OpHoldButton(new Vector2(450, 10f), new Vector2(140f, 60f), "RESET TO\nDEFAULT");
-        defaultButton.colorEdge = new Color(0.85f, 0.2f, 0.2f);
-        options.AddItems(settingsHeader, settingsRect, settingsButton, defaultButton);
-        options.AddItems(settingLabels);
         #endregion
 
         #region Regions Tab
@@ -339,6 +267,24 @@ public class ForecastConfig : OptionInterface
         }
 
         #endregion
+
+        
+    }
+
+    private void SupportModeButton_OnClick(UIfocusable trigger)
+    {
+        if (supportMode.Value)
+        {
+            supportMode.Value = false;
+        }
+        else
+        {
+            supportMode.Value = true;
+        }
+        supportRect.colorEdge = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0.7f, 0.7f, 0.7f);
+        supportRect.colorFill = supportMode.Value ? new Color(0f, 0.5f, 0f) : new Color(0f, 0f, 0f);
+
+        supportModeButton.text = supportMode.Value ? "DISABLE" : "ENABLE";
     }
 
     private void WeatherSwitch_OnClick(UIfocusable trigger)
@@ -401,11 +347,6 @@ public class ForecastConfig : OptionInterface
         }
     }
 
-    private void SettingsButton_OnPressDone(UIfocusable trigger)
-    {
-        settingsRect.size += new Vector2(0f, 5f);
-    }
-
     private string StrikeDamageValue()
     {
         switch (strikeDamageType.Value)
@@ -452,97 +393,10 @@ public class ForecastConfig : OptionInterface
         return "";
     }
 
-    private void SnowButton_OnClick(UIfocusable trigger)
-    {
-        if (weatherType.Value != 1)
-        {
-            weatherType.Value = 1;
-            trigger.PlaySound(SoundID.MENU_Player_Join_Game);
-            settingsButton.text = "CHANGE " + (weatherType.Value == 1 ? "SNOW" : "RAIN") + "\nSETTINGS";
-        }
-    }
-
-    private void RainButton_OnClick(UIfocusable trigger)
-    {
-        if (weatherType.Value == 1)
-        {
-            weatherType.Value = 0;
-            trigger.PlaySound(SoundID.MENU_Player_Join_Game);
-            settingsButton.text = "CHANGE " + (weatherType.Value == 1 ? "SNOW" : "RAIN") + "\nSETTINGS";
-        }
-    }
-
     public override void Update()
     {
         base.Update();
 
-        if(settingLabels!= null)
-        {
-            (settingLabels[4] as OpLabel).color = weatherType.Value == 1 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
-            (settingLabels[5] as OpLabel).color = weatherType.Value == 1 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
-
-            (settingLabels[9] as OpLabel).color = weatherType.Value == 1 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
-            (settingLabels[10] as OpLabel).color = weatherType.Value == 1 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
-            (settingLabels[11] as OpLabel).color = weatherType.Value == 1 ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
-        }
-
-        if (rainButton != null && snowButton != null)
-        {
-            rainButton.sprite.alpha = weatherType.Value == 1 ? 0.2f : 1f;
-            snowButton.sprite.alpha = weatherType.Value == 1 ? 1f : 0.2f;
-
-            if ((weatherType.Value == 0 || rainButton.MouseOver || rainButton.Focused) && !(snowButton.MouseOver || snowButton.Focused))
-            {
-                rainButton.sprite.alpha = 1f;
-                if (!weatherPreviews["rainPreview"].isPlaying)
-                {
-                    weatherPreviews["rainPreview"].Play();
-                }
-            }
-            else
-            {
-                weatherPreviews["rainPreview"].Pause();
-            }
-
-            if ((weatherType.Value == 1 || snowButton.MouseOver || snowButton.Focused) && !(rainButton.MouseOver || rainButton.Focused))
-            {
-                snowButton.sprite.alpha = 1f;
-                if (!weatherPreviews["snowPreview"].isPlaying)
-                {
-                    weatherPreviews["snowPreview"].Play();
-                }
-            }
-            else
-            {
-                weatherPreviews["snowPreview"].Pause();
-            }
-        }
-        if (rainBanner != null && snowBanner != null)
-        {
-            snowBanner.alpha += weatherType.Value == 1 ? 0.025f : -0.025f;
-            snowBanner.alpha = Mathf.Clamp(snowBanner.alpha, 0f, 1f);
-
-            rainBanner.alpha += weatherType.Value == 1 ? -0.025f : 0.025f;
-            rainBanner.alpha = Mathf.Clamp(rainBanner.alpha, 0f, 1f);
-        }
-    }
-
-    public class ForecastDialog : Dialog, CheckBox.IOwnCheckBox, Slider.ISliderOwner
-    {
-        public ForecastDialog(ProcessManager manager, ForecastConfig config) : base(manager)
-        {
-
-        }
-
-        public bool GetChecked(CheckBox box)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetChecked(CheckBox box, bool c)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
 
