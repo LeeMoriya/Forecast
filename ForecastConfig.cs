@@ -66,12 +66,11 @@ public class ForecastConfig : OptionInterface
     public OpSimpleButton backgroundCollisionToggle;
     public OpSimpleButton waterCollisionToggle;
 
-
     //Region
     List<OpRect> regionRects;
     List<OpLabel> regionLabels;
-    List<OpCheckBox> regionCheckBoxes;
     List<OpSimpleButton> regionButtons;
+    List<OpLabel> customLabels;
 
     public ForecastConfig(Forecast mod)
     {
@@ -97,7 +96,7 @@ public class ForecastConfig : OptionInterface
 
         backgroundLightning = config.Bind<bool>("backgroundLightning", true);
         lightningStrikes = config.Bind<bool>("lightningStrikes", true);
-        lightningInterval = config.Bind<int>("lightningInterval", 10, new ConfigAcceptableRange<int>(1,60));
+        lightningInterval = config.Bind<int>("lightningInterval", 10, new ConfigAcceptableRange<int>(1, 60));
         lightningChance = config.Bind<int>("lightningChance", 15);
         strikeDamageType = config.Bind<int>("strikeDamageType", 0);
         strikeColor = config.Bind<Color>("strikeColor", new Color(1f, 1f, 0.95f, 1f));
@@ -107,20 +106,80 @@ public class ForecastConfig : OptionInterface
         snowPuffs = config.Bind<bool>("snowPuffs", true);
     }
 
+    public static void LoadRegionWeather()
+    {
+        string savePath = $"{Application.persistentDataPath}{Path.DirectorySeparatorChar}ModConfigs{Path.DirectorySeparatorChar}Forecast";
+        string filePath = $"{savePath}{Path.DirectorySeparatorChar}settings.txt";
+        if (File.Exists(filePath))
+        {
+            try
+            {
+                regionSettings = new Dictionary<string, int>();
+                string[] data = File.ReadAllLines(filePath);
+                for (int i = 0; i < data.Length; i++)
+                {
+                    string[] regionWeather = data[i].Split(':');
+                    if (!int.TryParse(regionWeather[1], out int weather))
+                    {
+                        weather = 1;
+                    };
+                    regionSettings.Add(regionWeather[0], weather);
+                }
+                ForecastLog.Log("Loaded region weather preferences");
+            }
+            catch (Exception ex)
+            {
+                File.Delete(filePath);
+                Debug.LogException(ex);
+                ForecastLog.Log("ERROR: There was an issue loading region weather preferences, resetting data...");
+            }
+        }
+    }
+
+    public static void SaveRegionWeather()
+    {
+        string savePath = $"{Application.persistentDataPath}{Path.DirectorySeparatorChar}ModConfigs{Path.DirectorySeparatorChar}Forecast";
+        string filePath = $"{savePath}{Path.DirectorySeparatorChar}settings.txt";
+        string data = "";
+        //Create save folder if not present
+        if(!Directory.Exists(savePath))
+        {
+            Directory.CreateDirectory(savePath);
+        }
+        foreach(KeyValuePair<string,int> pair in regionSettings)
+        {
+            data += $"{pair.Key}:{pair.Value}\n";
+        }
+        data.TrimEnd('\n');
+        File.WriteAllText(filePath, data);
+        ForecastLog.Log("Saved region weather preferences");
+    }
+
+
     public static void LoadCustomRegionSettings()
     {
         string[] array = new string[]
         {
             ""
         };
+        //Load list of installed regions
         string path = AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar.ToString() + "regions.txt");
         if (File.Exists(path))
         {
             array = File.ReadAllLines(path);
         }
 
+        LoadRegionWeather();
+
         for (int i = 0; i < array.Length; i++)
         {
+            //If not already present, assign default values
+            if (!regionSettings.ContainsKey(array[i]))
+            {
+                //TODO - method for default settings for vanilla regions
+                regionSettings.Add(array[i], 1);
+            }
+            //Check if the region has custom weather settings
             if (File.Exists(AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar + array[i] + Path.DirectorySeparatorChar + array[i] + "_forecast.txt")))
             {
                 ForecastLog.Log($"FORECAST: Custom settings found for {array[i]}");
@@ -129,11 +188,16 @@ public class ForecastConfig : OptionInterface
                 if (!customRegionSettings.ContainsKey(array[i]))
                 {
                     customRegionSettings.Add(array[i], new Dictionary<string, List<string>>());
+                    if (!regionSettings.ContainsKey(array[i]))
+                    {
+                        regionSettings[array[i]] = 2;
+                    }
                 }
                 bool globalSettings = false;
                 bool roomSection = false;
                 for (int s = 0; s < data.Length; s++)
                 {
+                    //Load global settings for the region
                     if (data[s].StartsWith("GLOBAL:"))
                     {
                         globalSettings = true;
@@ -149,6 +213,7 @@ public class ForecastConfig : OptionInterface
                     {
                         roomSection = false;
                     }
+                    //Load room specific weather settings
                     if (roomSection)
                     {
                         string room = data[s].Split(':')[0].Trim();
@@ -176,11 +241,10 @@ public class ForecastConfig : OptionInterface
                 {
                     Debug.LogException(new Exception($"FORECAST: Custom settings for {array[i]} is missing GLOBAL settings!"));
                 }
-
             }
-
         }
 
+        //Debug - print loaded tags
         foreach (string reg in customRegionSettings.Keys)
         {
             foreach (string key in customRegionSettings[reg].Keys)
@@ -280,7 +344,7 @@ public class ForecastConfig : OptionInterface
         OpLabel visualLabel = new OpLabel(new Vector2(290f, visualAnchor + 15f), new Vector2(), "- VISUAL SETTINGS -", FLabelAlignment.Center);
 
         OpRect visualRect = new OpRect(new Vector2(15f, visualAnchor - 233.5f), new Vector2(555, 240f));
-        visualRect.colorFill = new Color(1f,0f,1f);
+        visualRect.colorFill = new Color(1f, 0f, 1f);
         settingsBox.AddItems(visualRect, visualLabel);
 
         //Background Lightning
@@ -350,8 +414,8 @@ public class ForecastConfig : OptionInterface
 
         regionRects = new List<OpRect>();
         regionLabels = new List<OpLabel>();
-        regionCheckBoxes = new List<OpCheckBox>();
         regionButtons = new List<OpSimpleButton>();
+        customLabels = new List<OpLabel>();
 
         string[] array = new string[]
         {
@@ -363,33 +427,41 @@ public class ForecastConfig : OptionInterface
             array = File.ReadAllLines(path);
         }
 
-        float scrollHeight = 70f * array.Length;
-        float itemHeight = scrollHeight - 15f;
+        float scrollHeight = 70f * array.Length + 110f;
+        float itemHeight = scrollHeight - 125f;
         OpScrollBox scrollBox = new OpScrollBox(regions, scrollHeight, false, true);
         regions.AddItems(scrollBox);
 
+        OpLabel regionHeading = new OpLabel(new Vector2(290f, scrollHeight - 20f), new Vector2(), "REGION SETTINGS", FLabelAlignment.Center, true);
+        OpLabel regionDesc = new OpLabel(new Vector2(290f, scrollHeight - 73f), new Vector2(), "Disable weather for certain regions using the checkboxes.\n\nIf a region has it's own custom weather settings, you can use\nthe buttons on the right to override them and use your Global settings instead.", FLabelAlignment.Center, false); ;
+        scrollBox.AddItems(regionHeading, regionDesc);
+
         for (int i = 0; i < array.Length; i++)
         {
-            if (!regionSettings.ContainsKey(array[i]))
-            {
-                regionSettings.Add(array[i], 0);
-            }
-
             OpRect rect = new OpRect(new Vector2(0f, itemHeight - 50f - (70f * i)), new Vector2(580f, 60f));
             regionRects.Add(rect);
-            OpLabel regionName = new OpLabel(50f, itemHeight - 32f - (70f * i), array[i] + " - " + Region.GetRegionFullName(array[i], SlugcatStats.Name.White), true);
+            OpLabel regionName = new OpLabel(20f, itemHeight - 34f - (70f * i), array[i] + " - " + Region.GetRegionFullName(array[i], SlugcatStats.Name.White), true);
             regionLabels.Add(regionName);
-            OpCheckBox regionCheck = new OpCheckBox(new Configurable<bool>(true), new Vector2(10f, itemHeight - 32f - (70f * i)));
-            regionCheck.OnValueChanged += RegionCheck_OnValueChanged;
-            regionCheck.description = $"{i}.{array[i]}) Toggle weather this region on or off";
-            regionCheckBoxes.Add(regionCheck);
             OpSimpleButton weatherSwitch = new OpSimpleButton(new Vector2(470f, itemHeight - 40f - (70f * i)), new Vector2(100f, 40f), "GLOBAL");
             weatherSwitch.OnClick += WeatherSwitch_OnClick;
             weatherSwitch.description = $"{i}.{array[i]}) Change this region's weather settings";
             regionButtons.Add(weatherSwitch);
-            scrollBox.AddItems(rect, regionName, regionCheck, weatherSwitch);
-        }
+            scrollBox.AddItems(rect, regionName, weatherSwitch);
+            if (customRegionSettings.ContainsKey(array[i]))
+            {
+                regionName.SetPos(regionName.GetPos() + new Vector2(0f, 11f));
+            }
+            OpLabel customLabel = new OpLabel(20f, itemHeight - 42f - (70f * i), customRegionSettings.ContainsKey(array[i]) ? "This region has custom settings" : "", false);
+            customLabels.Add(customLabel);
+            scrollBox.AddItems(customLabel);
 
+            weatherSwitch.text = RegionModText(regionSettings[array[i]]);
+            weatherSwitch.colorEdge = RegionButtonColor(regionSettings[array[i]]);
+            rect.colorEdge = weatherSwitch.colorEdge;
+            rect.colorFill = weatherSwitch.colorEdge;
+            customLabel.color = weatherSwitch.colorEdge;
+            regionName.color = weatherSwitch.colorEdge;
+        }
         #endregion
 
         ForecastLog.Log($"Support Mode: {(supportMode.Value ? "ON" : "OFF")}");
@@ -458,7 +530,7 @@ public class ForecastConfig : OptionInterface
 
         backgroundCollision.Value = true;
         waterCollision.Value = true;
-        dynamicClouds.Value = true;
+        //dynamicClouds.Value = true;
 
         backgroundLightning.Value = true;
         lightningStrikes.Value = true;
@@ -525,11 +597,25 @@ public class ForecastConfig : OptionInterface
     {
         int index = int.Parse(trigger.description.Split('.')[0]);
         string region = trigger.description.Split('.')[1].Split(')')[0];
-        regionSettings[region]++;
-        if (regionSettings[region] == 4) { regionSettings[region] = 0; }
+        if (customRegionSettings.ContainsKey(region))
+        {
+            regionSettings[region]++;
+            if (regionSettings[region] == 3) { regionSettings[region] = 0; }
+        }
+        else
+        {
+            regionSettings[region]++;
+            if (regionSettings[region] == 2) { regionSettings[region] = 0; }
+        }
 
         regionButtons[index].text = RegionModText(regionSettings[region]);
         regionButtons[index].colorEdge = RegionButtonColor(regionSettings[region]);
+        regionRects[index].colorEdge = regionButtons[index].colorEdge;
+        regionRects[index].colorFill = regionButtons[index].colorEdge;
+        customLabels[index].color = regionButtons[index].colorEdge;
+        regionLabels[index].color = regionButtons[index].colorEdge;
+
+        SaveRegionWeather();
     }
 
     private Color RegionButtonColor(int val)
@@ -537,13 +623,11 @@ public class ForecastConfig : OptionInterface
         switch (val)
         {
             case 0:
-                return new Color(0.5f, 0.5f, 0.5f);
+                return new Color(0.65f, 0.25f, 0.25f);
             case 1:
-                return new Color(0f, 0.8f, 1f);
+                return Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
             case 2:
-                return new Color(1f, 1f, 1f);
-            case 3:
-                return new Color(0f, 1f, 0f);
+                return new Color(0.1f, 0.8f, 0.1f);
         }
         return Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
     }
@@ -553,32 +637,13 @@ public class ForecastConfig : OptionInterface
         switch (val)
         {
             case 0:
-                return "GLOBAL";
+                return "NONE";
             case 1:
-                return "RAIN";
+                return "GLOBAL";
             case 2:
-                return "SNOW";
-            case 3:
                 return "CUSTOM";
         }
         return "ERROR";
-    }
-
-    private void RegionCheck_OnValueChanged(UIconfig config, string value, string oldValue)
-    {
-        int index = int.Parse(config.description.Split('.')[0]);
-        if (regionCheckBoxes[index].value == "false")
-        {
-            regionRects[index].colorEdge = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
-            regionLabels[index].color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
-            regionButtons[index].greyedOut = true;
-        }
-        else
-        {
-            regionRects[index].colorEdge = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
-            regionLabels[index].color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
-            regionButtons[index].greyedOut = false;
-        }
     }
 
     private string StrikeDamageValue()
@@ -662,7 +727,7 @@ public class ForecastConfig : OptionInterface
         intensityToggle.text = IntensityValue();
         strikeTypeToggle.text = StrikeDamageValue();
 
-        if(!lightningStrikes.Value)
+        if (!lightningStrikes.Value)
         {
             strikeTypeToggle.greyedOut = true;
             intervalSlider.greyedOut = true;

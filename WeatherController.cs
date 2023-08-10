@@ -354,8 +354,8 @@ public class WeatherController : UpdatableAndDeletable
                 windDirection = UnityEngine.Random.Range(1, 3);
             }
 
-            //Overwrite with global settings from region if they exist
-            if (ForecastConfig.customRegionSettings.ContainsKey(region))
+            //Overwrite with global settings from region if they exist and that region is set to custom
+            if (ForecastConfig.customRegionSettings.ContainsKey(region) && ForecastConfig.regionSettings.ContainsKey(region) && ForecastConfig.regionSettings[region] == 2)
             {
                 foreach (string key in ForecastConfig.customRegionSettings[region].Keys)
                 {
@@ -507,11 +507,27 @@ public class WeatherController : UpdatableAndDeletable
                     startingIntensity = WeatherHooks.weatherForecast.dynamicRegionStartingIntensity[region];
                 }
             }
-            //Determine whether chance based on Global or Custom value
-            if (!WeatherHooks.weatherForecast.weatherlessRegions.Contains(region) && weatherChance < UnityEngine.Random.Range(0, 100))
+            //Determine whether region weather is disabled
+            if (!WeatherHooks.weatherForecast.weatherlessRegions.Contains(region))
             {
-                WeatherHooks.weatherForecast.weatherlessRegions.Add(region);
-                ForecastLog.Log($"FORECAST: Region: {region} failed weatherChance - DISABLED this cycle");
+                //Weather disabled because it failed the weather chance check
+                if (weatherChance < UnityEngine.Random.Range(0, 100))
+                {
+                    WeatherHooks.weatherForecast.weatherlessRegions.Add(region);
+                    ForecastLog.Log($"FORECAST: Region: {region} failed weatherChance - DISABLED this cycle");
+                }
+                //Weather disabled via Remix menu
+                if (ForecastConfig.regionSettings[region] == 0)
+                {
+                    WeatherHooks.weatherForecast.weatherlessRegions.Add(region);
+                    ForecastLog.Log($"FORECAST: Region: {region} weather disabled via Remix");
+                }
+                //Weather disabled because support mode is active and this region isn't using custom settings
+                else if (ForecastConfig.regionSettings[region] == 1 && ForecastConfig.supportMode.Value)
+                {
+                    WeatherHooks.weatherForecast.weatherlessRegions.Add(region);
+                    ForecastLog.Log($"FORECAST: Region: {region} weather disabled due to Support Mode");
+                }
             }
             ForecastLog.Log($"FORECAST: Generated settings for {room}");
         }
