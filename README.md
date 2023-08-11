@@ -18,7 +18,7 @@ The user can also enable 'Support Mode' where weather effects are disabled for a
 ### Custom Settings
 Region makers can define their own Global settings that apply to their region and tweak weather for each room individually if desired. For instructions on how to set this up, follow the guide below:
 
-[Region Maker's Guide](https://github.com/LeeMoriya/Forecast/rain/RegionGuide.md)
+[Region Maker's Guide](https://github.com/LeeMoriya/Forecast/blob/rain/RegionGuide.md)
 
 ### Download
 Downloading Forecast from the Steam Workshop is recommended to ensure you stay up to date, however if you got the game from a different storefront, you can download it manually below:
