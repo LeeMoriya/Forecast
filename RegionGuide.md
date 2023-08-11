@@ -77,3 +77,14 @@ END ROOMS
 - Info: Controls what kind of damage a direct impact from a lightning strike will have, if any.
 - Examples: `ST_NONE`, `ST_STUN`, `ST_LETHAL`
 ---
+
+### Debug Controls
+You can gain access to some debug controls and a HUD of your configured settings in each room by enabling debug mode.
+
+To do this, navigate to the 'Regions' tab in the Remix menu and scroll all the way to the bottom, there is a button to toggle it on and off.
+
+- SHIFT + Q
+  - Used in a room with active weather, will reload settings that you change in your text file. After doing this, leave the room and press Q with Dev Tools to unload the room, then re-enter to see the new settings.
+ 
+- 5 (Number row)
+  - Speeds up the cycle timer so you can preview dynamic weather intensity effects.
