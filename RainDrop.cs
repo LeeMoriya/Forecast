@@ -25,6 +25,7 @@ public class RainDrop : CosmeticSprite
     public Vector2 resetPos;
     public float alpha;
     public Player player;
+    public bool forceReset;
 
     public RainDrop(Vector2 pos, Color color, float rainIntensity, WeatherController spawner)
     {
@@ -44,7 +45,7 @@ public class RainDrop : CosmeticSprite
             backgroundDrop = false;
             depth = UnityEngine.Random.Range(0.7f, 1f);
         }
-        if (Forecast.rainbow)
+        if (ForecastMod.rainbow)
         {
             this.color = Custom.HSL2RGB(UnityEngine.Random.value, 0.5f, 0.5f);
         }
@@ -53,7 +54,7 @@ public class RainDrop : CosmeticSprite
             this.color = color;
         }
         resetPos = new Vector2(pos.x, spawner.room.RoomRect.top + 150f);
-        pos = new Vector2(pos.x, UnityEngine.Random.Range(pos.y, spawner.room.RoomRect.top + 150f));
+        this.pos = new Vector2(pos.x, UnityEngine.Random.Range(pos.y, spawner.room.RoomRect.top + 150f));
         lastPos = pos;
         lastLastPos = pos;
         lastLastLastPos = pos;
@@ -218,6 +219,7 @@ public class RainDrop : CosmeticSprite
         sLeaser.sprites[0].alpha = alpha;
         sLeaser.sprites[0].color = Color.Lerp(rCam.currentPalette.fogColor, color, depth * 0.9f);
         sLeaser.sprites[1].color = Color.Lerp(rCam.currentPalette.fogColor, color, depth * 0.9f);
+
         AddToContainer(sLeaser, rCam, null);
     }
     public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -237,7 +239,7 @@ public class RainDrop : CosmeticSprite
         sLeaser.sprites[1].x = vector.x - camPos.x;
         sLeaser.sprites[1].y = vector.y - camPos.y;
         sLeaser.sprites[1].rotation = UnityEngine.Random.value * 360f;
-        if (Forecast.rainbow)
+        if (ForecastMod.rainbow)
         {
             sLeaser.sprites[0].color = Color.Lerp(color, Color.Lerp(rCam.PixelColorAtCoordinate(pos), rCam.PixelColorAtCoordinate(lastLastLastPos), 0.5f), 0.36f);
         }
@@ -288,6 +290,8 @@ public class RainDrop : CosmeticSprite
     public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
     {
         base.ApplyPalette(sLeaser, rCam, palette);
+        sLeaser.sprites[0].color = Color.Lerp(rCam.currentPalette.fogColor, color, depth * 0.9f);
+        sLeaser.sprites[1].color = Color.Lerp(rCam.currentPalette.fogColor, color, depth * 0.9f);
     }
 
     public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)

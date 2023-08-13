@@ -12,6 +12,7 @@ public class WeatherHooks
 {
     public static ConditionalWeakTable<Room, WeatherController.WeatherSettings> roomSettings = new ConditionalWeakTable<Room, WeatherController.WeatherSettings>();
     public static WeatherForecast weatherForecast;
+    public static DebugWeatherUI debugUI;
 
     public static List<RoomRain.DangerType> invalidDangerTypes = new List<RoomRain.DangerType>() //Invalid dangerTypes, don't spawn a WeatherController if the room uses one of these
     {
@@ -36,6 +37,31 @@ public class WeatherHooks
         On.RainCycle.RainHit += RainCycle_RainHit;
         On.RoomRain.Update += RoomRain_Update;
         On.StoryGameSession.ctor += StoryGameSession_ctor;
+        On.RainWorld.Update += RainWorld_Update;
+    }
+
+    private static void RainWorld_Update(On.RainWorld.orig_Update orig, RainWorld self)
+    {
+        orig.Invoke(self);
+        if (ForecastConfig.debugMode.Value)
+        {
+            if(self.processManager.currentMainLoop is RainWorldGame)
+            {
+                if(debugUI == null)
+                {
+                    debugUI = new DebugWeatherUI();
+                }
+                else
+                {
+                    debugUI.Update();
+                }
+            }
+            else
+            {
+                debugUI.RemoveSprites();
+                debugUI = null;
+            }
+        }
     }
 
     private static void StoryGameSession_ctor(On.StoryGameSession.orig_ctor orig, StoryGameSession self, SlugcatStats.Name saveStateNumber, RainWorldGame game)
@@ -53,16 +79,16 @@ public class WeatherHooks
             ForecastLog.Log($"FORECAST: Preparing next forecast");
         }
 
-        if (Forecast.debug && Forecast.exposureControllers != null)
+        if (ForecastConfig.debugMode.Value && ForecastMod.exposureControllers != null)
         {
-            for (int i = 0; i < Forecast.exposureControllers.Count; i++)
+            for (int i = 0; i < ForecastMod.exposureControllers.Count; i++)
             {
-                Forecast.exposureControllers[i].RemoveDebugLabels();
+                ForecastMod.exposureControllers[i].RemoveDebugLabels();
             }
         }
         if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value)
         {
-            Forecast.exposureControllers = new List<ExposureController>();
+            ForecastMod.exposureControllers = new List<ExposureController>();
         }
     }
 
@@ -89,7 +115,7 @@ public class WeatherHooks
         orig.Invoke(self, abstractCreature, world);
         if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value && self.room.game.session is StoryGameSession)
         {
-            Forecast.exposureControllers.Add(new ExposureController(self));
+            ForecastMod.exposureControllers.Add(new ExposureController(self));
         }
     }
 
@@ -100,7 +126,7 @@ public class WeatherHooks
         int ceilingCount;
         if (self.realizedRoom != null && self.realizedRoom.roomRain != null)
         {
-            if (!self.shelter && !self.gate && !invalidDangerTypes.Contains(self.realizedRoom.roomRain.dangerType) && !roomSettings.TryGetValue(self.realizedRoom, out WeatherController.WeatherSettings t))
+            if (!self.shelter && !self.gate && !invalidDangerTypes.Contains(self.realizedRoom.roomRain.dangerType))
             {
                 ceilingCount = 0;
                 for (int r = 0; r < self.realizedRoom.TileWidth; r++)
@@ -112,6 +138,13 @@ public class WeatherHooks
                 }
                 if (ceilingCount < (self.realizedRoom.Width * 0.95))
                 {
+                    for (int i = 0; i < self.realizedRoom.updateList.Count; i++)
+                    {
+                        if (self.realizedRoom.updateList[i] is WeatherController)
+                        {
+                            return;
+                        }
+                    }
                     self.realizedRoom.AddObject(new WeatherController(self.realizedRoom));
                 }
             }
@@ -121,21 +154,21 @@ public class WeatherHooks
     private static void RainWorld_LoadResources(On.RainWorld.orig_LoadResources orig, RainWorld self)
     {
         orig.Invoke(self);
-        Forecast.snowExt1 = new Texture2D(0, 0);
+        ForecastMod.snowExt1 = new Texture2D(0, 0);
         if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowExt1.png")))
         {
             ForecastLog.Log("FORECAST: Loaded snowExt1.png");
         }
-        Forecast.snowExt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowExt1.png")));
-        Forecast.snowExt1.filterMode = FilterMode.Point;
+        ForecastMod.snowExt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowExt1.png")));
+        ForecastMod.snowExt1.filterMode = FilterMode.Point;
 
-        Forecast.snowInt1 = new Texture2D(0, 0);
+        ForecastMod.snowInt1 = new Texture2D(0, 0);
         if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowInt1.png")))
         {
             ForecastLog.Log("FORECAST: Loaded snowInt1.png");
         }
-        Forecast.snowInt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowInt1.png")));
-        Forecast.snowInt1.filterMode = FilterMode.Point;
+        ForecastMod.snowInt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowInt1.png")));
+        ForecastMod.snowInt1.filterMode = FilterMode.Point;
 
         byte[] rainbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainButton.png"));
         Texture2D raintexture = new Texture2D(0, 0);
@@ -149,6 +182,13 @@ public class WeatherHooks
         snowtexture.LoadImage(snowbytes);
         Futile.atlasManager.LoadAtlasFromTexture("snowbutton", snowtexture, false);
 
+        if (!Futile.atlasManager.DoesContainAtlas("bg_rain"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\bg_rain.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("bg_rain", texture, false);
+        }
         if (!Futile.atlasManager.DoesContainAtlas("snowpile"))
         {
             Texture2D texture = new Texture2D(0, 0);
@@ -236,7 +276,7 @@ public class WeatherHooks
         {
             case 0:
                 direction = UnityEngine.Random.Range(1, 4);
-                Forecast.blizzardDirection = direction;
+                ForecastMod.blizzardDirection = direction;
                 break;
             case 1:
                 direction = 1;
@@ -260,7 +300,7 @@ public class WeatherHooks
                 leftOrRight = 1;
             }
         }
-        Forecast.blizzardDirection = leftOrRight;
+        ForecastMod.blizzardDirection = leftOrRight;
     }
     private static void Room_Loaded(On.Room.orig_Loaded orig, Room self)
     {
@@ -279,15 +319,15 @@ public class WeatherHooks
         if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value && self.world.rainCycle.RainDarkPalette > 0f)
         {
             //Update exposure
-            if (Forecast.exposureControllers != null & Forecast.exposureControllers.Count > 0)
+            if (ForecastMod.exposureControllers != null & ForecastMod.exposureControllers.Count > 0)
             {
-                for (int i = 0; i < Forecast.exposureControllers.Count; i++)
+                for (int i = 0; i < ForecastMod.exposureControllers.Count; i++)
                 {
-                    Forecast.exposureControllers[i].Update();
+                    ForecastMod.exposureControllers[i].Update();
                 }
             }
         }
-        if (Forecast.debug && self.BeingViewed)
+        if (ForecastConfig.debugMode.Value && self.BeingViewed)
         {
             //Fast Forward Cycle Timer
             if (Input.GetKey(KeyCode.Alpha5))

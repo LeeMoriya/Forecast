@@ -19,7 +19,7 @@ class RainPalette
     private static void RoomCamera_ApplyEffectColorsToPaletteTexture(On.RoomCamera.orig_ApplyEffectColorsToPaletteTexture orig, RoomCamera self, ref Texture2D texture, int color1, int color2)
     {
         orig.Invoke(self, ref texture, color1, color2);
-        //if (Forecast.snow && Forecast.effectColors)
+        //if (ForecastMod.snow && ForecastMod.effectColors)
         //{
         //    if (color1 > -1)
         //    {
@@ -59,7 +59,7 @@ class RainPalette
         //        texture.SetPixels(30, 2, 2, 2, snow2A, 0);
         //        texture.SetPixels(30, 10, 2, 2, snow2B, 0);
         //    }
-        //    if (Forecast.debug)
+        //    if (ForecastConfig.debugMode.Value)
         //    {
         //        byte[] img = texture.EncodeToPNG();
         //        File.WriteAllBytes(Custom.RootFolderDirectory() + "snowPalette.png", img);
@@ -79,7 +79,7 @@ class RainPalette
     private static void LoadPalette(On.RoomCamera.orig_LoadPalette orig, RoomCamera self, int pal, ref Texture2D texture)
     {
         orig.Invoke(self, pal, ref texture);
-        if (Forecast.paletteChange)
+        if (ForecastMod.paletteChange)
         {
             Room room = null;
             if (self.loadingRoom != null)
@@ -100,8 +100,8 @@ class RainPalette
                 {
                     Color[] colors = texture.GetPixels();
                     Color[] newColors = new Color[colors.Length];
-                    Color[] exterior1Cols = Forecast.snowExt1.GetPixels();
-                    Color[] interior1Cols = Forecast.snowInt1.GetPixels();
+                    Color[] exterior1Cols = ForecastMod.snowExt1.GetPixels();
+                    Color[] interior1Cols = ForecastMod.snowInt1.GetPixels();
                     for (int i = 0; i < colors.Length; i++)
                     {
                         //Rain
@@ -135,12 +135,12 @@ class RainPalette
                     if (ForecastConfig.weatherType.Value == 1)
                     {
                         //Determine palette needed
-                        if (Forecast.rainRegions.Contains(room.world.region.name))
+                        if (ForecastMod.rainRegions.Contains(room.world.region.name))
                         {
                             //Exterior
                             if (WeatherHooks.roomSettings.TryGetValue(self.loadingRoom, out WeatherController.WeatherSettings s))
                             {
-                                Color[] snowPalette = Forecast.snowExt1.GetPixels();
+                                Color[] snowPalette = ForecastMod.snowExt1.GetPixels();
                                 for (int i = 0; i < modifiedPalette.Length; i++)
                                 {
                                     modifiedPalette[i] = origPalette[i];
@@ -152,7 +152,7 @@ class RainPalette
                             //Interior
                             else
                             {
-                                Color[] snowPalette = Forecast.snowInt1.GetPixels();
+                                Color[] snowPalette = ForecastMod.snowInt1.GetPixels();
                                 for (int i = 0; i < modifiedPalette.Length; i++)
                                 {
                                     modifiedPalette[i] = origPalette[i];

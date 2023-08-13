@@ -78,7 +78,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BackgroundRain.cs" />
     <Compile Include="Blizzard.cs" />
+    <Compile Include="DebugWeatherUI.cs" />
     <Compile Include="Forecast.cs" />
     <Compile Include="ForecastConfig.cs" />
     <Compile Include="ForecastLog.cs" />

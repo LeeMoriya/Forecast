@@ -38,7 +38,7 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
         {
             base.slatedForDeletetion = true;
         }
-        if (Forecast.debug)
+        if (ForecastConfig.debugMode.Value)
         {
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Insert))
             {

@@ -19,11 +19,10 @@ using BepInEx;
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
 [BepInPlugin("LeeMoriya.Forecast", "Forecast", "1.03")]
-public class Forecast : BaseUnityPlugin
+public class ForecastMod : BaseUnityPlugin
 {
-    public static string version = "1.03";
     public static bool init = false;
-    public Forecast()
+    public ForecastMod()
     {
         
     }
@@ -48,7 +47,7 @@ public class Forecast : BaseUnityPlugin
         }
 
         Options = new ForecastConfig(this);
-        MachineConnector.SetRegisteredOI("forecast", Options);
+        MachineConnector.SetRegisteredOI("leemoriya.forecast", Options);
     }
 
     private float RainCycle_get_MicroScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
@@ -73,7 +72,6 @@ public class Forecast : BaseUnityPlugin
     public static int palettecount = 0;
     public static bool paletteChange = true;
     public static bool rainbow = false;
-    public static bool debug = true;
     public static bool decals = true;
     public static List<string> rainRegions = new List<string>();
     public static List<ExposureController> exposureControllers;

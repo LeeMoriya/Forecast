@@ -31,11 +31,8 @@ public class WeatherController : UpdatableAndDeletable
 
     public WeatherController(Room room)
     {
-        if (!WeatherHooks.roomSettings.TryGetValue(room, out settings))
-        {
-            settings = new WeatherSettings(room.world.region.name, room.abstractRoom.name, this);
-            WeatherHooks.roomSettings.Add(room, settings);
-        }
+        ForecastLog.Log($"WeatherController added to {room.abstractRoom.name}");
+        settings = new WeatherSettings(room.world.region.name, room.abstractRoom.name, this);
 
         skyreach = new List<Vector2>();
         camSkyreach = new List<Vector2>();
@@ -88,7 +85,7 @@ public class WeatherController : UpdatableAndDeletable
                 {
                     skyreach.Add(room.MiddleOfTile(tile.X, tile.Y - 1));
                     //Add snow decals to surfaces
-                    if (settings.weatherType == 1 && Forecast.decals)
+                    if (settings.weatherType == 1 && ForecastMod.decals)
                     {
                         if (UnityEngine.Random.value > 0.8f)
                         {
@@ -103,6 +100,8 @@ public class WeatherController : UpdatableAndDeletable
         {
             room.AddObject(new RainSound(room, this));
         }
+        //Background test
+        //room.AddObject(new BackgroundRain(this));
     }
 
     public void AddRaindrops(int rainDropsToSpawn)
@@ -112,6 +111,7 @@ public class WeatherController : UpdatableAndDeletable
             for (int i = 0; i < rainDropsToSpawn; i++)
             {
                 Vector2 rng = skyreach[UnityEngine.Random.Range(0, skyreach.Count)];
+                rng += new Vector2(0f, UnityEngine.Random.Range(0f, room.game.cameras[0].pos.y - rng.y));
                 RainDrop rainDrop = new RainDrop(rng, Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), settings.currentIntensity, this);
                 room.AddObject(rainDrop);
                 rainDrops++;
@@ -225,16 +225,16 @@ public class WeatherController : UpdatableAndDeletable
                     room.lightning.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), settings.currentIntensity);
                     room.AddObject(room.lightning);
                 }
-                if (settings.lightningStrikes && room.BeingViewed && room.roomRain != null)
+            }
+            if (settings.lightningStrikes && room.BeingViewed && room.roomRain != null)
+            {
+                lightningCounter += 0.025f;
+                if (lightningCounter >= settings.lightningInterval)
                 {
-                    lightningCounter += 0.025f;
-                    if(lightningCounter >= settings.lightningInterval)
+                    lightningCounter = 0;
+                    if (UnityEngine.Random.Range(0, 100) <= settings.lightningChance)
                     {
-                        lightningCounter = 0;
-                        if(UnityEngine.Random.Range(0,100) <= settings.lightningChance)
-                        {
-                            room.AddObject(new LightningStrike(this, settings.strikeColor));
-                        }
+                        room.AddObject(new LightningStrike(this, settings.strikeColor));
                     }
                 }
             }
@@ -284,6 +284,8 @@ public class WeatherController : UpdatableAndDeletable
     public class WeatherSettings
     {
         public int reloadDelay;
+        public string regionName;
+        public string roomName;
 
         public WeatherController owner;
         public int weatherType;
@@ -315,6 +317,8 @@ public class WeatherController : UpdatableAndDeletable
         public WeatherSettings(string region, string room, WeatherController owner)
         {
             this.owner = owner;
+            regionName = region;
+            roomName = room;
             //Apply generic settings
             weatherType = 0;
             weatherIntensity = ForecastConfig.weatherIntensity.Value;
@@ -333,23 +337,7 @@ public class WeatherController : UpdatableAndDeletable
             strikeDamageType = ForecastConfig.strikeDamageType.Value;
             strikeColor = ForecastConfig.strikeColor.Value;
 
-            switch (weatherIntensity)
-            {
-                case 0:
-                    dynamic = true;
-                    fixedIntensity = 0f;
-                    break;
-                case 1:
-                    fixedIntensity = 0.25f;
-                    break;
-                case 2:
-                    fixedIntensity = 0.6f;
-                    break;
-                case 3:
-                    fixedIntensity = 1f;
-                    break;
-            }
-            if(windDirection == 0)
+            if (windDirection == 0)
             {
                 windDirection = UnityEngine.Random.Range(1, 3);
             }
@@ -361,7 +349,7 @@ public class WeatherController : UpdatableAndDeletable
                 {
                     if (key == "GLOBAL" || key == room)
                     {
-                        if(globalTags == null)
+                        if (globalTags == null)
                         {
                             globalTags = new List<string>();
                         }
@@ -372,11 +360,11 @@ public class WeatherController : UpdatableAndDeletable
                         List<string> tags = ForecastConfig.customRegionSettings[region][key];
                         foreach (string tag in tags)
                         {
-                            if(key == "GLOBAL")
+                            if (key == "GLOBAL")
                             {
                                 globalTags.Add(tag);
                             }
-                            if(key == room)
+                            if (key == room)
                             {
                                 roomTags.Add(tag);
                             }
@@ -393,13 +381,14 @@ public class WeatherController : UpdatableAndDeletable
                                     else
                                     {
                                         int.TryParse(data, out int num);
+                                        weatherIntensity = -1;
                                         fixedIntensity = num / 100f;
                                         dynamic = false;
                                     }
                                     break;
                                 case "WD": //Wind Direction
                                     int dir = 0;
-                                    if (data == "RANDOM") { dir = UnityEngine.Random.Range(1,3); }
+                                    if (data == "RANDOM") { dir = UnityEngine.Random.Range(1, 3); }
                                     if (data == "LEFT") { dir = 1; }
                                     if (data == "MID") { dir = 2; }
                                     if (data == "RIGHT") { dir = 3; }
@@ -427,7 +416,7 @@ public class WeatherController : UpdatableAndDeletable
                                     break;
                                 case "CC": //Cloud Cover
                                     dynamicClouds = data == "ON";
-                                    if(data != "ON")
+                                    if (data != "ON")
                                     {
                                         dynamicClouds = false;
                                         int.TryParse(data, out int num5);
@@ -465,30 +454,40 @@ public class WeatherController : UpdatableAndDeletable
                                     break;
                             }
                         }
-                        if(key == "GLOBAL")
-                        {
-                            switch (weatherIntensity)
-                            {
-                                case 0:
-                                    dynamic = true;
-                                    fixedIntensity = 0f;
-                                    break;
-                                case 1:
-                                    fixedIntensity = 0.25f;
-                                    break;
-                                case 2:
-                                    fixedIntensity = 0.6f;
-                                    break;
-                                case 3:
-                                    fixedIntensity = 1f;
-                                    break;
-                            }
-                        }
                     }
                 }
             }
-            if(!dynamic)
+            //Wind Direction
+            if (!WeatherHooks.weatherForecast.regionWindDirection.ContainsKey(region))
             {
+                WeatherHooks.weatherForecast.regionWindDirection.Add(region, windDirection);
+            }
+            else
+            {
+                windDirection = WeatherHooks.weatherForecast.regionWindDirection[region];
+            }
+            if (!dynamic)
+            {
+                switch (weatherIntensity)
+                {
+                    case 0:
+                        dynamic = true;
+                        fixedIntensity = 0f;
+                        break;
+                    case 1:
+                        dynamic = false;
+                        fixedIntensity = 0.25f;
+                        break;
+                    case 2:
+                        dynamic = false;
+                        fixedIntensity = 0.6f;
+                        break;
+                    case 3:
+                        dynamic = false;
+                        fixedIntensity = 1f;
+                        break;
+                }
+
                 currentIntensity = fixedIntensity;
                 startingIntensity = currentIntensity;
             }
@@ -534,78 +533,41 @@ public class WeatherController : UpdatableAndDeletable
 
         public void Update()
         {
-            if (owner.room.BeingViewed)
+            if (ForecastConfig.debugMode.Value)
             {
-                if(reloadDelay <= 0)
+                if (owner.room.BeingViewed)
                 {
-                    if(Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Q))
+                    if (reloadDelay <= 0)
                     {
-                        reloadDelay = 100;
-                        ForecastConfig.customRegionSettings = new Dictionary<string, Dictionary<string, List<string>>>();
-                        ForecastConfig.LoadCustomRegionSettings();
-                    }
-                }
-                else
-                {
-                    reloadDelay--;
-                }
-                if(debug == null)
-                {
-                    debug = new FLabel("font", "");
-                    debug.alignment = FLabelAlignment.Left;
-                    debug.SetPosition(50.01f, 700.01f);
-                    debug.SetAnchor(new Vector2(0f, 1f));
-                    Futile.stage.AddChild(debug);
-                    show = true;
-                }
-                else
-                {
-                    if (!show)
-                    {
-                        Futile.stage.AddChild(debug);
-                    }
-                    string info = "";
-                    info += $"{owner.room.abstractRoom.name} - WEATHER SETTINGS \n\n";
-                    info += $"Weather Chance: {weatherChance}% - {(owner.disabled ? "DISABLED" : "ENABLED")}\n";
-                    info += "Intensity: " + (dynamic ? "Dynamic" : "Fixed") + $" - {Mathf.RoundToInt(currentIntensity * 100f)}%\n";
-                    info += $"Particle Limit: {particleLimit}\n\n";
-                    info += "Global Tags: ";
-                    if(globalTags == null)
-                    {
-                        info += "NONE\n";
-                    }
-                    else if(globalTags.Count > 0)
-                    {
-                        for (int i = 0; i < globalTags.Count; i++)
+                        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Q))
                         {
-                            info += globalTags[i] + ", ";
+                            reloadDelay = 100;
+                            ForecastConfig.customRegionSettings = new Dictionary<string, Dictionary<string, List<string>>>();
+                            ForecastConfig.LoadCustomRegionSettings();
                         }
-                        info += "\n";
                     }
-                    info += "Room Tags: ";
-                    if (roomTags == null)
+                    else
                     {
-                        info += "NONE\n";
+                        reloadDelay--;
                     }
-                    else if (roomTags.Count > 0)
+                    if(WeatherHooks.debugUI != null)
                     {
-                        for (int i = 0; i < roomTags.Count; i++)
+                        if(WeatherHooks.debugUI.settings != this)
                         {
-                            info += roomTags[i] + ", ";
+                            WeatherHooks.debugUI.UpdateLabels(this);
                         }
-                        info += "\n";
+                        else if(!WeatherHooks.debugUI.toggle)
+                        {
+                            WeatherHooks.debugUI.activeCounter = 10;
+                            WeatherHooks.debugUI.refreshCounter++;
+                            if(WeatherHooks.debugUI.refreshCounter >= 40)
+                            {
+                                WeatherHooks.debugUI.UpdateLabels(this);
+                                WeatherHooks.debugUI.refreshCounter = 0;
+                            }
+                        }
                     }
-                    info += "\n";
-                    info += "Lightning Strikes: " + (lightningStrikes ? "ON" : "OFF") + "\n";
-                    info += "Lightning Interval: " + (lightningStrikes ? ($"{Mathf.RoundToInt(owner.lightningCounter)} / {lightningInterval}") : "N/A") + "\n";
-                    info += "Lightning Chance: " + (lightningStrikes ? (lightningChance + "%") : "N/A") + "\n";
-                    debug.text = info;
                 }
-            }
-            else if(debug != null)
-            {
-                Futile.stage.RemoveChild(debug);
-                show = false;
             }
             //Rain intensity increases with cycle duration if in dynamic mode
             if (dynamic && owner.room.BeingViewed)
@@ -613,10 +575,6 @@ public class WeatherController : UpdatableAndDeletable
                 if (owner.room.world.rainCycle.RainDarkPalette <= 0)
                 {
                     currentIntensity = Mathf.Lerp(startingIntensity, 1f, owner.room.world.rainCycle.CycleProgression);
-                    if(Input.GetKey(KeyCode.Semicolon))
-                    {
-                        ForecastLog.Log($"FORECAST: {owner.room.abstractRoom.name} - Current intensity: {currentIntensity}");
-                    }
                 }
                 else
                 {

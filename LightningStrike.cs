@@ -250,7 +250,7 @@ public class LightningStrike : UpdatableAndDeletable
             sLeaser.sprites[0].alpha -= 0.025f;
             if (warn)
             {
-                sLeaser.sprites[0].alpha = Mathf.Lerp(alpha, 0f, UnityEngine.Random.value);
+                sLeaser.sprites[0].alpha = Mathf.Lerp(alpha, 0f, UnityEngine.Random.value); //TODO - replace this
                 alpha -= 0.01f;
             }
             sLeaser.sprites[1].alpha -= 0.01f;

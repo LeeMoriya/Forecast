@@ -42,6 +42,8 @@ public class ForecastConfig : OptionInterface
     public static Configurable<bool> effectColors;
     public static Configurable<bool> snowPuffs;
 
+    public static Configurable<bool> debugMode;
+
     //Manual Configurables
     public static Dictionary<string, int> regionSettings;
     public static Dictionary<string, Dictionary<string, List<string>>> customRegionSettings;
@@ -66,13 +68,16 @@ public class ForecastConfig : OptionInterface
     public OpSimpleButton backgroundCollisionToggle;
     public OpSimpleButton waterCollisionToggle;
 
+    //Debug
+    public OpSimpleButton debugButton;
+
     //Region
     List<OpRect> regionRects;
     List<OpLabel> regionLabels;
     List<OpSimpleButton> regionButtons;
     List<OpLabel> customLabels;
 
-    public ForecastConfig(Forecast mod)
+    public ForecastConfig(ForecastMod mod)
     {
         regionSettings = new Dictionary<string, int>();
         customRegionSettings = new Dictionary<string, Dictionary<string, List<string>>>();
@@ -104,6 +109,8 @@ public class ForecastConfig : OptionInterface
         endBlizzard = config.Bind<bool>("endBlizzard", true);
         effectColors = config.Bind<bool>("effectColors", true);
         snowPuffs = config.Bind<bool>("snowPuffs", true);
+
+        debugMode = config.Bind<bool>("debugMode", false);
     }
 
     public static void LoadRegionWeather()
@@ -282,7 +289,7 @@ public class ForecastConfig : OptionInterface
         rainBanner.alpha = weatherType.Value == 1 ? 0f : 1f;
 
         //Version label
-        OpLabel version = new OpLabel(300f, 525f, $"Version: {Forecast.version}     -     By LeeMoriya", false);
+        OpLabel version = new OpLabel(300f, 525f, $"Version: 1.03     -     By LeeMoriya", false);
         version.color = new Color(0.4f, 0.4f, 0.4f);
         version.label.alignment = FLabelAlignment.Center;
         options.AddItems(version, rainBanner);
@@ -427,10 +434,14 @@ public class ForecastConfig : OptionInterface
             array = File.ReadAllLines(path);
         }
 
-        float scrollHeight = 70f * array.Length + 110f;
+        float scrollHeight = 70f * array.Length + 180f;
         float itemHeight = scrollHeight - 125f;
         OpScrollBox scrollBox = new OpScrollBox(regions, scrollHeight, false, true);
         regions.AddItems(scrollBox);
+
+        debugButton = new OpSimpleButton(new Vector2(290f - 40f, 15f), new Vector2(80f, 30f), debugMode.Value ? "DEBUG: ON" : "DEBUG: OFF");
+        debugButton.OnClick += DebugButton_OnClick;
+        scrollBox.AddItems(debugButton);
 
         OpLabel regionHeading = new OpLabel(new Vector2(290f, scrollHeight - 20f), new Vector2(), "REGION SETTINGS", FLabelAlignment.Center, true);
         OpLabel regionDesc = new OpLabel(new Vector2(290f, scrollHeight - 73f), new Vector2(), "Disable weather for certain regions using the checkboxes.\n\nIf a region has it's own custom weather settings, you can use\nthe buttons on the right to override them and use your Global settings instead.", FLabelAlignment.Center, false); ;
@@ -466,6 +477,19 @@ public class ForecastConfig : OptionInterface
 
         ForecastLog.Log($"Support Mode: {(supportMode.Value ? "ON" : "OFF")}");
         OnConfigReset += ForecastConfig_OnConfigReset;
+    }
+
+    private void DebugButton_OnClick(UIfocusable trigger)
+    {
+        if (debugMode.Value)
+        {
+            debugMode.Value = false;
+        }
+        else
+        {
+            debugMode.Value = true;
+        }
+        config.Save();
     }
 
     private void WaterCollisionToggle_OnClick(UIfocusable trigger)
@@ -723,6 +747,7 @@ public class ForecastConfig : OptionInterface
         strikeToggle.text = lightningStrikes.Value ? "ENABLED" : "DISABLED";
         waterCollisionToggle.text = waterCollision.Value ? "ENABLED" : "DISABLED";
         backgroundCollisionToggle.text = backgroundCollision.Value ? "ENABLED" : "DISABLED";
+        debugButton.text = debugMode.Value ? "DEBUG: ON" : "DEBUG: OFF";
         windToggle.text = WindDirectionValue();
         intensityToggle.text = IntensityValue();
         strikeTypeToggle.text = StrikeDamageValue();

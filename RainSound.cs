@@ -34,7 +34,7 @@ class RainSound : UpdatableAndDeletable
                 heavyRainSound = new DisembodiedDynamicSoundLoop(this);
                 heavyRainSound.sound = SoundID.Heavy_Rain_LOOP;
             }
-            else if (!Forecast.interiorRain)
+            else if (!ForecastMod.interiorRain)
             {
                 interiorRainSound = new DisembodiedDynamicSoundLoop(this);
                 interiorRainSound.sound = SoundID.Flash_Flood_LOOP;

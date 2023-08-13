@@ -18,17 +18,20 @@ public class WeatherForecast
 
     public List<string> weatherlessRegions;
     public Dictionary<string, float> dynamicRegionStartingIntensity;
+    public Dictionary<string, int> regionWindDirection;
 
     public WeatherForecast() 
     {
         weatherlessRegions = new List<string>();
         dynamicRegionStartingIntensity = new Dictionary<string, float>();
+        regionWindDirection= new Dictionary<string, int>();
     }
 
     public void PrepareCycle()
     {
         weatherlessRegions = new List<string>();
         dynamicRegionStartingIntensity = new Dictionary<string, float>();
+        regionWindDirection = new Dictionary<string, int>();
     }
 }
 
