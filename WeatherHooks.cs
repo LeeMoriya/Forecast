@@ -56,11 +56,11 @@ public class WeatherHooks
                     debugUI.Update();
                 }
             }
-            else
-            {
-                debugUI.RemoveSprites();
-                debugUI = null;
-            }
+            //else
+            //{
+            //    debugUI.RemoveSprites();
+            //    debugUI = null;
+            //}
         }
     }
 
@@ -230,6 +230,34 @@ public class WeatherHooks
             texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\overlay2.png")));
             texture.filterMode = FilterMode.Point;
             Futile.atlasManager.LoadAtlasFromTexture("overlay2", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("rainDirLight"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainDirLight.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("rainDirLight", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("rainDirHeavy"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainDirHeavy.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("rainDirHeavy", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("rainMidLight"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainMidLight.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("rainMidLight", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("rainMidHeavy"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainMidHeavy.png")));
+            texture.filterMode = FilterMode.Point;
+            Futile.atlasManager.LoadAtlasFromTexture("rainMidHeavy", texture, false);
         }
     }
 

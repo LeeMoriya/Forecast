@@ -22,9 +22,12 @@ public class WeatherController : UpdatableAndDeletable
     public List<Vector2> camSkyreach;
     public List<IntVector2> ceilingTiles;
     public List<IntVector2> groundTiles;
+    public List<Vector2> surfaceTiles;
 
     public Blizzard blizzard;
     public WeatherSettings settings;
+
+    
 
     public Color strikeColor = new Color(0f, 1f, 0f);
     public float lightningCounter;
@@ -38,6 +41,7 @@ public class WeatherController : UpdatableAndDeletable
         camSkyreach = new List<Vector2>();
         ceilingTiles = new List<IntVector2>();
         groundTiles = new List<IntVector2>();
+        surfaceTiles = new List<Vector2>();
         rainDrops = 0;
         snowFlakes = 0;
         this.room = room;
@@ -64,10 +68,16 @@ public class WeatherController : UpdatableAndDeletable
                     for (int t = j - 1; t > 0; t--)
                     {
                         //If this tile is solid or is below the water level, add it to the list
-                        if (room.GetTile(i, t).Terrain == Room.Tile.TerrainType.Solid || t < room.defaultWaterLevel)
+                        Room.Tile tile = room.GetTile(i, t);
+                        if (tile.Terrain == Room.Tile.TerrainType.Solid || t < room.defaultWaterLevel)
                         {
                             groundTiles.Add(new IntVector2(i, t));
+                            surfaceTiles.Add(room.MiddleOfTile(i, t));
                             break;
+                        }
+                        else if(tile.Terrain == Room.Tile.TerrainType.Slope || tile.Terrain == Room.Tile.TerrainType.Floor)
+                        {
+                            surfaceTiles.Add(room.MiddleOfTile(i, t));
                         }
                         //If there are no solid tiles below this one, add a position for the bottom of the room
                         if (t == 0)
@@ -96,9 +106,16 @@ public class WeatherController : UpdatableAndDeletable
                 }
             }
         }
-        if (settings.rainVolume)
+        if (settings.weatherType == 0)
         {
-            room.AddObject(new RainSound(room, this));
+            if (settings.rainVolume)
+            {
+                room.AddObject(new RainSound(room, this));
+            }
+        }
+        if(settings.weatherType == 2)
+        {
+            room.AddObject(new SnowPlacer(this));
         }
         //Background test
         //room.AddObject(new BackgroundRain(this));
@@ -320,7 +337,10 @@ public class WeatherController : UpdatableAndDeletable
             regionName = region;
             roomName = room;
             //Apply generic settings
-            weatherType = 0;
+            weatherType = ForecastConfig.weatherType.Value;
+            //Weather override
+            weatherType = 2;
+
             weatherIntensity = ForecastConfig.weatherIntensity.Value;
             weatherChance = ForecastConfig.weatherChance.Value;
             windDirection = ForecastConfig.windDirection.Value;
