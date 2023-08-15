@@ -121,6 +121,7 @@ public class SnowPlacer : CosmeticSprite
         {
             sLeaser.sprites[i].x = points[i].x - camPos.x;
             sLeaser.sprites[i].y = points[i].y - camPos.y;
+            sLeaser.sprites[i].alpha = WeatherHooks.debugUI.toggle ? 0f : 0.7f;
         }
     }
 

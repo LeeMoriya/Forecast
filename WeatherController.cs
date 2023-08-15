@@ -116,6 +116,8 @@ public class WeatherController : UpdatableAndDeletable
         if(settings.weatherType == 2)
         {
             room.AddObject(new SnowPlacer(this));
+            room.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
+            room.roomRain.Destroy();
         }
         //Background test
         //room.AddObject(new BackgroundRain(this));
@@ -596,7 +598,7 @@ public class WeatherController : UpdatableAndDeletable
                 {
                     currentIntensity = Mathf.Lerp(startingIntensity, 1f, owner.room.world.rainCycle.CycleProgression);
                 }
-                else
+                else if(weatherType == 0)
                 {
                     currentIntensity = Mathf.Lerp(0.95f, 0f, owner.room.world.rainCycle.RainDarkPalette);
                 }
