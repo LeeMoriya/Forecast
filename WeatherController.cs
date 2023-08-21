@@ -27,15 +27,17 @@ public class WeatherController : UpdatableAndDeletable
     public Blizzard blizzard;
     public WeatherSettings settings;
 
-    
+    public bool interior = false;
 
     public Color strikeColor = new Color(0f, 1f, 0f);
     public float lightningCounter;
 
-    public WeatherController(Room room)
+    public WeatherController(Room weatherRoom)
     {
+        this.room = weatherRoom;
         ForecastLog.Log($"WeatherController added to {room.abstractRoom.name}");
         settings = new WeatherSettings(room.world.region.name, room.abstractRoom.name, this);
+        WeatherHooks.roomSettings.Add(room, settings);
 
         skyreach = new List<Vector2>();
         camSkyreach = new List<Vector2>();
@@ -44,7 +46,6 @@ public class WeatherController : UpdatableAndDeletable
         surfaceTiles = new List<Vector2>();
         rainDrops = 0;
         snowFlakes = 0;
-        this.room = room;
         ceilingCount = 0;
 
         for (int r = 0; r < room.TileWidth; r++)
@@ -106,6 +107,10 @@ public class WeatherController : UpdatableAndDeletable
                 }
             }
         }
+        else
+        {
+            interior = true;
+        }
         if (settings.weatherType == 0)
         {
             if (settings.rainVolume)
@@ -116,8 +121,10 @@ public class WeatherController : UpdatableAndDeletable
         if(settings.weatherType == 2)
         {
             room.AddObject(new SnowPlacer(this));
-            room.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
+            room.RemoveObject(room.roomRain);
             room.roomRain.Destroy();
+            room.roomRain = null;
+            room.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
         }
         //Background test
         //room.AddObject(new BackgroundRain(this));
@@ -193,7 +200,7 @@ public class WeatherController : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
-        if (disabled || WeatherHooks.weatherForecast.weatherlessRegions.Contains(room.world.region.name))
+        if (interior || disabled || WeatherHooks.weatherForecast.weatherlessRegions.Contains(room.world.region.name))
         {
             if (!disabled)
             {
@@ -594,7 +601,7 @@ public class WeatherController : UpdatableAndDeletable
             //Rain intensity increases with cycle duration if in dynamic mode
             if (dynamic && owner.room.BeingViewed)
             {
-                if (owner.room.world.rainCycle.RainDarkPalette <= 0)
+                if (owner.room.world.rainCycle.RainDarkPalette <= 0 || weatherType == 2)
                 {
                     currentIntensity = Mathf.Lerp(startingIntensity, 1f, owner.room.world.rainCycle.CycleProgression);
                 }

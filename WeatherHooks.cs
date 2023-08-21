@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 public class WeatherHooks
 {
-    public static ConditionalWeakTable<Room, WeatherController.WeatherSettings> roomSettings = new ConditionalWeakTable<Room, WeatherController.WeatherSettings>();
+    public static Dictionary<Room, WeatherController.WeatherSettings> roomSettings = new Dictionary<Room, WeatherController.WeatherSettings>();
     public static WeatherForecast weatherForecast;
     public static DebugWeatherUI debugUI;
 
@@ -34,10 +34,19 @@ public class WeatherHooks
         On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
         On.RainWorld.LoadResources += RainWorld_LoadResources;
         On.Player.ctor += Player_ctor;
-        On.RainCycle.RainHit += RainCycle_RainHit;
-        On.RoomRain.Update += RoomRain_Update;
         On.StoryGameSession.ctor += StoryGameSession_ctor;
         On.RainWorld.Update += RainWorld_Update;
+
+        On.AbstractRoom.Abstractize += AbstractRoom_Abstractize; //Remove settings
+    }
+
+    private static void AbstractRoom_Abstractize(On.AbstractRoom.orig_Abstractize orig, AbstractRoom self)
+    {
+        if (roomSettings.ContainsKey(self.realizedRoom))
+        {
+            roomSettings.Remove(self.realizedRoom);
+        }
+        orig.Invoke(self);
     }
 
     private static void RainWorld_Update(On.RainWorld.orig_Update orig, RainWorld self)
@@ -45,9 +54,9 @@ public class WeatherHooks
         orig.Invoke(self);
         if (ForecastConfig.debugMode.Value)
         {
-            if(self.processManager.currentMainLoop is RainWorldGame)
+            if (self.processManager.currentMainLoop is RainWorldGame)
             {
-                if(debugUI == null)
+                if (debugUI == null)
                 {
                     debugUI = new DebugWeatherUI();
                 }
@@ -56,11 +65,6 @@ public class WeatherHooks
                     debugUI.Update();
                 }
             }
-            //else
-            //{
-            //    debugUI.RemoveSprites();
-            //    debugUI = null;
-            //}
         }
     }
 
@@ -71,12 +75,16 @@ public class WeatherHooks
         if (weatherForecast == null)
         {
             weatherForecast = new WeatherForecast();
+            roomSettings = new Dictionary<Room, WeatherController.WeatherSettings>();
             ForecastLog.Log($"FORECAST: Creating WeatherForecast object");
         }
         else
         {
-            weatherForecast.PrepareCycle(); 
+            weatherForecast.PrepareCycle();
             ForecastLog.Log($"FORECAST: Preparing next forecast");
+
+            //Clear tables
+            roomSettings.Clear();
         }
 
         if (ForecastConfig.debugMode.Value && ForecastMod.exposureControllers != null)
@@ -92,24 +100,6 @@ public class WeatherHooks
         }
     }
 
-    private static void RoomRain_Update(On.RoomRain.orig_Update orig, RoomRain self, bool eu)
-    {
-        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value)
-        {
-            return;
-        }
-        orig.Invoke(self, eu);
-    }
-
-    private static void RainCycle_RainHit(On.RainCycle.orig_RainHit orig, RainCycle self)
-    {
-        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value)
-        {
-            return;
-        }
-        orig.Invoke(self);
-    }
-
     private static void Player_ctor(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
     {
         orig.Invoke(self, abstractCreature, world);
@@ -123,28 +113,12 @@ public class WeatherHooks
     {
         orig.Invoke(self, world, game);
         //Add Weather Object
-        int ceilingCount;
         if (self.realizedRoom != null && self.realizedRoom.roomRain != null)
         {
             if (!self.shelter && !self.gate && !invalidDangerTypes.Contains(self.realizedRoom.roomRain.dangerType))
             {
-                ceilingCount = 0;
-                for (int r = 0; r < self.realizedRoom.TileWidth; r++)
+                if (!roomSettings.ContainsKey(self.realizedRoom))
                 {
-                    if (self.realizedRoom.Tiles[r, self.realizedRoom.TileHeight - 1].Solid)
-                    {
-                        ceilingCount++;
-                    }
-                }
-                if (ceilingCount < (self.realizedRoom.Width * 0.95))
-                {
-                    for (int i = 0; i < self.realizedRoom.updateList.Count; i++)
-                    {
-                        if (self.realizedRoom.updateList[i] is WeatherController)
-                        {
-                            return;
-                        }
-                    }
                     self.realizedRoom.AddObject(new WeatherController(self.realizedRoom));
                 }
             }
