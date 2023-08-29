@@ -25,7 +25,7 @@ END ROOMS
 ---
 ***WEATHER CHANCE***
 - Info: Controls the chance that weather will occur this cycle or not based on a percentage from 0-100.
-- Examples: `CH_100`, `CH_50`, `CH_0`
+- Examples: `WC_100`, `WC_50`, `WC_0`
 - Notes: Can only be used as a GLOBAL setting.
 ---
 ***PARTICLE LIMIT***
