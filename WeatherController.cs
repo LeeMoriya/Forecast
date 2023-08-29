@@ -111,6 +111,7 @@ public class WeatherController : UpdatableAndDeletable
         {
             interior = true;
         }
+        //Rain
         if (settings.weatherType == 0)
         {
             if (settings.rainVolume)
@@ -118,13 +119,24 @@ public class WeatherController : UpdatableAndDeletable
                 room.AddObject(new RainSound(room, this));
             }
         }
+        //Snow
         if(settings.weatherType == 2)
         {
-            room.AddObject(new SnowPlacer(this));
-            room.RemoveObject(room.roomRain);
-            room.roomRain.Destroy();
-            room.roomRain = null;
-            room.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
+            if (!interior)
+            {
+                room.AddObject(new SnowPlacer(this));
+            }
+
+            room.roomSettings.DangerType = ModManager.MSC ? MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard : RoomRain.DangerType.AerieBlizzard;
+            //room.roomSettings.DangerType = RoomRain.DangerType.AerieBlizzard;
+
+            if (room.roomSettings.DangerType == MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard)
+            {
+                room.RemoveObject(room.roomRain);
+                room.roomRain.Destroy();
+                room.roomRain = null;
+            }
+            
         }
         //Background test
         //room.AddObject(new BackgroundRain(this));
@@ -200,7 +212,7 @@ public class WeatherController : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
-        if (interior || disabled || WeatherHooks.weatherForecast.weatherlessRegions.Contains(room.world.region.name))
+        if (disabled || WeatherHooks.weatherForecast.weatherlessRegions.Contains(room.world.region.name))
         {
             if (!disabled)
             {
@@ -214,22 +226,11 @@ public class WeatherController : UpdatableAndDeletable
         {
             camPos = room.game.cameras[0].pos + new Vector2(room.game.rainWorld.screenSize.x / 2, room.game.rainWorld.screenSize.y / 2);
         }
-        if (settings.weatherType == 1)
-        {
-            if (ForecastConfig.endBlizzard.Value && (room.world.rainCycle.timer - room.world.rainCycle.cycleLength) / 2400f > -0.5f && blizzard == null)
-            {
-                blizzard = new Blizzard(this);
-                room.AddObject(blizzard);
-            }
-            rainAmount = Mathf.Lerp(settings.particleLimit * 0.5f, settings.particleLimit, settings.currentIntensity);
-            rainLimit = (int)Mathf.Lerp(Mathf.Lerp(0f, rainAmount * 50, room.roomSettings.RainIntensity), Mathf.Lerp(rainAmount * 50, (rainAmount * 80), room.roomSettings.RainIntensity), settings.currentIntensity);
-        }
-        else
+        if (settings.weatherType == 0)
         {
             rainAmount = Mathf.Lerp(0, settings.particleLimit, settings.currentIntensity);
             rainLimit = (int)Mathf.Lerp(0, Mathf.Lerp(0f, (rainAmount * 9), room.roomSettings.RainIntensity), settings.currentIntensity);
         }
-
         if (settings.dynamicClouds)
         {
             room.roomSettings.Clouds = Mathf.Lerp(settings.startingIntensity, 1f, room.world.rainCycle.CycleProgression); //Cloud cover should apply everywhere
@@ -239,7 +240,8 @@ public class WeatherController : UpdatableAndDeletable
             room.roomSettings.Clouds = settings.cloudCover;
         }
 
-        if (room.game != null && room != null && !room.abstractRoom.gate && room.ReadyForPlayer)
+
+        if (!interior && room.game != null && room != null && !room.abstractRoom.gate && room.ReadyForPlayer)
         {
             if (room.game != null && !room.abstractRoom.shelter && settings.backgroundLightning && room.roomRain != null)
             {
@@ -278,30 +280,6 @@ public class WeatherController : UpdatableAndDeletable
                 if (snowFlakes < ((room.Width - ceilingCount) * rainLimit) / room.Width)
                 {
                     AddSnowflakes(rainLimit - snowFlakes);
-                }
-            }
-        }
-        //Puffs of snow when slugcat walks
-        if (settings.weatherType == 1 && ForecastConfig.snowPuffs.Value && WeatherHooks.roomSettings.TryGetValue(room, out WeatherController.WeatherSettings s))
-        {
-            for (int i = 0; i < room.game.Players.Count; i++)
-            {
-                if (room.game.Players[i].realizedCreature != null && room.game.Players[i].realizedCreature.room == room)
-                {
-                    for (int j = 0; j < room.game.Players[i].realizedCreature.bodyChunks.Length; j++)
-                    {
-                        if (room.game.Players[i].realizedCreature.bodyChunks[j].ContactPoint.y < 0)
-                        {
-                            if (room.game.Players[i].realizedCreature.bodyChunks[j].lastContactPoint.y >= 0 && room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.y - room.game.Players[i].realizedCreature.bodyChunks[j].pos.y > 5f)
-                            {
-                                room.AddObject(new SnowDust(room.game.Players[i].realizedCreature.bodyChunks[j].pos + new Vector2(0f, -room.game.Players[i].realizedCreature.bodyChunks[j].rad), Custom.LerpMap(room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.y - room.game.Players[i].realizedCreature.bodyChunks[j].pos.y, 5f, 10f, 0.5f, 1f)));
-                            }
-                            else if (UnityEngine.Random.value < 0.1f && Mathf.Abs(room.game.Players[i].realizedCreature.bodyChunks[j].lastPos.x - room.game.Players[i].realizedCreature.bodyChunks[j].pos.x) > 3f)
-                            {
-                                room.AddObject(new SnowDust(room.game.Players[i].realizedCreature.bodyChunks[j].pos + new Vector2(0f, -room.game.Players[i].realizedCreature.bodyChunks[j].rad), 0.25f * UnityEngine.Random.value));
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -599,15 +577,34 @@ public class WeatherController : UpdatableAndDeletable
                 }
             }
             //Rain intensity increases with cycle duration if in dynamic mode
-            if (dynamic && owner.room.BeingViewed)
+            if (dynamic)
             {
-                if (owner.room.world.rainCycle.RainDarkPalette <= 0 || weatherType == 2)
+                if(weatherType == 0)
+                {
+                    if (owner.room.world.rainCycle.RainDarkPalette <= 0)
+                    {
+                        currentIntensity = Mathf.Lerp(startingIntensity, 1f, owner.room.world.rainCycle.CycleProgression);
+                    }
+                    else
+                    {
+                        currentIntensity = Mathf.Lerp(0.95f, 0f, owner.room.world.rainCycle.RainDarkPalette);
+                    }
+                }
+                if(weatherType == 2)
                 {
                     currentIntensity = Mathf.Lerp(startingIntensity, 1f, owner.room.world.rainCycle.CycleProgression);
-                }
-                else if(weatherType == 0)
-                {
-                    currentIntensity = Mathf.Lerp(0.95f, 0f, owner.room.world.rainCycle.RainDarkPalette);
+
+                    //if(owner.room.roomSettings.DangerType == RoomRain.DangerType.AerieBlizzard)
+                    //{
+                    //    if(owner.room.world.rainCycle.RainDarkPalette > 0f)
+                    //    {
+                    //        currentIntensity = Mathf.Lerp(0.95f, 0f, owner.room.world.rainCycle.RainDarkPalette);
+                    //        owner.room.roomSettings.DangerType = RoomRain.DangerType.Rain;
+                    //    }
+                    //    owner.room.roomSettings.RainIntensity = currentIntensity;
+                    //    // TODO - AerieBlizzard doesn't kill, maybe switch back to rain for end of cycle?
+                    //}
+                    Shader.SetGlobalFloat("_snowStrength", currentIntensity);
                 }
             }
         }

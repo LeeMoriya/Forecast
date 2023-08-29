@@ -54,6 +54,7 @@ public class SnowPlacer : CosmeticSprite
         {
             SnowSource so = new SnowSource(points[i]);
             so.rad = radii[i];
+            so.noisiness = UnityEngine.Random.value;
             sources.Add(so);
             weatherController.room.AddObject(so);
         }
