@@ -101,6 +101,7 @@ public class DebugWeatherUI
 
         //SETTINGS
         FLabel settingsLabel = new FLabel("font", "\n\n\nGENERAL:\n");
+        settingsLabel.text += $"DangerType: {settings.owner.room.roomSettings.DangerType.value}\n";
         settingsLabel.text += $"Intensity: {Mathf.RoundToInt(settings.currentIntensity * 100f)}% - {(settings.weatherIntensity == 0 ? "DYNAMIC" : "FIXED")}\n";
         settingsLabel.text += $"Particle Limit: {settings.particleLimit}\n";
         settingsLabel.text += $"Wind Direction: {WindDir(settings.windDirection)}\n";

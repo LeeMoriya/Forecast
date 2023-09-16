@@ -128,21 +128,21 @@ public class WeatherHooks
     private static void RainWorld_LoadResources(On.RainWorld.orig_LoadResources orig, RainWorld self)
     {
         orig.Invoke(self);
-        ForecastMod.snowExt1 = new Texture2D(0, 0);
-        if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowExt1.png")))
+        ForecastMod.snowLight = new Texture2D(0, 0, TextureFormat.ARGB32, false);
+        if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowLight.png")))
         {
-            ForecastLog.Log("FORECAST: Loaded snowExt1.png");
+            ForecastLog.Log("FORECAST: Loaded snowLight.png");
         }
-        ForecastMod.snowExt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowExt1.png")));
-        ForecastMod.snowExt1.filterMode = FilterMode.Point;
+        ForecastMod.snowLight.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowLight.png")));
+        ForecastMod.snowLight.filterMode = FilterMode.Point;
 
-        ForecastMod.snowInt1 = new Texture2D(0, 0);
-        if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowInt1.png")))
+        ForecastMod.snowDark = new Texture2D(0, 0, TextureFormat.ARGB32, false);
+        if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowDark.png")))
         {
-            ForecastLog.Log("FORECAST: Loaded snowInt1.png");
+            ForecastLog.Log("FORECAST: Loaded snowDark.png");
         }
-        ForecastMod.snowInt1.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowInt1.png")));
-        ForecastMod.snowInt1.filterMode = FilterMode.Point;
+        ForecastMod.snowDark.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowDark.png")));
+        ForecastMod.snowDark.filterMode = FilterMode.Point;
 
         byte[] rainbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainButton.png"));
         Texture2D raintexture = new Texture2D(0, 0);
@@ -332,9 +332,21 @@ public class WeatherHooks
         if (ForecastConfig.debugMode.Value && self.BeingViewed)
         {
             //Fast Forward Cycle Timer
-            if (Input.GetKey(KeyCode.Alpha5))
+            if (Input.GetKey(KeyCode.Alpha4))
             {
                 self.world.rainCycle.timer += 25;
+            }
+            if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha4))
+            {
+                //Toggle AerieBlizzard and normal Blizzard
+                if(self.roomSettings.DangerType == RoomRain.DangerType.AerieBlizzard)
+                {
+                    self.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
+                }
+                else if (self.roomSettings.DangerType == MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard)
+                {
+                    self.roomSettings.DangerType = RoomRain.DangerType.AerieBlizzard;
+                }
             }
         }
     }
