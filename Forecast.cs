@@ -77,6 +77,6 @@ public class ForecastMod : BaseUnityPlugin
     public static List<ExposureController> exposureControllers;
     public static int blizzardDirection;
     public static bool interiorRain = true;
-    public static Texture2D snowLight;
-    public static Texture2D snowDark;
+    public static Texture2D snowExt;
+    public static Texture2D snowInt;
 }

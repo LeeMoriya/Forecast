@@ -118,6 +118,21 @@ public class WeatherController : UpdatableAndDeletable
         {
             interior = true;
         }
+        if(settings.currentWeather != null)
+        {
+            if(settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
+            {
+                RoomSettings.RoomEffect fog = room.roomSettings.effects.Find(x => x.type == RoomSettings.RoomEffect.Type.Fog);
+                if (fog != null && !interior)
+                {
+                    fog.amount = 1f;
+                }
+                else
+                {
+                    room.roomSettings.effects.Add(new RoomSettings.RoomEffect(RoomSettings.RoomEffect.Type.Fog, 1f, false));
+                }
+            }
+        }
         //Rain
         if (settings.weatherType == 0)
         {
@@ -129,6 +144,12 @@ public class WeatherController : UpdatableAndDeletable
         //Snow
         if(settings.weatherType == 2)
         {
+            room.game.cameras[0].LoadPalette(room.roomSettings.Palette, ref origFadePalA);
+            if (room.roomSettings.fadePalette != null && room.roomSettings.fadePalette.palette > -1)
+            {
+                room.game.cameras[0].LoadPalette(room.roomSettings.fadePalette.palette, ref origFadePalB);
+            }
+
             if (!interior)
             {
                 room.AddObject(new SnowPlacer(this));
@@ -145,9 +166,6 @@ public class WeatherController : UpdatableAndDeletable
                 room.roomRain.Destroy();
                 room.roomRain = null;
             }
-            origPaletteTexture = room.game.cameras[0].currentPalette.texture;
-            origFadePalA = room.game.cameras[0].fadeTexA;
-            origFadePalB = room.game.cameras[0].fadeTexB;
         }
         //Background test
         //room.AddObject(new BackgroundRain(this));
@@ -162,6 +180,21 @@ public class WeatherController : UpdatableAndDeletable
                 Vector2 rng = skyreach[UnityEngine.Random.Range(0, skyreach.Count)];
                 rng += new Vector2(0f, UnityEngine.Random.Range(0f, room.game.cameras[0].pos.y - rng.y));
                 RainDrop rainDrop = new RainDrop(rng, Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), settings.currentIntensity, this);
+                room.AddObject(rainDrop);
+                rainDrops++;
+            }
+        }
+    }
+
+    public void AddHail(int rainDropsToSpawn)
+    {
+        if (room != null && skyreach != null && skyreach.Count > 0)
+        {
+            for (int i = 0; i < rainDropsToSpawn; i++)
+            {
+                Vector2 rng = skyreach[UnityEngine.Random.Range(0, skyreach.Count)];
+                rng += new Vector2(0f, UnityEngine.Random.Range(0f, room.game.cameras[0].pos.y - rng.y));
+                Hail rainDrop = new Hail(rng, settings.currentIntensity, this);
                 room.AddObject(rainDrop);
                 rainDrops++;
             }
@@ -223,7 +256,7 @@ public class WeatherController : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
-        if (disabled || WeatherHooks.weatherForecast.weatherlessRegions.Contains(room.world.region.name))
+        if (disabled || WeatherForecast.weatherlessRegions.Contains(room.world.region.name))
         {
             if (!disabled)
             {
@@ -263,41 +296,47 @@ public class WeatherController : UpdatableAndDeletable
             room.game.cameras[0].blizzardGraphics.snowfallIntensity = settings.currentIntensity;
             room.game.cameras[0].blizzardGraphics.oldBlizzardIntensity = settings.currentIntensity;
             room.game.cameras[0].blizzardGraphics.blizzardIntensity = settings.currentIntensity;
-            room.game.cameras[0].blizzardGraphics.oldWindStrength = Mathf.InverseLerp(room.world.rainCycle.cycleLength, 3000f, room.world.rainCycle.TimeUntilRain) * settings.currentIntensity;
-            room.game.cameras[0].blizzardGraphics.windStrength = Mathf.InverseLerp(room.world.rainCycle.cycleLength, 3000f, room.world.rainCycle.TimeUntilRain) * settings.currentIntensity;
+            room.game.cameras[0].blizzardGraphics.oldWindStrength = settings.currentIntensity;
+            room.game.cameras[0].blizzardGraphics.windStrength = settings.currentIntensity;
             room.game.cameras[0].blizzardGraphics.oldWindAngle = room.game.cameras[0].blizzardGraphics.windAngle;
             room.game.cameras[0].blizzardGraphics.windAngle = Mathf.Lerp(Mathf.Lerp(room.game.cameras[0].blizzardGraphics.WindAngle, Mathf.Sin((float)room.world.rainCycle.TimeUntilRain / 900f) * 0.64f, 0.1f) * settings.currentIntensity, Mathf.Sign(Mathf.Sin((float)room.world.rainCycle.TimeUntilRain / 900f) * 0.64f * 1.2f), 0.2f * (0f - Mathf.Abs(Mathf.Lerp(room.game.cameras[0].blizzardGraphics.WindAngle, Mathf.Sin((float)room.world.rainCycle.TimeUntilRain / 900f) * 0.64f, 0.1f) * settings.currentIntensity))) * Mathf.Lerp(0f, 0.75f, room.world.rainCycle.CycleProgression * 3f);
             room.game.cameras[0].blizzardGraphics.oldWhiteOut = Mathf.Pow(settings.currentIntensity, 1.3f) * settings.currentIntensity;
             room.game.cameras[0].blizzardGraphics.whiteOut = Mathf.Pow(settings.currentIntensity, 1.3f) * settings.currentIntensity;
 
             //Test
-            ApplyPalette();
+            if (room.BeingViewed)
+            {
+                ApplyPalette();
+            }
         }
 
         if (!interior && room.game != null && room != null && !room.abstractRoom.gate && room.ReadyForPlayer)
         {
             //Add background lightning flashes
-            if (room.game != null && !room.abstractRoom.shelter && settings.backgroundLightning && room.roomRain != null)
+            if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Thunderstorm)
             {
-                if ((room.roomRain.dangerType == RoomRain.DangerType.Rain || room.roomRain.dangerType == RoomRain.DangerType.FloodAndRain) && settings.currentIntensity > 0.7f && room.lightning == null)
+                if (room.game != null && !room.abstractRoom.shelter && settings.backgroundLightning && room.roomRain != null)
                 {
-                    room.lightning = new Lightning(room, 1f, false);
-                    room.lightning.bkgOnly = true;
-                    room.lightning.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
-                    room.lightning.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), settings.currentIntensity);
-                    room.AddObject(room.lightning);
-                }
-            }
-            //Generate lightning strikes
-            if (settings.lightningStrikes && room.BeingViewed && room.roomRain != null)
-            {
-                lightningCounter += 0.025f;
-                if (lightningCounter >= settings.lightningInterval)
-                {
-                    lightningCounter = 0;
-                    if (UnityEngine.Random.Range(0, 100) <= settings.lightningChance)
+                    if ((room.roomRain.dangerType == RoomRain.DangerType.Rain || room.roomRain.dangerType == RoomRain.DangerType.FloodAndRain) && settings.currentIntensity > 0.7f && room.lightning == null)
                     {
-                        room.AddObject(new LightningStrike(this, settings.strikeColor));
+                        room.lightning = new Lightning(room, 1f, false);
+                        room.lightning.bkgOnly = true;
+                        room.lightning.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
+                        room.lightning.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), settings.currentIntensity);
+                        room.AddObject(room.lightning);
+                    }
+                }
+                //Generate lightning strikes
+                if (settings.lightningStrikes && room.BeingViewed && room.roomRain != null)
+                {
+                    lightningCounter += 0.025f;
+                    if (lightningCounter >= settings.lightningInterval)
+                    {
+                        lightningCounter = 0;
+                        if (UnityEngine.Random.Range(0, 100) <= settings.lightningChance)
+                        {
+                            room.AddObject(new LightningStrike(this, settings.strikeColor));
+                        }
                     }
                 }
             }
@@ -307,7 +346,14 @@ public class WeatherController : UpdatableAndDeletable
                 snowFlakes = 0;
                 if (rainDrops < ((room.Width - ceilingCount) * rainLimit) / room.Width)
                 {
-                    AddRaindrops(rainLimit - rainDrops);
+                    if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Hail)
+                    {
+                        AddHail(rainLimit - rainDrops);
+                    }
+                    else
+                    {
+                        AddRaindrops(rainLimit - rainDrops);
+                    }
                 }
             }
         }
@@ -316,13 +362,21 @@ public class WeatherController : UpdatableAndDeletable
         //Quick reload palette
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Alpha5))
         {
-            ForecastMod.snowLight = new Texture2D(0, 0, TextureFormat.ARGB32, false);
-            if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowLight.png")))
+            ForecastMod.snowExt = new Texture2D(0, 0, TextureFormat.ARGB32, false);
+            if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowExt.png")))
             {
-                ForecastLog.Log("FORECAST: Loaded snowLight.png");
+                ForecastLog.Log("FORECAST: Loaded snowExt.png");
             }
-            ForecastMod.snowLight.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowLight.png")));
-            ForecastMod.snowLight.filterMode = FilterMode.Point;
+            ForecastMod.snowExt.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowExt.png")));
+            ForecastMod.snowExt.filterMode = FilterMode.Point;
+
+            ForecastMod.snowInt = new Texture2D(0, 0, TextureFormat.ARGB32, false);
+            if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowInt.png")))
+            {
+                ForecastLog.Log("FORECAST: Loaded snowInt.png");
+            }
+            ForecastMod.snowInt.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowInt.png")));
+            ForecastMod.snowInt.filterMode = FilterMode.Point;
             exportTexture = true;
         }
     }
@@ -330,7 +384,7 @@ public class WeatherController : UpdatableAndDeletable
 
     public void ApplyPalette()
     {
-        if(origFadePalA == null || origFadePalB== null || ForecastMod.snowLight == null)
+        if(origFadePalA == null || origFadePalB == null || ForecastMod.snowExt == null || ForecastMod.snowInt == null)
         {
             return;
         }
@@ -340,21 +394,29 @@ public class WeatherController : UpdatableAndDeletable
 
         Color[] newAPixels = origFadePalA.GetPixels();
         Color[] newBPixels = origFadePalB.GetPixels();
-        Color[] snowPixels = ForecastMod.snowLight.GetPixels();
+        Color[] snowPixels = ForecastMod.snowExt.GetPixels();
 
         float fadePercent = settings.currentIntensity;
 
         //Fade Tex A
         for (int i = 0; i < newAPixels.Length; i++)
         {
-            //Screen Blending
-            Color invertA = new Color(1f - newAPixels[i].r, 1f - newAPixels[i].g, 1f - newAPixels[i].b, newAPixels[i].a);
-            Color invertB = new Color(1f - snowPixels[i].r, 1f - snowPixels[i].g, 1f - snowPixels[i].b, snowPixels[i].a);
+            if (interior)
+            {
+                //Desaturate
+                newAPixels[i] = Custom.Desaturate(newAPixels[i], fadePercent);
+            }
+            else
+            {
+                //Screen Blending
+                Color invertA = new Color(1f - newAPixels[i].r, 1f - newAPixels[i].g, 1f - newAPixels[i].b, newAPixels[i].a);
+                Color invertB = new Color(1f - snowPixels[i].r, 1f - snowPixels[i].g, 1f - snowPixels[i].b, snowPixels[i].a);
 
-            Color blend = invertA * invertB;
-            Color result = new Color(1f - blend.r, 1f - blend.g, 1f - blend.b, blend.a);
+                Color blend = invertA * invertB;
+                Color result = new Color(1f - blend.r, 1f - blend.g, 1f - blend.b, blend.a);
 
-            newAPixels[i] = Color.Lerp(newAPixels[i], result, fadePercent);
+                newAPixels[i] = Color.Lerp(newAPixels[i], result, fadePercent);
+            }
         }
         newFadeA.SetPixels(newAPixels);
         newFadeA.Apply(false);
@@ -365,14 +427,22 @@ public class WeatherController : UpdatableAndDeletable
         {
             for (int i = 0; i < newBPixels.Length; i++)
             {
-                //Screen Blending
-                Color invertA = new Color(1f - newBPixels[i].r, 1f - newBPixels[i].g, 1f - newBPixels[i].b, newBPixels[i].a);
-                Color invertB = new Color(1f - snowPixels[i].r, 1f - snowPixels[i].g, 1f - snowPixels[i].b, snowPixels[i].a);
+                if (interior)
+                {
+                    //Desaturate
+                    newBPixels[i] = Custom.Desaturate(newBPixels[i], fadePercent);
+                }
+                else
+                {
+                    //Screen Blending
+                    Color invertA = new Color(1f - newBPixels[i].r, 1f - newBPixels[i].g, 1f - newBPixels[i].b, newBPixels[i].a);
+                    Color invertB = new Color(1f - snowPixels[i].r, 1f - snowPixels[i].g, 1f - snowPixels[i].b, snowPixels[i].a);
 
-                Color blend = invertA * invertB;
-                Color result = new Color(1f - blend.r, 1f - blend.g, 1f - blend.b, blend.a);
+                    Color blend = invertA * invertB;
+                    Color result = new Color(1f - blend.r, 1f - blend.g, 1f - blend.b, blend.a);
 
-                newBPixels[i] = Color.Lerp(newBPixels[i], result, fadePercent);
+                    newBPixels[i] = Color.Lerp(newBPixels[i], result, fadePercent);
+                }
             }
             newFadeB.SetPixels(newBPixels);
             newFadeB.Apply(false);
@@ -397,6 +467,7 @@ public class WeatherController : UpdatableAndDeletable
         public string roomName;
 
         public WeatherController owner;
+        public WeatherForecast.Weather currentWeather;
         public int weatherType;
         public int weatherIntensity;
         public float startingIntensity;
@@ -433,6 +504,7 @@ public class WeatherController : UpdatableAndDeletable
             //Weather override
             weatherType = 2;
 
+            //Probably only need this if forecasts are off
             weatherIntensity = ForecastConfig.weatherIntensity.Value;
             weatherChance = ForecastConfig.weatherChance.Value;
             windDirection = ForecastConfig.windDirection.Value;
@@ -453,6 +525,8 @@ public class WeatherController : UpdatableAndDeletable
             {
                 windDirection = UnityEngine.Random.Range(1, 3);
             }
+
+
 
             //Overwrite with global settings from region if they exist and that region is set to custom
             if (ForecastConfig.customRegionSettings.ContainsKey(region) && ForecastConfig.regionSettings.ContainsKey(region) && ForecastConfig.regionSettings[region] == 2)
@@ -569,14 +643,15 @@ public class WeatherController : UpdatableAndDeletable
                     }
                 }
             }
+            
             //Wind Direction
-            if (!WeatherHooks.weatherForecast.regionWindDirection.ContainsKey(region))
+            if (!WeatherForecast.regionWindDirection.ContainsKey(region))
             {
-                WeatherHooks.weatherForecast.regionWindDirection.Add(region, windDirection);
+                WeatherForecast.regionWindDirection.Add(region, windDirection);
             }
             else
             {
-                windDirection = WeatherHooks.weatherForecast.regionWindDirection[region];
+                windDirection = WeatherForecast.regionWindDirection[region];
             }
             if (!dynamic)
             {
@@ -608,35 +683,43 @@ public class WeatherController : UpdatableAndDeletable
                 //Determine initial starting intensity
                 startingIntensity = UnityEngine.Random.Range(-0.5f, 0.8f);
                 //If this is the first time its been determined, add it to the dictionary for reference later
-                if (!WeatherHooks.weatherForecast.dynamicRegionStartingIntensity.ContainsKey(region))
+                if (!WeatherForecast.dynamicRegionStartingIntensity.ContainsKey(region))
                 {
-                    WeatherHooks.weatherForecast.dynamicRegionStartingIntensity.Add(region, startingIntensity);
+                    WeatherForecast.dynamicRegionStartingIntensity.Add(region, startingIntensity);
                 }
                 //If there's already an entry for this region, overwrite the startingIntensity with what's stored
                 else
                 {
-                    startingIntensity = WeatherHooks.weatherForecast.dynamicRegionStartingIntensity[region];
+                    startingIntensity = WeatherForecast.dynamicRegionStartingIntensity[region];
                 }
             }
+
+            //Load Weather
+            currentWeather = new WeatherForecast.Weather(WeatherForecast.regionWeatherForecasts[region][0]);
+            weatherType = currentWeather.weatherIndex;
+            startingIntensity = currentWeather.minIntensity;
+            
+
+
             //Determine whether region weather is disabled
-            if (!WeatherHooks.weatherForecast.weatherlessRegions.Contains(region))
+            if (!WeatherForecast.weatherlessRegions.Contains(region))
             {
                 //Weather disabled because it failed the weather chance check
                 if (weatherChance < UnityEngine.Random.Range(0, 100))
                 {
-                    WeatherHooks.weatherForecast.weatherlessRegions.Add(region);
+                    WeatherForecast.weatherlessRegions.Add(region);
                     ForecastLog.Log($"FORECAST: Region: {region} failed weatherChance - DISABLED this cycle");
                 }
                 //Weather disabled via Remix menu
                 if (ForecastConfig.regionSettings[region] == 0)
                 {
-                    WeatherHooks.weatherForecast.weatherlessRegions.Add(region);
+                    WeatherForecast.weatherlessRegions.Add(region);
                     ForecastLog.Log($"FORECAST: Region: {region} weather disabled via Remix");
                 }
                 //Weather disabled because support mode is active and this region isn't using custom settings
                 else if (ForecastConfig.regionSettings[region] == 1 && ForecastConfig.supportMode.Value)
                 {
-                    WeatherHooks.weatherForecast.weatherlessRegions.Add(region);
+                    WeatherForecast.weatherlessRegions.Add(region);
                     ForecastLog.Log($"FORECAST: Region: {region} weather disabled due to Support Mode");
                 }
             }
@@ -684,23 +767,34 @@ public class WeatherController : UpdatableAndDeletable
             //Rain intensity increases with cycle duration if in dynamic mode
             if (dynamic)
             {
-                //Rain
-                if(weatherType == 0)
+                if (currentWeather != null)
                 {
-                    if (owner.room.world.rainCycle.RainDarkPalette <= 0)
+                    currentIntensity = Mathf.Lerp(currentWeather.minIntensity, currentWeather.maxIntensity, owner.room.world.rainCycle.CycleProgression);
+                    if (weatherType == 2)
                     {
-                        currentIntensity = Mathf.Lerp(startingIntensity, 1f, owner.room.world.rainCycle.CycleProgression);
-                    }
-                    else
-                    {
-                        currentIntensity = Mathf.Lerp(0.95f, 0f, owner.room.world.rainCycle.RainDarkPalette);
+                        Shader.SetGlobalFloat("_snowStrength", currentIntensity);
                     }
                 }
-                //Snow
-                if(weatherType == 2)
+                else
                 {
-                    currentIntensity = Mathf.Lerp(startingIntensity, 1f, owner.room.world.rainCycle.CycleProgression);
-                    Shader.SetGlobalFloat("_snowStrength", currentIntensity);
+                    //Rain
+                    if (weatherType == 0)
+                    {
+                        if (owner.room.world.rainCycle.RainDarkPalette <= 0)
+                        {
+                            currentIntensity = Mathf.Lerp(startingIntensity, 1f, owner.room.world.rainCycle.CycleProgression);
+                        }
+                        else
+                        {
+                            currentIntensity = Mathf.Lerp(0.95f, 0f, owner.room.world.rainCycle.RainDarkPalette);
+                        }
+                    }
+                    //Snow
+                    if (weatherType == 2)
+                    {
+                        currentIntensity = Mathf.Lerp(startingIntensity, 1f, owner.room.world.rainCycle.CycleProgression);
+                        Shader.SetGlobalFloat("_snowStrength", currentIntensity);
+                    }
                 }
             }
         }

@@ -11,7 +11,6 @@ using System.Runtime.CompilerServices;
 public class WeatherHooks
 {
     public static Dictionary<Room, WeatherController.WeatherSettings> roomSettings = new Dictionary<Room, WeatherController.WeatherSettings>();
-    public static WeatherForecast weatherForecast;
     public static DebugWeatherUI debugUI;
 
     public static List<RoomRain.DangerType> invalidDangerTypes = new List<RoomRain.DangerType>() //Invalid dangerTypes, don't spawn a WeatherController if the room uses one of these
@@ -38,6 +37,24 @@ public class WeatherHooks
         On.RainWorld.Update += RainWorld_Update;
 
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize; //Remove settings
+        On.WinState.CycleCompleted += WinState_CycleCompleted;
+    }
+
+    private static void WinState_CycleCompleted(On.WinState.orig_CycleCompleted orig, WinState self, RainWorldGame game)
+    {
+        orig.Invoke(self, game);
+
+        if (WeatherForecast.regionWeatherForecasts != null)
+        {
+            //Progress weather
+            foreach (KeyValuePair<string, List<WeatherForecast.Weather.WeatherType>> pair in WeatherForecast.regionWeatherForecasts)
+            {
+                pair.Value[0] = pair.Value[1];
+                pair.Value[1] = pair.Value[2];
+                pair.Value[2] = WeatherForecast.NextWeather(pair.Key, pair.Value[1]);
+            }
+            WeatherData.Save();
+        }
     }
 
     private static void AbstractRoom_Abstractize(On.AbstractRoom.orig_Abstractize orig, AbstractRoom self)
@@ -72,20 +89,20 @@ public class WeatherHooks
     {
         orig.Invoke(self, saveStateNumber, game);
 
-        if (weatherForecast == null)
-        {
-            weatherForecast = new WeatherForecast();
-            roomSettings = new Dictionary<Room, WeatherController.WeatherSettings>();
-            ForecastLog.Log($"FORECAST: Creating WeatherForecast object");
-        }
-        else
-        {
-            weatherForecast.PrepareCycle();
-            ForecastLog.Log($"FORECAST: Preparing next forecast");
+        //Load save data first if there isn't any, run the next two methods
+        WeatherData.Load();
 
-            //Clear tables
-            roomSettings.Clear();
+        if (WeatherForecast.regionWeatherProbability == null || WeatherForecast.regionWeatherProbability.Keys.Count == 0)
+        {
+            WeatherForecast.GenerateWeathers();
         }
+        if (WeatherForecast.regionWeatherForecasts == null || WeatherForecast.regionWeatherForecasts.Keys.Count == 0)
+        {
+            WeatherForecast.InitialWeather();
+        }
+
+        WeatherForecast.ClearAll();
+        roomSettings.Clear();
 
         if (ForecastConfig.debugMode.Value && ForecastMod.exposureControllers != null)
         {
@@ -128,21 +145,21 @@ public class WeatherHooks
     private static void RainWorld_LoadResources(On.RainWorld.orig_LoadResources orig, RainWorld self)
     {
         orig.Invoke(self);
-        ForecastMod.snowLight = new Texture2D(0, 0, TextureFormat.ARGB32, false);
-        if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowLight.png")))
+        ForecastMod.snowExt = new Texture2D(0, 0, TextureFormat.ARGB32, false);
+        if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowExt.png")))
         {
-            ForecastLog.Log("FORECAST: Loaded snowLight.png");
+            ForecastLog.Log("FORECAST: Loaded snowExt.png");
         }
-        ForecastMod.snowLight.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowLight.png")));
-        ForecastMod.snowLight.filterMode = FilterMode.Point;
+        ForecastMod.snowExt.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowExt.png")));
+        ForecastMod.snowExt.filterMode = FilterMode.Point;
 
-        ForecastMod.snowDark = new Texture2D(0, 0, TextureFormat.ARGB32, false);
-        if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowDark.png")))
+        ForecastMod.snowInt = new Texture2D(0, 0, TextureFormat.ARGB32, false);
+        if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowInt.png")))
         {
-            ForecastLog.Log("FORECAST: Loaded snowDark.png");
+            ForecastLog.Log("FORECAST: Loaded snowInt.png");
         }
-        ForecastMod.snowDark.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowDark.png")));
-        ForecastMod.snowDark.filterMode = FilterMode.Point;
+        ForecastMod.snowInt.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowInt.png")));
+        ForecastMod.snowInt.filterMode = FilterMode.Point;
 
         byte[] rainbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainButton.png"));
         Texture2D raintexture = new Texture2D(0, 0);
@@ -339,7 +356,7 @@ public class WeatherHooks
             if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha4))
             {
                 //Toggle AerieBlizzard and normal Blizzard
-                if(self.roomSettings.DangerType == RoomRain.DangerType.AerieBlizzard)
+                if (self.roomSettings.DangerType == RoomRain.DangerType.AerieBlizzard)
                 {
                     self.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
                 }

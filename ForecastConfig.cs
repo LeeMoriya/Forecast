@@ -356,7 +356,7 @@ public class ForecastConfig : OptionInterface
 
         //Background Lightning
         OpLabel bgLabel = new OpLabel(160f, visualAnchor - 30f, "BACKGROUND LIGHTNING");
-        OpLabel bgDesc = new OpLabel(160f, visualAnchor - 50f, "When weather intensity is high, lightning flashes can occur");
+        OpLabel bgDesc = new OpLabel(160f, visualAnchor - 50f, "During thunderstorms, lightning flashes can occur");
         bgToggle = new OpSimpleButton(new Vector2(30f, visualAnchor - 55f), new Vector2(110f, 45f), backgroundLightning.Value ? "ENABLED" : "DISABLED");
         bgToggle.OnClick += BgToggle_OnClick;
         settingsBox.AddItems(bgLabel, bgDesc, bgToggle);
@@ -387,7 +387,7 @@ public class ForecastConfig : OptionInterface
 
         //Lightning Strikes
         OpLabel strikeLabel = new OpLabel(160f, lightningAnchor - 30f, "LIGHTNING STRIKES");
-        OpLabel strikeDesc = new OpLabel(160f, lightningAnchor - 50f, "Lightning strikes can occur at high intensity");
+        OpLabel strikeDesc = new OpLabel(160f, lightningAnchor - 50f, "Lightning strikes can occur during thunderstorms");
         strikeToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 55f), new Vector2(110f, 45f), lightningStrikes.Value ? "ENABLED" : "DISABLED");
         strikeToggle.OnClick += StrikeToggle_OnClick;
         settingsBox.AddItems(strikeLabel, strikeDesc, strikeToggle);

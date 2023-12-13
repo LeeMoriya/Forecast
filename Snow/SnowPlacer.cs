@@ -7,7 +7,7 @@ using UnityEngine;
 using MoreSlugcats;
 using RWCustom;
 
-public class SnowPlacer : CosmeticSprite
+public class SnowPlacer : UpdatableAndDeletable
 {
     public WeatherController weatherController;
     public List<SnowSource> sources;
@@ -16,7 +16,7 @@ public class SnowPlacer : CosmeticSprite
 
     public SnowPlacer(WeatherController weatherController)
     {
-        ForecastLog.Log("Placing SnowSources");
+        //ForecastLog.Log("Placing SnowSources");
         this.weatherController = weatherController;
         points = new Vector2[20];
         radii = new float[20];
@@ -64,13 +64,13 @@ public class SnowPlacer : CosmeticSprite
             sources[UnityEngine.Random.Range(0, 19)].rad += 300f;
         }
 
-        if (ForecastConfig.debugMode.Value)
-        {
-            for (int i = 0; i < points.Length; i++)
-            {
-                ForecastLog.Log($"Point {i} radius: {radii[i]} - x{points[i].x} : y{points[i].y}");
-            }
-        }
+        //if (ForecastConfig.debugMode.Value)
+        //{
+        //    for (int i = 0; i < points.Length; i++)
+        //    {
+        //        ForecastLog.Log($"Point {i} radius: {radii[i]} - x{points[i].x} : y{points[i].y}");
+        //    }
+        //}
     }
 
     public Vector2[] SpreadPoints(Vector2[] points, FloatRect bounds, float targetDist, int iterations)
@@ -104,27 +104,33 @@ public class SnowPlacer : CosmeticSprite
     }
 
 
-    public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
-    {
-        sLeaser.sprites = new FSprite[points.Length];
-        for (int i = 0; i < sLeaser.sprites.Length; i++)
-        {
-            sLeaser.sprites[i] = new FSprite("Futile_White", true);
-            sLeaser.sprites[i].alpha = 0.8f;
-            sLeaser.sprites[i].color = new Color(0.3f,1f,1f);
-        }
-        AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
-    }
+    //public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+    //{
+    //    if (WeatherHooks.debugUI != null)
+    //    {
+    //        sLeaser.sprites = new FSprite[points.Length];
+    //        for (int i = 0; i < sLeaser.sprites.Length; i++)
+    //        {
+    //            sLeaser.sprites[i] = new FSprite("Futile_White", true);
+    //            sLeaser.sprites[i].alpha = 0.8f;
+    //            sLeaser.sprites[i].color = new Color(0.3f, 1f, 1f);
+    //        }
+    //        AddToContainer(sLeaser, rCam, rCam.ReturnFContainer("HUD"));
+    //    }
+    //}
 
-    public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
-    {
-        for (int i = 0; i < sLeaser.sprites.Length; i++)
-        {
-            sLeaser.sprites[i].x = points[i].x - camPos.x;
-            sLeaser.sprites[i].y = points[i].y - camPos.y;
-            sLeaser.sprites[i].alpha = WeatherHooks.debugUI.toggle ? 0f : 0.7f;
-        }
-    }
+    //public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+    //{
+    //    if (WeatherHooks.debugUI != null)
+    //    {
+    //        for (int i = 0; i < sLeaser.sprites.Length; i++)
+    //        {
+    //            sLeaser.sprites[i].x = points[i].x - camPos.x;
+    //            sLeaser.sprites[i].y = points[i].y - camPos.y;
+    //            sLeaser.sprites[i].alpha = WeatherHooks.debugUI.toggle ? 0f : 0.7f;
+    //        }
+    //    }
+    //}
 
     public override void Update(bool eu)
     {

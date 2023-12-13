@@ -4,315 +4,237 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static WeatherForecast;
 
 
-public class WeatherForecast
+public static class WeatherForecast
 {
-    //The WeatherForecast object is created at the start of each cycle, alongside the OverWorld.
-    //In a future update, its purpose will be to determine the current weather based on the ever changing
-    //level of precipitation and temperature. By checking this it will decide whether regions should feature
-    //rain, hail or snow this cycle and the intensity of each. It will also show the forecast for the next
-    //few cycles.
+    public static List<string> weatherlessRegions = new List<string>();
+    public static Dictionary<string, int> regionWindDirection = new Dictionary<string, int>();
+    public static Dictionary<string, float> dynamicRegionStartingIntensity = new Dictionary<string, float>();
 
-    //Currently, the WeatherForecast's function will be to determine whether regions will have weather
-    //this cycle based on the global weatherChance variable defined in REMIX or a custom settings file.
+    //Dictionary<string, dictionary<weatherType, float>>
+    //In ForecastConfig, a dictionary containing save data of all region and the list of possible weathers that can happen in them.
+    //Each weather has a percentage chance to occur -- unless the weather preference overrides it.
+    //Weather preference will not kick in if the chosen weather is not one that's been enabled for that region
+    //In that case, it will revert back to the percentage chances for the selected weathers
+    //If it fails to generate a new weather type, it will do the same weather again
+    public static Dictionary<string, Dictionary<Weather.WeatherType, float>> regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
+    public static Dictionary<string, List<Weather.WeatherType>> regionWeatherForecasts = new Dictionary<string, List<Weather.WeatherType>>();
 
-    public List<string> weatherlessRegions;
-    public Dictionary<string, float> dynamicRegionStartingIntensity;
-    public Dictionary<string, int> regionWindDirection;
-    public List<Weather> availableWeather;
-
-    public float lastLastTemperature = -1f;
-    public float lastLastPrecipitation = -1f;
-    public float lastTemperature = -1f;
-    public float lastPrecipitation = -1f;
-    public float currentTemperature = -1f;
-    public float currentPrecipitation = -1f;
-
-    public float averageTemperature;
-    public float averagePrecipitation;
-
-    public int lastForecast;
-    public int thisForecast;
-    public int nextForecast;
-
-    public System.Random random;
-
-    public WeatherForecast()
+    //Method to be replaced in ForecastConfig
+    public static void GenerateWeathers()
     {
-        weatherlessRegions = new List<string>();
-        dynamicRegionStartingIntensity = new Dictionary<string, float>();
-        regionWindDirection = new Dictionary<string, int>();
-        GenerateAvailableWeather();
-        random = new System.Random();
-
-        //Load temp and prec settings, generate new ones between the min and max if none exist
-        PrepareCycle();
-    }
-
-    public void PrepareCycle()
-    {
-        random = new System.Random();
-        weatherlessRegions = new List<string>();
-        dynamicRegionStartingIntensity = new Dictionary<string, float>();
-        regionWindDirection = new Dictionary<string, int>();
-
-        bool initialWeather = false;
-        //Generate initial precipitation
-        if (currentPrecipitation == -1f)
+        if(regionWeatherProbability.Keys.Count > 0)
         {
-            initialWeather = true;
-            lastLastPrecipitation = UnityEngine.Random.value;
-            lastPrecipitation = UnityEngine.Random.value;
-            currentPrecipitation = PredictPrecipitationChange(lastLastPrecipitation, lastPrecipitation);
+            //Already generated weather probability
+            return;
         }
-        //Generate initial temperature
-        if (currentTemperature == -1f)
+        regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
+        foreach(string reg in ForecastConfig.regionSettings.Keys)
         {
-            initialWeather = true;
-            lastLastTemperature = UnityEngine.Random.value;
-            lastTemperature = UnityEngine.Random.value;
-            currentTemperature = PredictPrecipitationChange(lastLastTemperature, lastTemperature);
-        }
-        if(initialWeather)
-        {
-            lastForecast = GenerateForecast(lastLastTemperature, lastLastPrecipitation);
-            thisForecast = GenerateForecast(lastTemperature, lastPrecipitation);
-            nextForecast = GenerateForecast(currentTemperature, currentPrecipitation);
-            ForecastLog.Log($"Weather Forecast: {lastForecast},{thisForecast},{nextForecast}");
-            ForecastLog.Log($"Temperature: {lastLastTemperature},{lastTemperature},{currentTemperature}");
-            ForecastLog.Log($"Precipitation: {lastLastPrecipitation},{lastPrecipitation},{currentPrecipitation}");
-        }
-        else
-        {
-            lastLastTemperature = lastTemperature;
-            lastTemperature = currentTemperature;
-            currentTemperature = PredictTemperatureChange(lastLastTemperature, lastTemperature);
-            lastLastPrecipitation = lastPrecipitation;
-            lastPrecipitation = currentPrecipitation;
-            currentPrecipitation = PredictPrecipitationChange(lastLastPrecipitation, lastPrecipitation);
+            Dictionary<Weather.WeatherType, float> weathers = new Dictionary<Weather.WeatherType, float>();
+            float chance = 1f / Enum.GetNames(typeof(Weather.WeatherType)).Length;
 
-            lastForecast = thisForecast;
-            thisForecast = nextForecast;
-            nextForecast = GenerateForecast(currentTemperature, currentPrecipitation);
+            weathers.Add(Weather.WeatherType.LightRain, UnityEngine.Random.value);
+            weathers.Add(Weather.WeatherType.HeavyRain, UnityEngine.Random.value);
+            weathers.Add(Weather.WeatherType.Thunderstorm, UnityEngine.Random.value);
+            weathers.Add(Weather.WeatherType.Fog, UnityEngine.Random.value);
+            weathers.Add(Weather.WeatherType.Hail, UnityEngine.Random.value);
+            weathers.Add(Weather.WeatherType.LightSnow, UnityEngine.Random.value);
+            weathers.Add(Weather.WeatherType.HeavySnow, UnityEngine.Random.value);
+            weathers.Add(Weather.WeatherType.Blizzard, UnityEngine.Random.value);
 
-            ForecastLog.Log($"Prev: {availableWeather.Find(x => x.index == lastForecast).name}");
-            ForecastLog.Log($"Now: {availableWeather.Find(x => x.index == thisForecast).name}");
-            ForecastLog.Log($"Next: {availableWeather.Find(x => x.index == nextForecast).name}");
+            regionWeatherProbability.Add(reg, weathers);
         }
     }
 
-    public int GenerateForecast(float temp, float prec)
+    public static void InitialWeather()
     {
-        List<Weather> candidates = new List<Weather>();
-        candidates.AddRange(availableWeather.FindAll(x => x.minTemperature <= temp && x.maxTemperature >= temp));
-        if(candidates.Count > 0)
+        if(regionWeatherForecasts.Keys.Count > 0)
         {
-            Weather w = candidates[UnityEngine.Random.Range(0, candidates.Count)];
-            ForecastLog.Log($"Weather Candidate: {w.name} - T: {currentTemperature:n2} - P: {currentPrecipitation:n2}");
-            return w.index;
+            //There are already existing forecasts
+            ForecastLog.Log("Initial weather already generated");
+            return;
         }
-        else
+        regionWeatherForecasts = new Dictionary<string, List<Weather.WeatherType>>();
+        foreach(string region in regionWeatherProbability.Keys)
         {
-            candidates.Add(availableWeather[UnityEngine.Random.Range(0, availableWeather.Count)]);
-            if (candidates.Count > 0)
+            ForecastLog.Log($"FORECAST FOR {region}");
+            regionWeatherForecasts.Add(region, new List<Weather.WeatherType>());
+            regionWeatherForecasts[region].Add(RandomWeather(region));
+            regionWeatherForecasts[region].Add(NextWeather(region, regionWeatherForecasts[region][0]));
+            regionWeatherForecasts[region].Add(NextWeather(region, regionWeatherForecasts[region][1]));
+            ForecastLog.Log($"--------------------------------------------------------");
+        }
+        WeatherData.Save();
+    }
+
+    public static Weather.WeatherType NextWeather(string region, Weather.WeatherType lastWeather)
+    {
+        if (UnityEngine.Random.value < 0.75f)
+        {
+            float totalProbability = 0f;
+            foreach (var pair in regionWeatherProbability[region])
             {
-                foreach (Weather weather in candidates)
+                totalProbability += pair.Value;
+            }
+            float rand = UnityEngine.Random.Range(0,totalProbability);
+
+            List<Weather.WeatherType> shuffled = regionWeatherProbability[region].Keys.ToList();
+            Shuffle(shuffled);
+
+            for (int i = 0; i < shuffled.Count; i++)
+            {
+                rand -= regionWeatherProbability[region][shuffled[i]];
+                if (rand <= 0f)
                 {
-                    ForecastLog.Log($"Random Candidate: {weather.name} - T: {currentTemperature:n2} - P: {currentPrecipitation:n2}");
+                    ForecastLog.Log($"{region}: Preferred = {shuffled[i]}");
+                    return shuffled[i];
                 }
-                return candidates[0].index;
             }
-            ForecastLog.Log("FAILED");
-            return 0;
+
+            ForecastLog.Log($"{region}: Repeat = {lastWeather}");
+            return lastWeather;
+        }
+        else
+        {
+            return RandomWeather(region);
         }
     }
 
-    public float PredictTemperatureChange(float lastLastTemperature, float lastTemperature)
+    public static Weather.WeatherType RandomWeather(string region)
     {
-        float change = lastTemperature - lastLastTemperature;
-        bool isIncreasing = change > 0;
+        float rand = UnityEngine.Random.value;
 
-        // Apply chance of opposite change
-        if (UnityEngine.Random.value < 0.2f)
-            isIncreasing = !isIncreasing;
+        var nearestPair = regionWeatherProbability[region].OrderBy(kv => Math.Abs(kv.Value - rand)).First();
+        ForecastLog.Log($"{region}: Random = {nearestPair.Key}");
 
-        if (lastTemperature >= 0.9f)
-        {
-            isIncreasing = false;
-        }
-        if (lastTemperature <= 0.1f)
-        {
-            isIncreasing = true;
-        }
-
-        // Calculate predicted change
-        float predictedChange = UnityEngine.Random.Range(0.1f, 0.25f);
-        if (!isIncreasing)
-            predictedChange *= -1;
-
-        // Calculate predicted temperature
-        float predictedTemperature = lastTemperature + predictedChange;
-
-        if (predictedTemperature < averageTemperature)
-        {
-            predictedTemperature += 0.1f;
-        }
-        else if (predictedTemperature > averageTemperature)
-        {
-            predictedTemperature -= 0.1f;
-        }
-        return Mathf.Clamp(predictedTemperature, 0f, 1f);
+        return nearestPair.Key;
     }
 
-    public float PredictPrecipitationChange(float lastLastPrecipitation, float lastPrecipitation)
+    static void Shuffle<T>(List<T> list)
     {
-        float change = lastPrecipitation - lastLastPrecipitation;
-        bool isIncreasing = change > 0;
-
-        // Apply chance of opposite change
-        if (UnityEngine.Random.value < 0.2f)
-            isIncreasing = !isIncreasing;
-
-        if (lastPrecipitation >= 1f)
+        System.Random random = new System.Random();
+        int n = list.Count;
+        for (int i = n - 1; i > 0; i--)
         {
-            isIncreasing = false;
+            int j = random.Next(0, i + 1);
+            T temp = list[i];
+            list[i] = list[j];
+            list[j] = temp;
         }
-        if (lastPrecipitation <= 0f)
-        {
-            isIncreasing = true;
-        }
-
-        // Calculate predicted change
-        float predictedChange = UnityEngine.Random.Range(0.1f, 0.3f);
-        if (!isIncreasing)
-            predictedChange *= -1;
-
-        // Calculate predicted precipitation
-        float predictedPrecipitation = lastPrecipitation + predictedChange;
-
-        if(predictedPrecipitation < averagePrecipitation)
-        {
-            predictedPrecipitation += 0.1f;
-        }
-        else if(predictedPrecipitation > averagePrecipitation)
-        {
-            predictedPrecipitation -= 0.1f;
-        }
-        return Mathf.Clamp(predictedPrecipitation, 0f, 1f);
     }
 
-    public void GenerateAvailableWeather()
+    public static void ClearAll()
     {
-        availableWeather = new List<Weather>
-        {
-            new Weather
-            {
-                index = 0,
-                name = "Clear Skies",
-                weatherType = -1,
-                minPrecipitation = 0f,
-                maxPrecipitation = 0.2f,
-                minTemperature = 0.5f,
-                maxTemperature = 0.85f
-            },
-            new Weather
-            {
-                index = 1,
-                name = "Light Rain",
-                weatherType = 0,
-                minPrecipitation = 0.1f,
-                maxPrecipitation = 0.5f,
-                minTemperature = 0.1f,
-                maxTemperature = 0.5f
-            },
-            new Weather
-            {
-                index = 2,
-                name = "Heavy Rain",
-                weatherType = 0,
-                minPrecipitation = 0.5f,
-                maxPrecipitation = 1f,
-                minTemperature = 0.5f,
-                maxTemperature = 0.85f
-            },
-            new Weather
-            {
-                index = 3,
-                name = "Thunderstorm",
-                weatherType = 0,
-                minPrecipitation = 0.8f,
-                maxPrecipitation = 1f,
-                minTemperature = 0.85f,
-                maxTemperature = 0.1f
-            },
-            new Weather
-            {
-                index = 4,
-                name = "Light Hail",
-                weatherType = 0,
-                minPrecipitation = 0.2f,
-                maxPrecipitation = 0.4f,
-                minTemperature = 0.85f,
-                maxTemperature = 1f
-            },
-            new Weather
-            {
-                index = 5,
-                name = "Heavy Hail",
-                weatherType = 0,
-                minPrecipitation = 0.4f,
-                maxPrecipitation = 0.65f,
-                minTemperature = 0.85f,
-                maxTemperature = 1f
-            },
-            new Weather
-            {
-                index = 6,
-                name = "Light Snow",
-                weatherType = 1,
-                minPrecipitation = 0.1f,
-                maxPrecipitation = 0.5f,
-                minTemperature = 0.3f,
-                maxTemperature = 0.5f
-            },
-            new Weather
-            {
-                index = 7,
-                name = "Heavy Snow",
-                weatherType = 1,
-                minPrecipitation = 0.5f,
-                maxPrecipitation = 1f,
-                minTemperature = 0.15f,
-                maxTemperature = 0.3f
-            },
-            new Weather
-            {
-                index = 8,
-                name = "Blizzard",
-                weatherType = 1,
-                minPrecipitation = 0.8f,
-                maxPrecipitation = 1f,
-                minTemperature = 0f,
-                maxTemperature = 0.15f
-            }
-        };
+        weatherlessRegions.Clear();
+        regionWindDirection.Clear();
+        dynamicRegionStartingIntensity.Clear();
     }
-
+    
     public class Weather
     {
-        public int index;
-        public string name; //Name for this weather in menus
-        public string spriteName; //Sprite name used for the forecast
+        public WeatherType type;
+        public float minIntensity;
+        public float maxIntensity;
+        public int weatherIndex;
+        public Dictionary<WeatherType, float> nextPreference;
 
-        public int weatherType; //Matches index for weather type
+        public Weather(WeatherType type)
+        {
+            try
+            {
+                GenerateWeather(type);
+            }
+            catch(Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
 
-        public float minTemperature; //Temperature must be above this value to occur
-        public float maxTemperature; //Temperature must be below this value to occur
+        public void GenerateWeather(WeatherType type)
+        {
+            nextPreference = new Dictionary<WeatherType, float>();
+            this.type = type;
 
-        public float minPrecipitation; //Precipitation must be above this value to occur
-        public float maxPrecipitation; //Precipitation must be below this value to occur
+            switch (type)
+            {
+                case WeatherType.LightRain:
+                    weatherIndex = 0;
+                    minIntensity = 0f + UnityEngine.Random.Range(0f, 0.2f);
+                    maxIntensity = 0.65f;
+                    nextPreference.Add(WeatherType.HeavyRain, 0.5f);
+                    nextPreference.Add(WeatherType.Fog, 0.15f);
+                    nextPreference.Add(WeatherType.Hail, 0.1f);
+                    break;
+                case WeatherType.HeavyRain:
+                    weatherIndex = 0;
+                    minIntensity = 0.5f + UnityEngine.Random.Range(0f, 0.2f);
+                    maxIntensity = 1f;
+                    nextPreference.Add(WeatherType.LightRain, 0.3f);
+                    nextPreference.Add(WeatherType.Thunderstorm, 0.4f);
+                    break;
+                case WeatherType.Thunderstorm:
+                    weatherIndex = 0;
+                    minIntensity = 0.85f;
+                    maxIntensity = 1f;
+                    nextPreference.Add(WeatherType.LightRain, 0.45f);
+                    nextPreference.Add(WeatherType.Fog, 0.4f);
+                    nextPreference.Add(WeatherType.HeavyRain, 0.15f);
+                    break;
+                case WeatherType.Fog:
+                    weatherIndex = 0;
+                    minIntensity = 0f;
+                    maxIntensity = 0.1f;
+                    nextPreference.Add(WeatherType.LightRain, 0.35f);
+                    nextPreference.Add(WeatherType.LightSnow, 0.2f);
+                    break;
+                case WeatherType.Hail:
+                    weatherIndex = 0;
+                    minIntensity = 0f;
+                    maxIntensity = 0.75f;
+                    nextPreference.Add(WeatherType.LightSnow, 0.35f);
+                    nextPreference.Add(WeatherType.HeavyRain, 0.2f);
+                    nextPreference.Add(WeatherType.Thunderstorm, 0.15f);
+                    break;
+                case WeatherType.LightSnow:
+                    weatherIndex = 2;
+                    minIntensity = 0f + UnityEngine.Random.Range(0f, 0.2f);
+                    maxIntensity = 0.55f;
+                    nextPreference.Add(WeatherType.HeavySnow, 0.6f);
+                    nextPreference.Add(WeatherType.Blizzard, 0.3f);
+                    nextPreference.Add(WeatherType.Hail, 0.1f);
+                    break;
+                case WeatherType.HeavySnow:
+                    weatherIndex = 2;
+                    minIntensity = 0.45f;
+                    maxIntensity = 0.9f;
+                    nextPreference.Add(WeatherType.LightSnow, 0.35f);
+                    nextPreference.Add(WeatherType.Blizzard, 0.35f);
+                    nextPreference.Add(WeatherType.Fog, 0.1f);
+                    break;
+                case WeatherType.Blizzard:
+                    weatherIndex = 2;
+                    minIntensity = 0.9f;
+                    maxIntensity = 1f;
+                    nextPreference.Add(WeatherType.LightRain, 0.1f);
+                    nextPreference.Add(WeatherType.LightSnow, 0.3f);
+                    nextPreference.Add(WeatherType.Hail, 0.1f);
+                    nextPreference.Add(WeatherType.HeavySnow, 0.3f);
+                    break;
+            }
+        }
+        public enum WeatherType
+        {
+            LightRain,
+            HeavyRain,
+            Thunderstorm,
+            Fog,
+            Hail,
+            LightSnow,
+            HeavySnow,
+            Blizzard,
+        }
     }
 }
 

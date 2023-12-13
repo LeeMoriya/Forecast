@@ -100,7 +100,17 @@ public class DebugWeatherUI
         }
 
         //SETTINGS
-        FLabel settingsLabel = new FLabel("font", "\n\n\nGENERAL:\n");
+        FLabel settingsLabel = new FLabel("font", "\n\n\nGENERAL:\n\n");
+
+        if(settings.currentWeather != null)
+        {
+            settingsLabel.text += 
+            $"Forecast:\nNow: {settings.currentWeather.type}" +
+            $"\nNext: {WeatherForecast.regionWeatherForecasts[settings.regionName][1]}" +
+            $"\nLater: {WeatherForecast.regionWeatherForecasts[settings.regionName][2]}\n\n";
+        }
+
+        settingsLabel.text += $"Interior: {(settings.owner.interior ? "YES" : "NO")}\n";
         settingsLabel.text += $"DangerType: {settings.owner.room.roomSettings.DangerType.value}\n";
         settingsLabel.text += $"Intensity: {Mathf.RoundToInt(settings.currentIntensity * 100f)}% - {(settings.weatherIntensity == 0 ? "DYNAMIC" : "FIXED")}\n";
         settingsLabel.text += $"Particle Limit: {settings.particleLimit}\n";
@@ -129,6 +139,7 @@ public class DebugWeatherUI
             labels[i].SetPosition(new Vector2(20.01f, 768.01f - 45f - (20f * i)));
             container.AddChild(labels[i]);
         }
+        container.MoveToFront();
     }
 
     public string WindDir(int i)
