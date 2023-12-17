@@ -14,36 +14,64 @@ public static class WeatherData
     {
         string rootFolder = Application.persistentDataPath + Path.DirectorySeparatorChar;
         string path = rootFolder + "Forecast" + Path.DirectorySeparatorChar + "Forecast.txt";
+        bool forecastSection = false;
 
-        if(File.Exists(path))
+        if (File.Exists(path))
         {
             string[] data = File.ReadAllLines(path);
             regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
+            regionWeatherForecasts = new Dictionary<string, List<Weather.WeatherType>>();
 
             for (int i = 0; i < data.Length; i++)
             {
-                if (data[i].ToLower().StartsWith("weather"))
-                    continue;
-                if (data[i].ToLower().StartsWith("region"))
-                    break;
-
-                string reg = Regex.Split(data[i], "~")[0];
-                string[] weathers = Regex.Split(Regex.Split(data[i], "~")[1], ">");
-
-                Dictionary<Weather.WeatherType, float> regionWeathers = new Dictionary<Weather.WeatherType, float>();
-                for (int s = 0; s < weathers.Length; s++)
+                if (!forecastSection)
                 {
-                    if(s == weathers.Length - 1)
+                    if (data[i].ToLower().StartsWith("weather"))
+                        continue;
+                    if (data[i].ToLower().StartsWith("region"))
                     {
+                        forecastSection = true;
                         continue;
                     }
-                    string type = Regex.Split(weathers[s], "<")[0];
-                    float chance = float.Parse(Regex.Split(weathers[s], "<")[1]);
-                    Weather.WeatherType weatherType = (Weather.WeatherType)Enum.Parse(typeof(Weather.WeatherType), type);
 
-                    regionWeathers.Add(weatherType, chance);
+                    string reg = Regex.Split(data[i], "~")[0];
+                    string[] weathers = Regex.Split(Regex.Split(data[i], "~")[1], ">");
+
+                    Dictionary<Weather.WeatherType, float> regionWeathers = new Dictionary<Weather.WeatherType, float>();
+                    for (int s = 0; s < weathers.Length; s++)
+                    {
+                        if (s == weathers.Length - 1)
+                        {
+                            continue;
+                        }
+                        string type = Regex.Split(weathers[s], "<")[0];
+                        float chance = float.Parse(Regex.Split(weathers[s], "<")[1]);
+                        Weather.WeatherType weatherType = (Weather.WeatherType)Enum.Parse(typeof(Weather.WeatherType), type);
+
+                        regionWeathers.Add(weatherType, chance);
+                    }
+                    if (!regionWeatherProbability.ContainsKey(reg))
+                    {
+                        regionWeatherProbability.Add(reg, regionWeathers);
+                    }
                 }
-                regionWeatherProbability.Add(reg, regionWeathers);
+                else
+                {
+                    string reg = Regex.Split(data[i], "~")[0];
+                    string[] weathers = Regex.Split(Regex.Split(data[i], "~")[1], ":");
+
+                    List<Weather.WeatherType> forecast = new List<Weather.WeatherType>();
+                    for (int s = 0; s < weathers.Length; s++)
+                    {
+                        Weather.WeatherType weatherType = (Weather.WeatherType)Enum.Parse(typeof(Weather.WeatherType), weathers[s]);
+                        forecast.Add(weatherType);
+                    }
+
+                    if (!regionWeatherForecasts.ContainsKey(reg))
+                    {
+                        regionWeatherForecasts.Add(reg, forecast);
+                    }
+                }
             }
         }
     }
@@ -52,14 +80,14 @@ public static class WeatherData
     {
         string rootFolder = Application.persistentDataPath + Path.DirectorySeparatorChar;
         string path = rootFolder + "Forecast" + Path.DirectorySeparatorChar + "Forecast.txt";
-        if(!Directory.Exists(path))
+        if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(rootFolder + "Forecast");
         }
 
         string data = "Weather Probabilities:\n";
 
-        if(regionWeatherProbability != null && regionWeatherForecasts != null)
+        if (regionWeatherProbability != null && regionWeatherForecasts != null)
         {
             foreach (string reg in regionWeatherProbability.Keys)
             {
@@ -81,7 +109,7 @@ public static class WeatherData
                 for (int i = 0; i < regionWeatherForecasts[reg].Count; i++)
                 {
                     data += $"{regionWeatherForecasts[reg][i]}";
-                    if(i < regionWeatherForecasts[reg].Count - 1)
+                    if (i < regionWeatherForecasts[reg].Count - 1)
                     {
                         data += ":";
                     }
