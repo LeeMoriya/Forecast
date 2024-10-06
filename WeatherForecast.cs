@@ -39,7 +39,6 @@ public static class WeatherForecast
             weathers.Add(Weather.WeatherType.HeavyRain, UnityEngine.Random.value);
             weathers.Add(Weather.WeatherType.Thunderstorm, UnityEngine.Random.value);
             weathers.Add(Weather.WeatherType.Fog, UnityEngine.Random.value);
-            weathers.Add(Weather.WeatherType.Hail, UnityEngine.Random.value);
             weathers.Add(Weather.WeatherType.LightSnow, UnityEngine.Random.value);
             weathers.Add(Weather.WeatherType.HeavySnow, UnityEngine.Random.value);
             weathers.Add(Weather.WeatherType.Blizzard, UnityEngine.Random.value);
@@ -68,6 +67,13 @@ public static class WeatherForecast
         }
         WeatherData.Save();
     }
+
+    public static void WipeAllForecasts()
+    {
+        regionWeatherForecasts.Clear();
+        InitialWeather();
+    }
+
 
     public static Weather.WeatherType NextWeather(string region, Weather.WeatherType lastWeather)
     {
@@ -164,8 +170,7 @@ public static class WeatherForecast
                     minIntensity = 0f + UnityEngine.Random.Range(0f, 0.2f);
                     maxIntensity = 0.65f;
                     nextPreference.Add(WeatherType.HeavyRain, 0.5f);
-                    nextPreference.Add(WeatherType.Fog, 0.15f);
-                    nextPreference.Add(WeatherType.Hail, 0.1f);
+                    nextPreference.Add(WeatherType.Fog, 0.25f);
                     break;
                 case WeatherType.HeavyRain:
                     weatherIndex = 0;
@@ -189,21 +194,13 @@ public static class WeatherForecast
                     nextPreference.Add(WeatherType.LightRain, 0.35f);
                     nextPreference.Add(WeatherType.LightSnow, 0.2f);
                     break;
-                case WeatherType.Hail:
-                    weatherIndex = 0;
-                    minIntensity = 0f;
-                    maxIntensity = 0.75f;
-                    nextPreference.Add(WeatherType.LightSnow, 0.35f);
-                    nextPreference.Add(WeatherType.HeavyRain, 0.2f);
-                    nextPreference.Add(WeatherType.Thunderstorm, 0.15f);
-                    break;
                 case WeatherType.LightSnow:
                     weatherIndex = 2;
                     minIntensity = 0f + UnityEngine.Random.Range(0f, 0.2f);
                     maxIntensity = 0.55f;
                     nextPreference.Add(WeatherType.HeavySnow, 0.6f);
                     nextPreference.Add(WeatherType.Blizzard, 0.3f);
-                    nextPreference.Add(WeatherType.Hail, 0.1f);
+                    nextPreference.Add(WeatherType.LightRain, 0.1f);
                     break;
                 case WeatherType.HeavySnow:
                     weatherIndex = 2;
@@ -217,9 +214,8 @@ public static class WeatherForecast
                     weatherIndex = 2;
                     minIntensity = 0.9f;
                     maxIntensity = 1f;
-                    nextPreference.Add(WeatherType.LightRain, 0.1f);
+                    nextPreference.Add(WeatherType.LightRain, 0.2f);
                     nextPreference.Add(WeatherType.LightSnow, 0.3f);
-                    nextPreference.Add(WeatherType.Hail, 0.1f);
                     nextPreference.Add(WeatherType.HeavySnow, 0.3f);
                     break;
             }
@@ -230,7 +226,6 @@ public static class WeatherForecast
             HeavyRain,
             Thunderstorm,
             Fog,
-            Hail,
             LightSnow,
             HeavySnow,
             Blizzard,

@@ -34,10 +34,6 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
 
     public override void Update(bool eu)
     {
-        if (ForecastConfig.weatherType.Value == 0)
-        {
-            base.slatedForDeletetion = true;
-        }
         if (ForecastConfig.debugMode.Value)
         {
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.Insert))
@@ -112,12 +108,12 @@ public class SnowPile : UpdatableAndDeletable, IDrawable
 
     public void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
-        alphaFade = Mathf.Lerp(0f, maxAlpha, this.room.roomSettings.RainIntensity);
-        if (this.meshDirty)
-        {
+        alphaFade = Mathf.Lerp(0f, maxAlpha, WeatherHooks.roomSettings[room].currentIntensity);
+        //if (this.meshDirty)
+        //{
             this.UpdateVerts(sLeaser, rCam);
             this.meshDirty = false;
-        }
+        //}
         if (this.elementDirty)
         {
             sLeaser.sprites[0].element = Futile.atlasManager.GetElementWithName("snowpile");

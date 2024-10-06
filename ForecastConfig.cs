@@ -14,6 +14,7 @@ using UnityEngine.Video;
 public class ForecastConfig : OptionInterface
 {
     //Configurables
+
     public static Configurable<bool> supportMode;
     public static Configurable<int> displayMode;
     public static Configurable<int> weatherType;
@@ -76,6 +77,7 @@ public class ForecastConfig : OptionInterface
     List<OpLabel> regionLabels;
     List<OpSimpleButton> regionButtons;
     List<OpLabel> customLabels;
+    public OpSimpleButton forecastDialogButton;
 
     public ForecastConfig(ForecastMod mod)
     {
@@ -161,7 +163,6 @@ public class ForecastConfig : OptionInterface
         File.WriteAllText(filePath, data);
         ForecastLog.Log("Saved region weather preferences");
     }
-
 
     public static void LoadCustomRegionSettings()
     {
@@ -272,9 +273,10 @@ public class ForecastConfig : OptionInterface
         init = false;
         var options = new OpTab(this, "Options");
         var regions = new OpTab(this, "Regions");
+        var forecasts = new OpTab(this, "Forecasts");
         Tabs = new[]
         {
-            options, regions
+            options, forecasts, regions
         };
 
         #region Options Tab
@@ -475,8 +477,29 @@ public class ForecastConfig : OptionInterface
         }
         #endregion
 
+        #region Forecasts Tab
+        OpScrollBox forecastScrollBox = new OpScrollBox(forecasts, 900f, false, true);
+        forecasts.AddItems(forecastScrollBox);
+
+        OpLabel forecastHeading = new OpLabel(new Vector2(290f, 900f - 20f), new Vector2(), "REGION FORECASTS", FLabelAlignment.Center, true);
+        OpLabel forecastDesc = new OpLabel(new Vector2(290f, 900f - 63f), new Vector2(), "Here you can configure which weather types can occur in each region and their probabilities\n\nIf natural transitions are enabled, weathers are more likely to turn into a similar type next cycle\n for example, Light Rain -> Heavy Rain, rather than Light Rain -> Blizzard.", FLabelAlignment.Center, false); ;
+        forecastDialogButton = new OpSimpleButton(new Vector2(290f - 30f, 900f - 100f), new Vector2(60f, 30f), "FORECASTS");
+        forecastDialogButton.OnClick += ForecastDialogButton_OnClick;
+        forecastScrollBox.AddItems(forecastHeading, forecastDesc, forecastDialogButton);
+
+
+
+        #endregion
+
         ForecastLog.Log($"Support Mode: {(supportMode.Value ? "ON" : "OFF")}");
         OnConfigReset += ForecastConfig_OnConfigReset;
+    }
+
+    private void ForecastDialogButton_OnClick(UIfocusable trigger)
+    {
+        var rw = GameObject.FindObjectOfType<RainWorld>();
+        Dialog dialog = new ForecastDialog(rw.processManager);
+        rw.processManager.ShowDialog(dialog);
     }
 
     private void DebugButton_OnClick(UIfocusable trigger)

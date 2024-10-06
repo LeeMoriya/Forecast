@@ -44,6 +44,7 @@
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
       <HintPath>F:\Steam Games\steamapps\common\Rain World\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="PUBLIC-Assembly-CSharp">
       <HintPath>F:\Steam Games\steamapps\common\Rain World\BepInEx\utils\PUBLIC-Assembly-CSharp.dll</HintPath>
@@ -55,6 +56,10 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Unity.Mathematics">
+      <HintPath>F:\Steam Games\steamapps\common\Rain World\RainWorld_Data\Managed\Unity.Mathematics.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>F:\Steam Games\steamapps\common\Rain World\RainWorld_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
@@ -73,6 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ForecastDialog.cs" />
     <Compile Include="Rain\BackgroundRain.cs" />
     <Compile Include="Rain\Hail.cs" />
     <Compile Include="Snow %28Old%29\Blizzard.cs" />

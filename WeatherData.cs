@@ -76,7 +76,7 @@ public static class WeatherData
         }
     }
 
-    public static void Save()
+    public static void Save() //TODO - this doesn't account for slugcat or save slot
     {
         string rootFolder = Application.persistentDataPath + Path.DirectorySeparatorChar;
         string path = rootFolder + "Forecast" + Path.DirectorySeparatorChar + "Forecast.txt";

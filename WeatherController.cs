@@ -83,7 +83,7 @@ public class WeatherController : UpdatableAndDeletable
                             surfaceTiles.Add(room.MiddleOfTile(i, t));
                             break;
                         }
-                        else if(tile.Terrain == Room.Tile.TerrainType.Slope || tile.Terrain == Room.Tile.TerrainType.Floor)
+                        else if (tile.Terrain == Room.Tile.TerrainType.Slope || tile.Terrain == Room.Tile.TerrainType.Floor)
                         {
                             surfaceTiles.Add(room.MiddleOfTile(i, t));
                         }
@@ -103,7 +103,7 @@ public class WeatherController : UpdatableAndDeletable
                 {
                     skyreach.Add(room.MiddleOfTile(tile.X, tile.Y - 1));
                     //Add snow decals to surfaces
-                    if (settings.weatherType == 1 && ForecastMod.decals)
+                    if (settings.currentWeather.weatherIndex == 2 && ForecastMod.decals)
                     {
                         if (UnityEngine.Random.value > 0.8f)
                         {
@@ -118,9 +118,9 @@ public class WeatherController : UpdatableAndDeletable
         {
             interior = true;
         }
-        if(settings.currentWeather != null)
+        if (settings.currentWeather != null)
         {
-            if(settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
+            if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
             {
                 RoomSettings.RoomEffect fog = room.roomSettings.effects.Find(x => x.type == RoomSettings.RoomEffect.Type.Fog);
                 if (fog != null && !interior)
@@ -142,13 +142,13 @@ public class WeatherController : UpdatableAndDeletable
             }
         }
         //Snow
-        if(settings.weatherType == 2)
+        if (settings.weatherType == 2)
         {
             room.game.cameras[0].LoadPalette(room.roomSettings.Palette, ref origFadePalA);
             if (room.roomSettings.fadePalette != null && room.roomSettings.fadePalette.palette > -1)
             {
                 room.game.cameras[0].LoadPalette(room.roomSettings.fadePalette.palette, ref origFadePalB);
-            }
+            } 
 
             if (!interior)
             {
@@ -290,7 +290,7 @@ public class WeatherController : UpdatableAndDeletable
             room.roomSettings.Clouds = settings.cloudCover;
         }
         //Snowy weather - making it look the same between AerieBlizzard and normal Blizzard
-        if(settings.weatherType == 2 && room.game.cameras[0].blizzardGraphics != null)
+        if (settings.currentWeather.weatherIndex == 2 && room.game.cameras[0].blizzardGraphics != null)
         {
             room.game.cameras[0].blizzardGraphics.oldSnowFallIntensity = settings.currentIntensity;
             room.game.cameras[0].blizzardGraphics.snowfallIntensity = settings.currentIntensity;
@@ -341,19 +341,12 @@ public class WeatherController : UpdatableAndDeletable
                 }
             }
             //Add rain particles
-            if (settings.weatherType == 0)
+            if (settings.currentWeather.weatherIndex == 0)
             {
                 snowFlakes = 0;
                 if (rainDrops < ((room.Width - ceilingCount) * rainLimit) / room.Width)
                 {
-                    if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Hail)
-                    {
-                        AddHail(rainLimit - rainDrops);
-                    }
-                    else
-                    {
-                        AddRaindrops(rainLimit - rainDrops);
-                    }
+                    AddRaindrops(rainLimit - rainDrops);
                 }
             }
         }
@@ -384,7 +377,7 @@ public class WeatherController : UpdatableAndDeletable
 
     public void ApplyPalette()
     {
-        if(origFadePalA == null || origFadePalB == null || ForecastMod.snowExt == null || ForecastMod.snowInt == null)
+        if (origFadePalA == null || origFadePalB == null || ForecastMod.snowExt == null || ForecastMod.snowInt == null)
         {
             return;
         }
@@ -643,7 +636,7 @@ public class WeatherController : UpdatableAndDeletable
                     }
                 }
             }
-            
+
             //Wind Direction
             if (!WeatherForecast.regionWindDirection.ContainsKey(region))
             {
@@ -698,7 +691,7 @@ public class WeatherController : UpdatableAndDeletable
             currentWeather = new WeatherForecast.Weather(WeatherForecast.regionWeatherForecasts[region][0]);
             weatherType = currentWeather.weatherIndex;
             startingIntensity = currentWeather.minIntensity;
-            
+
 
 
             //Determine whether region weather is disabled
@@ -745,17 +738,17 @@ public class WeatherController : UpdatableAndDeletable
                     {
                         reloadDelay--;
                     }
-                    if(WeatherHooks.debugUI != null)
+                    if (WeatherHooks.debugUI != null)
                     {
-                        if(WeatherHooks.debugUI.settings != this)
+                        if (WeatherHooks.debugUI.settings != this)
                         {
                             WeatherHooks.debugUI.UpdateLabels(this);
                         }
-                        else if(!WeatherHooks.debugUI.toggle)
+                        else if (!WeatherHooks.debugUI.toggle)
                         {
                             WeatherHooks.debugUI.activeCounter = 10;
                             WeatherHooks.debugUI.refreshCounter++;
-                            if(WeatherHooks.debugUI.refreshCounter >= 40)
+                            if (WeatherHooks.debugUI.refreshCounter >= 40)
                             {
                                 WeatherHooks.debugUI.UpdateLabels(this);
                                 WeatherHooks.debugUI.refreshCounter = 0;
