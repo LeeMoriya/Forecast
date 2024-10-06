@@ -329,12 +329,19 @@ public class ForecastDialog : Dialog
 
         public void SliderSetValue(Slider slider, float setValue)
         {
-            regionWeatherProbability[acronym][selectedWeather] = setValue;
+            if (regionWeatherProbability.ContainsKey(acronym))
+            {
+                regionWeatherProbability[acronym][selectedWeather] = setValue;
+            }
         }
 
         public float ValueOfSlider(Slider slider)
         {
-            return regionWeatherProbability[acronym][selectedWeather];
+            if (regionWeatherProbability.ContainsKey(acronym))
+            {
+                return regionWeatherProbability[acronym][selectedWeather];
+            }
+            return 0f;
         }
     }
 }
