@@ -30,8 +30,7 @@ public class DebugWeatherUI
 
     public void Update()
     {
-        activeCounter--;
-        if (activeCounter <= 0)
+        if (toggle)
         {
             for (int i = 0; i < labels.Count; i++)
             {
@@ -46,10 +45,10 @@ public class DebugWeatherUI
                 labels[i].alpha = Mathf.Clamp(labels[i].alpha, 0f, 1f);
             }
         }
-        
+
         if (Input.GetKeyDown(KeyCode.F9))
         {
-            if(toggle)
+            if (toggle)
             {
                 toggle = false;
             }
@@ -102,9 +101,9 @@ public class DebugWeatherUI
         //SETTINGS
         FLabel settingsLabel = new FLabel("font", "\n\n\nGENERAL:\n\n");
 
-        if(settings.currentWeather != null)
+        if (settings.currentWeather != null)
         {
-            settingsLabel.text += 
+            settingsLabel.text +=
             $"Forecast:\nNow: {settings.currentWeather.type}" +
             $"\nNext: {WeatherForecast.regionWeatherForecasts[settings.regionName][1]}" +
             $"\nLater: {WeatherForecast.regionWeatherForecasts[settings.regionName][2]}\n\n";

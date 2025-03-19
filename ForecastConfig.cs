@@ -19,6 +19,9 @@ public class ForecastConfig : OptionInterface
     public static Configurable<int> displayMode;
     public static Configurable<int> weatherType;
 
+    public static Configurable<bool> weatherPreference;
+    public static Configurable<int> weatherRandomness;
+
     public static Configurable<int> weatherIntensity;
     public static Configurable<int> weatherChance;
     public static Configurable<int> windDirection;
@@ -56,6 +59,9 @@ public class ForecastConfig : OptionInterface
     public bool init = false;
 
     public UIelement[] settings;
+    public OpSimpleButton forecastEdit;
+    public OpSimpleButton preferenceToggle;
+    public OpSlider randomnessSlider;
     public OpSimpleButton intensityToggle;
     public OpSimpleButton windToggle;
     public OpScrollBox settingsBox;
@@ -68,6 +74,11 @@ public class ForecastConfig : OptionInterface
     public OpSlider strikeChanceSlider;
     public OpSimpleButton backgroundCollisionToggle;
     public OpSimpleButton waterCollisionToggle;
+    public List<OpLabel> weatherChances;
+    public List<OpImage> weatherIcons;
+    public List<OpSimpleImageButton> forecastButtons;
+
+    public static bool preferenceUpdate = false;
 
     //Debug
     public OpSimpleButton debugButton;
@@ -81,6 +92,8 @@ public class ForecastConfig : OptionInterface
 
     public ForecastConfig(ForecastMod mod)
     {
+        WeatherData.Load();
+
         regionSettings = new Dictionary<string, int>();
         customRegionSettings = new Dictionary<string, Dictionary<string, List<string>>>();
         LoadCustomRegionSettings();
@@ -91,6 +104,9 @@ public class ForecastConfig : OptionInterface
         weatherIntensity = config.Bind<int>("weatherIntensity", 0, new ConfigAcceptableRange<int>(0, 3));
         weatherChance = config.Bind<int>("weatherChance", 100, new ConfigAcceptableRange<int>(0, 100));
         windDirection = config.Bind<int>("windDirection", 0, new ConfigAcceptableRange<int>(0, 3));
+
+        weatherPreference = config.Bind<bool>("weatherPreference", false);
+        weatherRandomness = config.Bind<int>("weatherRandomness", 25, new ConfigAcceptableRange<int>(0, 100));
 
         particleLimit = config.Bind<int>("particleLimit", 100);
 
@@ -115,7 +131,7 @@ public class ForecastConfig : OptionInterface
         debugMode = config.Bind<bool>("debugMode", false);
     }
 
-    public static void LoadRegionWeather()
+    public static void LoadRegionWeather() // TODO - Obsolete?
     {
         string savePath = $"{Application.persistentDataPath}{Path.DirectorySeparatorChar}ModConfigs{Path.DirectorySeparatorChar}Forecast";
         string filePath = $"{savePath}{Path.DirectorySeparatorChar}settings.txt";
@@ -198,7 +214,7 @@ public class ForecastConfig : OptionInterface
                     customRegionSettings.Add(array[i], new Dictionary<string, List<string>>());
                     if (!regionSettings.ContainsKey(array[i]))
                     {
-                        regionSettings[array[i]] = 2;
+                        regionSettings[array[i]] = 3;
                     }
                 }
                 bool globalSettings = false;
@@ -273,10 +289,9 @@ public class ForecastConfig : OptionInterface
         init = false;
         var options = new OpTab(this, "Options");
         var regions = new OpTab(this, "Regions");
-        var forecasts = new OpTab(this, "Forecasts");
         Tabs = new[]
         {
-            options, forecasts, regions
+            options, regions
         };
 
         #region Options Tab
@@ -301,21 +316,63 @@ public class ForecastConfig : OptionInterface
         supportRect.colorEdge = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0.7f, 0.7f, 0.7f);
         supportRect.colorFill = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0f, 0f, 0f);
         OpLabel supportTitle = new OpLabel(165f, 470f, "SUPPORT MODE");
-        OpLabel supportDesc = new OpLabel(165f, 440f, "When support mode is active, Forecast will not generate any weather\nunless a region has custom settings defined.");
+        OpLabel supportDesc = new OpLabel(165f, 440f, "When support mode is active, Forecast will not generate any weather\nunless a region has custom settings defined by a mod.");
 
         supportModeButton = new OpSimpleButton(new Vector2(33f, 437f), new Vector2(110f, 45f), supportMode.Value ? "ENABLED" : "DISABLED");
         supportModeButton.OnClick += SupportModeButton_OnClick;
         options.AddItems(supportRect, supportTitle, supportDesc, supportModeButton);
 
-        float settingsHeight = 1150f;
+        float settingsHeight = 1440f;
         settingsBox = new OpScrollBox(new Vector2(0f, 0f), new Vector2(600f, 400f), settingsHeight, false, true, true);
         options.AddItems(settingsBox);
 
         OpLabel globalSettings = new OpLabel(new Vector2(290f, settingsHeight - 35f), new Vector2(), "GLOBAL SETTINGS", FLabelAlignment.Center, true);
-        OpLabel globalDesc = new OpLabel(new Vector2(290f, settingsHeight - 70f), new Vector2(), "Define settings that apply to all rooms and regions where weather is enabled.\nYou can configure which regions receive weather in the 'Regions' tab.", FLabelAlignment.Center);
+        OpLabel globalDesc = new OpLabel(new Vector2(290f, settingsHeight - 70f), new Vector2(), "Define settings that apply to all areas where weather is enabled, including global forecasts.\nYou can configure different forecasts per region in the 'Regions' tab.", FLabelAlignment.Center);
+
+        //GLOBAL FORECAST
+        float globalForecastAnchor = settingsHeight - 130f;
+
+        OpLabel forecastLabel = new OpLabel(new Vector2(290f, globalForecastAnchor + 15f), new Vector2(), "- FORECAST SETTINGS -", FLabelAlignment.Center);
+        OpRect forecastRect = new OpRect(new Vector2(15f, globalForecastAnchor - 240f), new Vector2(555f, 250f));
+        forecastRect.colorFill = new Color(0.8f, 0.8f, 0.8f);
+        settingsBox.AddItems(forecastLabel, forecastRect);
+
+        weatherIcons = new List<OpImage>();
+        weatherChances = new List<OpLabel>();
+        int numOfWeathers = 7; //We do a little hardcoding
+        float startPos = 320f - 50f * (numOfWeathers / 2);
+
+        forecastEdit = new OpSimpleButton(new Vector2(30f, globalForecastAnchor - 58f), new Vector2(110f, 45f), "EDIT");
+        forecastEdit.OnClick += ForecastEdit_OnClick;
+        settingsBox.AddItems(forecastEdit);
+
+        for (int i = 0; i < 7; i++)
+        {
+            OpImage icon = new OpImage(new Vector2(startPos + (55f * i), globalForecastAnchor -40f), WeatherForecast.regionWeatherProbability["GLOBAL"].ElementAt(i).Key.ToString());
+            OpLabel label = new OpLabel(startPos + 7f + (55f * i), globalForecastAnchor - 65f, weatherPreference.Value ? "-" : $"{Mathf.Round(WeatherForecast.regionWeatherProbability["GLOBAL"].ElementAt(i).Value * 100f).ToString()}%", false);
+            label.alignment = FLabelAlignment.Center;
+            if(WeatherForecast.regionWeatherProbability["GLOBAL"].ElementAt(i).Value == 0f)
+            {
+                icon.color = new Color(0.3f, 0.3f, 0.3f);
+            }
+            weatherIcons.Add(icon);
+            weatherChances.Add(label);
+            settingsBox.AddItems(icon, label);
+        }
+
+        preferenceToggle = new OpSimpleButton(new Vector2(30f, globalForecastAnchor - 140f), new Vector2(110f, 45f), weatherPreference.Value ? "ENABLED" : "DISABLED");
+        preferenceToggle.OnClick += PreferenceToggle_OnClick;
+        OpLabel preferenceLabel = new OpLabel(160f, globalForecastAnchor - 118f, "WEATHER PREFERENCE");
+        OpLabel preferenceDesc = new OpLabel(160f, globalForecastAnchor - 138f, "Weathers transition more realistically - overwrites above chances");
+
+        randomnessSlider = new OpSlider(weatherRandomness, new Vector2(30f, globalForecastAnchor - 210f), 110, false);
+        OpLabel randomnessLabel = new OpLabel(160f, globalForecastAnchor - 190f, "WEATHER RANDOMNESS");
+        OpLabel randomnessDesc = new OpLabel(160f, globalForecastAnchor - 210f, "Chance that preference will be ignored and a random weather is chosen");
+        settingsBox.AddItems(preferenceToggle, randomnessSlider, preferenceLabel, preferenceDesc, randomnessLabel, randomnessDesc);
 
         //BASIC SETTINGS
-        float basicAnchor = settingsHeight - 140f;
+        float basicAnchor = globalForecastAnchor - 300f;
+
         OpLabel basicLabel = new OpLabel(new Vector2(290f, basicAnchor + 15f), new Vector2(), "- BASIC SETTINGS -", FLabelAlignment.Center);
 
         OpRect basicSettingsRect = new OpRect(new Vector2(15f, basicAnchor - 313.5f), new Vector2(555f, 320f));
@@ -349,7 +406,7 @@ public class ForecastConfig : OptionInterface
         settingsBox.AddItems(windLabel, windDesc, windToggle);
 
         //VISUAL SETTINGS
-        float visualAnchor = settingsHeight - 510f;
+        float visualAnchor = basicAnchor - 370f;
         OpLabel visualLabel = new OpLabel(new Vector2(290f, visualAnchor + 15f), new Vector2(), "- VISUAL SETTINGS -", FLabelAlignment.Center);
 
         OpRect visualRect = new OpRect(new Vector2(15f, visualAnchor - 233.5f), new Vector2(555, 240f));
@@ -379,7 +436,7 @@ public class ForecastConfig : OptionInterface
 
 
         //LIGHTNING SETTINGS
-        float lightningAnchor = settingsHeight - 800f;
+        float lightningAnchor = visualAnchor - 290f;
         OpLabel lightningLabel = new OpLabel(new Vector2(290f, lightningAnchor + 15f), new Vector2(), "- LIGHTNING SETTINGS -", FLabelAlignment.Center);
 
         OpRect lightningSettingsRect = new OpRect(new Vector2(15f, lightningAnchor - 313.5f), new Vector2(555f, 320f));
@@ -425,6 +482,7 @@ public class ForecastConfig : OptionInterface
         regionLabels = new List<OpLabel>();
         regionButtons = new List<OpSimpleButton>();
         customLabels = new List<OpLabel>();
+        forecastButtons = new List<OpSimpleImageButton>();
 
         string[] array = new string[]
         {
@@ -446,7 +504,7 @@ public class ForecastConfig : OptionInterface
         scrollBox.AddItems(debugButton);
 
         OpLabel regionHeading = new OpLabel(new Vector2(290f, scrollHeight - 20f), new Vector2(), "REGION SETTINGS", FLabelAlignment.Center, true);
-        OpLabel regionDesc = new OpLabel(new Vector2(290f, scrollHeight - 73f), new Vector2(), "Disable weather for certain regions using the checkboxes.\n\nIf a region has it's own custom weather settings, you can use\nthe buttons on the right to override them and use your Global settings instead.", FLabelAlignment.Center, false); ;
+        OpLabel regionDesc = new OpLabel(new Vector2(290f, scrollHeight - 73f), new Vector2(), "Adjust whether a region will use the GLOBAL forecast you have set or define a CUSTOM one.\nTo fully disable weather, change it's setting to NONE.\n\nIf a region has specific settings configured by a mod-maker, it can be overridden here.", FLabelAlignment.Center, false); ;
         scrollBox.AddItems(regionHeading, regionDesc);
 
         for (int i = 0; i < array.Length; i++)
@@ -459,12 +517,21 @@ public class ForecastConfig : OptionInterface
             weatherSwitch.OnClick += WeatherSwitch_OnClick;
             weatherSwitch.description = $"{i}.{array[i]}) Change this region's weather settings";
             regionButtons.Add(weatherSwitch);
-            scrollBox.AddItems(rect, regionName, weatherSwitch);
+
+            OpSimpleImageButton forecastButton = new OpSimpleImageButton(weatherSwitch.pos + new Vector2(-45f, 5f), new Vector2(30f, 30f), "forecastcog");
+            forecastButton.OnClick += ForecastButton_OnClick;
+            forecastButton.sprite.x -= 1f;
+            forecastButton.sprite.y -= 1f;
+            forecastButton.greyedOut = regionSettings[array[i]] != 2;
+            forecastButton.description = array[i];
+            forecastButtons.Add(forecastButton);
+
+            scrollBox.AddItems(rect, regionName, weatherSwitch, forecastButton);
             if (customRegionSettings.ContainsKey(array[i]))
             {
                 regionName.SetPos(regionName.GetPos() + new Vector2(0f, 11f));
             }
-            OpLabel customLabel = new OpLabel(20f, itemHeight - 42f - (70f * i), customRegionSettings.ContainsKey(array[i]) ? "This region has custom settings" : "", false);
+            OpLabel customLabel = new OpLabel(20f, itemHeight - 42f - (70f * i), customRegionSettings.ContainsKey(array[i]) ? "This region has it's own modded settings" : "", false);
             customLabels.Add(customLabel);
             scrollBox.AddItems(customLabel);
 
@@ -477,69 +544,38 @@ public class ForecastConfig : OptionInterface
         }
         #endregion
 
-        #region Forecasts Tab
-        OpScrollBox forecastScrollBox = new OpScrollBox(forecasts, 900f, false, true);
-        forecasts.AddItems(forecastScrollBox);
-
-        OpLabel forecastHeading = new OpLabel(new Vector2(290f, 900f - 20f), new Vector2(), "REGION FORECASTS", FLabelAlignment.Center, true);
-        OpLabel forecastDesc = new OpLabel(new Vector2(290f, 900f - 63f), new Vector2(), "Here you can configure which weather types can occur in each region and their probabilities\n\nIf natural transitions are enabled, weathers are more likely to turn into a similar type next cycle\n for example, Light Rain -> Heavy Rain, rather than Light Rain -> Blizzard.", FLabelAlignment.Center, false); ;
-        forecastDialogButton = new OpSimpleButton(new Vector2(290f - 30f, 900f - 100f), new Vector2(60f, 30f), "FORECASTS");
-        forecastDialogButton.OnClick += ForecastDialogButton_OnClick;
-        forecastScrollBox.AddItems(forecastHeading, forecastDesc, forecastDialogButton);
-
-
-
-        #endregion
-
         ForecastLog.Log($"Support Mode: {(supportMode.Value ? "ON" : "OFF")}");
         OnConfigReset += ForecastConfig_OnConfigReset;
     }
 
-    private void ForecastDialogButton_OnClick(UIfocusable trigger)
+    private void ForecastButton_OnClick(UIfocusable trigger)
     {
         var rw = GameObject.FindObjectOfType<RainWorld>();
-        Dialog dialog = new ForecastDialog(rw.processManager);
+        Dialog dialog = new ForecastDialog2(rw.processManager, trigger.description);
         rw.processManager.ShowDialog(dialog);
     }
 
-    private void DebugButton_OnClick(UIfocusable trigger)
+    private void ForecastEdit_OnClick(UIfocusable trigger)
     {
-        if (debugMode.Value)
-        {
-            debugMode.Value = false;
-        }
-        else
-        {
-            debugMode.Value = true;
-        }
-        config.Save();
+        var rw = GameObject.FindObjectOfType<RainWorld>();
+        Dialog dialog = new ForecastDialog2(rw.processManager, "GLOBAL");
+        rw.processManager.ShowDialog(dialog);
     }
 
-    private void WaterCollisionToggle_OnClick(UIfocusable trigger)
+    private void ToggleSetting(Func<bool> getValue, Action<bool> setValue, bool updatePreference = false)
     {
-        if (waterCollision.Value)
-        {
-            waterCollision.Value = false;
-        }
-        else
-        {
-            waterCollision.Value = true;
-        }
+        setValue(!getValue());
         config.Save();
+        if (updatePreference) preferenceUpdate = true;
     }
 
-    private void BackgroundCollisionToggle_OnClick(UIfocusable trigger)
-    {
-        if (backgroundCollision.Value)
-        {
-            backgroundCollision.Value = false;
-        }
-        else
-        {
-            backgroundCollision.Value = true;
-        }
-        config.Save();
-    }
+    private void PreferenceToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => weatherPreference.Value, v => weatherPreference.Value = v, true);
+    private void DebugButton_OnClick(UIfocusable trigger) => ToggleSetting(() => debugMode.Value, v => debugMode.Value = v);
+    private void WaterCollisionToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => waterCollision.Value, v => waterCollision.Value = v);
+    private void BackgroundCollisionToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => backgroundCollision.Value, v => backgroundCollision.Value = v);
+    private void StrikeToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => lightningStrikes.Value, v => lightningStrikes.Value = v);
+    private void BgToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => backgroundLightning.Value, v => backgroundLightning.Value = v);
+    private void SupportModeButton_OnClick(UIfocusable trigger) => ToggleSetting(() => supportMode.Value, v => supportMode.Value = v);
 
     private void StrikeTypeToggle_OnClick(UIfocusable trigger)
     {
@@ -550,19 +586,6 @@ public class ForecastConfig : OptionInterface
         else
         {
             strikeDamageType.Value++;
-        }
-        config.Save();
-    }
-
-    private void StrikeToggle_OnClick(UIfocusable trigger)
-    {
-        if (lightningStrikes.Value)
-        {
-            lightningStrikes.Value = false;
-        }
-        else
-        {
-            lightningStrikes.Value = true;
         }
         config.Save();
     }
@@ -585,19 +608,6 @@ public class ForecastConfig : OptionInterface
         lightningChance.Value = 15;
         strikeDamageType.Value = 1;
 
-        config.Save();
-    }
-
-    private void BgToggle_OnClick(UIfocusable trigger)
-    {
-        if (backgroundLightning.Value)
-        {
-            backgroundLightning.Value = false;
-        }
-        else
-        {
-            backgroundLightning.Value = true;
-        }
         config.Save();
     }
 
@@ -627,19 +637,6 @@ public class ForecastConfig : OptionInterface
         config.Save();
     }
 
-    private void SupportModeButton_OnClick(UIfocusable trigger)
-    {
-        if (supportMode.Value)
-        {
-            supportMode.Value = false;
-        }
-        else
-        {
-            supportMode.Value = true;
-        }
-        config.Save();
-    }
-
     private void WeatherSwitch_OnClick(UIfocusable trigger)
     {
         int index = int.Parse(trigger.description.Split('.')[0]);
@@ -647,12 +644,12 @@ public class ForecastConfig : OptionInterface
         if (customRegionSettings.ContainsKey(region))
         {
             regionSettings[region]++;
-            if (regionSettings[region] == 3) { regionSettings[region] = 0; }
+            if (regionSettings[region] == 4) { regionSettings[region] = 0; }
         }
         else
         {
             regionSettings[region]++;
-            if (regionSettings[region] == 2) { regionSettings[region] = 0; }
+            if (regionSettings[region] == 3) { regionSettings[region] = 0; }
         }
 
         regionButtons[index].text = RegionModText(regionSettings[region]);
@@ -661,6 +658,8 @@ public class ForecastConfig : OptionInterface
         regionRects[index].colorFill = regionButtons[index].colorEdge;
         customLabels[index].color = regionButtons[index].colorEdge;
         regionLabels[index].color = regionButtons[index].colorEdge;
+
+        forecastButtons[index].greyedOut = regionSettings[region] != 2;
 
         SaveRegionWeather();
     }
@@ -675,6 +674,8 @@ public class ForecastConfig : OptionInterface
                 return Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
             case 2:
                 return new Color(0.1f, 0.8f, 0.1f);
+            case 3:
+                return new Color(0.1f, 0.8f, 0.8f);
         }
         return Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
     }
@@ -689,6 +690,8 @@ public class ForecastConfig : OptionInterface
                 return "GLOBAL";
             case 2:
                 return "CUSTOM";
+            case 3:
+                return "MOD";
         }
         return "ERROR";
     }
@@ -771,9 +774,12 @@ public class ForecastConfig : OptionInterface
         waterCollisionToggle.text = waterCollision.Value ? "ENABLED" : "DISABLED";
         backgroundCollisionToggle.text = backgroundCollision.Value ? "ENABLED" : "DISABLED";
         debugButton.text = debugMode.Value ? "DEBUG: ON" : "DEBUG: OFF";
+        preferenceToggle.text = weatherPreference.Value ? "ENABLED" : "DISABLED";
         windToggle.text = WindDirectionValue();
         intensityToggle.text = IntensityValue();
         strikeTypeToggle.text = StrikeDamageValue();
+
+        randomnessSlider.greyedOut = !weatherPreference.Value;
 
         if (!lightningStrikes.Value)
         {
@@ -786,6 +792,17 @@ public class ForecastConfig : OptionInterface
             strikeTypeToggle.greyedOut = false;
             intervalSlider.greyedOut = false;
             strikeChanceSlider.greyedOut = false;
+        }
+
+        if (preferenceUpdate)
+        {
+            for (int i = 0; i < weatherChances.Count; i++)
+            {
+                float val = WeatherForecast.regionWeatherProbability["GLOBAL"].ElementAt(i).Value;
+                weatherIcons[i].color = val != 0f ? new Color(0.9f, 0.9f, 0.9f) : new Color(0.3f, 0.3f, 0.3f);
+                weatherChances[i].text = weatherPreference.Value ? "-" : $"{Mathf.Round(val * 100f).ToString()}%";
+            }
+            preferenceUpdate = false;
         }
     }
 }

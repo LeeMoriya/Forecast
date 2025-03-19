@@ -18,34 +18,11 @@ public static class WeatherForecast
     //Weather preference will not kick in if the chosen weather is not one that's been enabled for that region
     //In that case, it will revert back to the percentage chances for the selected weathers
     //If it fails to generate a new weather type, it will do the same weather again
+
+    //Possibilities of each weather occuring in each region
     public static Dictionary<string, Dictionary<Weather.WeatherType, float>> regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
+    //Cycle to cycle weather in each region
     public static Dictionary<string, List<Weather.WeatherType>> regionWeatherForecasts = new Dictionary<string, List<Weather.WeatherType>>();
-
-    //Method to be replaced in ForecastConfig
-    public static void GenerateWeathers()
-    {
-        if(regionWeatherProbability.Keys.Count > 0)
-        {
-            //Already generated weather probability
-            return;
-        }
-        regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
-        foreach(string reg in ForecastConfig.regionSettings.Keys)
-        {
-            Dictionary<Weather.WeatherType, float> weathers = new Dictionary<Weather.WeatherType, float>();
-            float chance = 1f / Enum.GetNames(typeof(Weather.WeatherType)).Length;
-
-            weathers.Add(Weather.WeatherType.LightRain, UnityEngine.Random.value);
-            weathers.Add(Weather.WeatherType.HeavyRain, UnityEngine.Random.value);
-            weathers.Add(Weather.WeatherType.Thunderstorm, UnityEngine.Random.value);
-            weathers.Add(Weather.WeatherType.Fog, UnityEngine.Random.value);
-            weathers.Add(Weather.WeatherType.LightSnow, UnityEngine.Random.value);
-            weathers.Add(Weather.WeatherType.HeavySnow, UnityEngine.Random.value);
-            weathers.Add(Weather.WeatherType.Blizzard, UnityEngine.Random.value);
-
-            regionWeatherProbability.Add(reg, weathers);
-        }
-    }
 
     public static void InitialWeather()
     {
@@ -77,14 +54,15 @@ public static class WeatherForecast
 
     public static Weather.WeatherType NextWeather(string region, Weather.WeatherType lastWeather)
     {
-        if (UnityEngine.Random.value < 0.75f)
+        //Pick weather weighted by percentages set in config
+        if (!ForecastConfig.weatherPreference.Value)
         {
             float totalProbability = 0f;
             foreach (var pair in regionWeatherProbability[region])
             {
                 totalProbability += pair.Value;
             }
-            float rand = UnityEngine.Random.Range(0,totalProbability);
+            float rand = UnityEngine.Random.Range(0, totalProbability);
 
             List<Weather.WeatherType> shuffled = regionWeatherProbability[region].Keys.ToList();
             Shuffle(shuffled);
@@ -102,21 +80,55 @@ public static class WeatherForecast
             ForecastLog.Log($"{region}: Repeat = {lastWeather}");
             return lastWeather;
         }
+        //Pick a weather based on the current weather's preference
         else
         {
-            return RandomWeather(region);
+            if (UnityEngine.Random.value < ForecastConfig.weatherRandomness.Value)
+            {
+                Weather weather = new Weather(lastWeather);
+
+                float rand = UnityEngine.Random.value;
+                var validPairs = weather.nextPreference
+                    //.Where(kv => kv.Value > 0f)
+                    .OrderBy(kv => Math.Abs(kv.Value - rand));
+
+                if (!validPairs.Any())
+                {
+                    throw new InvalidOperationException($"No valid weather types for region: {region}");
+                }
+
+                var nearestPair = validPairs.First();
+                ForecastLog.Log($"{region}: Next weather {nearestPair.Key} based on {lastWeather} preference");
+
+                return nearestPair.Key;
+            }
+            else
+            {
+                ForecastLog.Log($"Picking a random weather for {region}");
+                return RandomWeather(region);
+            }
         }
     }
 
+    //Picks a random weather from the list of available weathers for this region
     public static Weather.WeatherType RandomWeather(string region)
     {
         float rand = UnityEngine.Random.value;
+        var validPairs = regionWeatherProbability[region]
+            .Where(kv => kv.Value > 0f)
+            .OrderBy(kv => Math.Abs(kv.Value - rand));
 
-        var nearestPair = regionWeatherProbability[region].OrderBy(kv => Math.Abs(kv.Value - rand)).First();
+        if (!validPairs.Any())
+        {
+            throw new InvalidOperationException($"No valid weather types for region: {region}");
+        }
+
+        var nearestPair = validPairs.First();
         ForecastLog.Log($"{region}: Random = {nearestPair.Key}");
 
         return nearestPair.Key;
     }
+
 
     static void Shuffle<T>(List<T> list)
     {
@@ -212,7 +224,7 @@ public static class WeatherForecast
                     break;
                 case WeatherType.Blizzard:
                     weatherIndex = 2;
-                    minIntensity = 0.9f;
+                    minIntensity = 0.8f;
                     maxIntensity = 1f;
                     nextPreference.Add(WeatherType.LightRain, 0.2f);
                     nextPreference.Add(WeatherType.LightSnow, 0.3f);

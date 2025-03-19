@@ -43,7 +43,7 @@ public class WeatherController : UpdatableAndDeletable
     {
         this.room = weatherRoom;
         ForecastLog.Log($"WeatherController added to {room.abstractRoom.name}");
-        settings = new WeatherSettings(room.world.region.name, room.abstractRoom.name, this);
+        settings = new WeatherSettings(ForecastConfig.regionSettings[room.world.region.name] == 1 ? "GLOBAL" : room.world.region.name, room.abstractRoom.name, this);
         WeatherHooks.roomSettings.Add(room, settings);
 
         skyreach = new List<Vector2>();
@@ -120,7 +120,7 @@ public class WeatherController : UpdatableAndDeletable
         }
         if (settings.currentWeather != null)
         {
-            if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
+            if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog) //TODO - Maybe implement fog palette manipulation discovered in PaletteTweaker
             {
                 RoomSettings.RoomEffect fog = room.roomSettings.effects.Find(x => x.type == RoomSettings.RoomEffect.Type.Fog);
                 if (fog != null && !interior)
@@ -134,7 +134,7 @@ public class WeatherController : UpdatableAndDeletable
             }
         }
         //Rain
-        if (settings.weatherType == 0)
+        if (settings.weatherType == 0 && settings.currentWeather.type != WeatherForecast.Weather.WeatherType.Fog)
         {
             if (settings.rainVolume)
             {
@@ -353,7 +353,7 @@ public class WeatherController : UpdatableAndDeletable
 
 
         //Quick reload palette
-        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Alpha5))
+        if (ForecastConfig.debugMode.Value && Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Alpha5))
         {
             ForecastMod.snowExt = new Texture2D(0, 0, TextureFormat.ARGB32, false);
             if (File.Exists(AssetManager.ResolveFilePath("sprites\\snowExt.png")))
@@ -519,10 +519,8 @@ public class WeatherController : UpdatableAndDeletable
                 windDirection = UnityEngine.Random.Range(1, 3);
             }
 
-
-
             //Overwrite with global settings from region if they exist and that region is set to custom
-            if (ForecastConfig.customRegionSettings.ContainsKey(region) && ForecastConfig.regionSettings.ContainsKey(region) && ForecastConfig.regionSettings[region] == 2)
+            if (ForecastConfig.customRegionSettings.ContainsKey(region) && ForecastConfig.regionSettings.ContainsKey(region) && ForecastConfig.regionSettings[region] == 3)
             {
                 foreach (string key in ForecastConfig.customRegionSettings[region].Keys)
                 {
@@ -675,6 +673,7 @@ public class WeatherController : UpdatableAndDeletable
             {
                 //Determine initial starting intensity
                 startingIntensity = UnityEngine.Random.Range(-0.5f, 0.8f);
+
                 //If this is the first time its been determined, add it to the dictionary for reference later
                 if (!WeatherForecast.dynamicRegionStartingIntensity.ContainsKey(region))
                 {
@@ -689,10 +688,10 @@ public class WeatherController : UpdatableAndDeletable
 
             //Load Weather
             currentWeather = new WeatherForecast.Weather(WeatherForecast.regionWeatherForecasts[region][0]);
+
+            ForecastLog.Log($"Current weather for {region} is {currentWeather.type}");
             weatherType = currentWeather.weatherIndex;
             startingIntensity = currentWeather.minIntensity;
-
-
 
             //Determine whether region weather is disabled
             if (!WeatherForecast.weatherlessRegions.Contains(region))
@@ -704,13 +703,13 @@ public class WeatherController : UpdatableAndDeletable
                     ForecastLog.Log($"FORECAST: Region: {region} failed weatherChance - DISABLED this cycle");
                 }
                 //Weather disabled via Remix menu
-                if (ForecastConfig.regionSettings[region] == 0)
+                if (region != "GLOBAL" && ForecastConfig.regionSettings[region] == 0)
                 {
                     WeatherForecast.weatherlessRegions.Add(region);
                     ForecastLog.Log($"FORECAST: Region: {region} weather disabled via Remix");
                 }
                 //Weather disabled because support mode is active and this region isn't using custom settings
-                else if (ForecastConfig.regionSettings[region] == 1 && ForecastConfig.supportMode.Value)
+                else if (region != "GLOBAL" && ForecastConfig.regionSettings[region] != 3 && ForecastConfig.supportMode.Value)
                 {
                     WeatherForecast.weatherlessRegions.Add(region);
                     ForecastLog.Log($"FORECAST: Region: {region} weather disabled due to Support Mode");

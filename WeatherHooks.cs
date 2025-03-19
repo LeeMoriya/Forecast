@@ -86,15 +86,18 @@ public class WeatherHooks
 
     private static void StoryGameSession_ctor(On.StoryGameSession.orig_ctor orig, StoryGameSession self, SlugcatStats.Name saveStateNumber, RainWorldGame game)
     {
-        orig.Invoke(self, saveStateNumber, game);
+        try
+        {
+            orig.Invoke(self, saveStateNumber, game);
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
 
         //Load save data first if there isn't any, run the next two methods
         WeatherData.Load();
 
-        if (WeatherForecast.regionWeatherProbability == null || WeatherForecast.regionWeatherProbability.Keys.Count == 0)
-        {
-            WeatherForecast.GenerateWeathers();
-        }
         if (WeatherForecast.regionWeatherForecasts == null || WeatherForecast.regionWeatherForecasts.Keys.Count == 0)
         {
             WeatherForecast.InitialWeather();

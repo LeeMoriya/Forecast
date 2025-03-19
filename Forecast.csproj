@@ -79,6 +79,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ForecastDialog.cs" />
+    <Compile Include="ForecastDialog2.cs" />
+    <Compile Include="ForecastHUD.cs" />
     <Compile Include="Rain\BackgroundRain.cs" />
     <Compile Include="Rain\Hail.cs" />
     <Compile Include="Snow %28Old%29\Blizzard.cs" />
@@ -90,6 +92,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rain\RainDrop.cs" />
     <Compile Include="Snow\SnowPlacer.cs" />
+    <Compile Include="WeatherButton.cs" />
     <Compile Include="WeatherController.cs" />
     <Compile Include="WeatherData.cs" />
     <Compile Include="WeatherForecast.cs" />

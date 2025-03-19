@@ -42,7 +42,7 @@ public class ForecastDialog : Dialog
         MenuLabel desc = new MenuLabel(this, pages[0], "Adjust the weather probabilities for each region or disable it altogether", new Vector2(manager.rainWorld.options.ScreenSize.x / 2, 690f), new Vector2(), false);
         pages[0].subObjects.Add(desc);
 
-        close = new SimpleButton(this, pages[0], "CLOSE", "CLOSE", new Vector2(manager.rainWorld.options.ScreenSize.x / 2 -50f, 20f), new Vector2(100f, 30f));
+        close = new SimpleButton(this, pages[0], "CLOSE", "CLOSE", new Vector2(manager.rainWorld.options.ScreenSize.x / 2 - 50f, 20f), new Vector2(100f, 30f));
         close.rectColor = new HSLColor(0f, 0.8f, 0.45f);
         close.labelColor = new HSLColor(0f, 0.8f, 0.45f);
         pages[0].subObjects.Add(close);
@@ -63,7 +63,7 @@ public class ForecastDialog : Dialog
         leftShade.x = 0f;
         leftShade.y = 0f;
         leftShade.rotation = 90f;
-        leftShade.SetAnchor(1f,0f);
+        leftShade.SetAnchor(1f, 0f);
         leftShade.scaleX = 800f;
         leftShade.scaleY = 1.5f;
         leftShade.color = Color.black;
@@ -93,7 +93,7 @@ public class ForecastDialog : Dialog
             closing = true;
             WeatherData.Save();
         }
-        if(message == "LEFT")
+        if (message == "LEFT")
         {
             panelContainer.shift--;
             panelContainer.MoveToPoint(890f, 0.4f);
@@ -103,7 +103,7 @@ public class ForecastDialog : Dialog
             panelContainer.shift++;
             panelContainer.MoveToPoint(-890f, 0.4f);
         }
-        if(message == "wipe")
+        if (message == "wipe")
         {
             WeatherForecast.WipeAllForecasts();
         }
@@ -143,11 +143,11 @@ public class ForecastDialog : Dialog
             closing = false;
         }
 
-        if(left != null)
+        if (left != null)
         {
             left.buttonBehav.greyedOut = panelContainer.shift == 0 || panelContainer.animating;
         }
-        if(right != null)
+        if (right != null)
         {
             right.buttonBehav.greyedOut = panelContainer.shift == panelContainer.maxShift || panelContainer.animating;
         }
@@ -155,6 +155,17 @@ public class ForecastDialog : Dialog
 
     public class RFPanelContainer : PositionedMenuObject
     {
+        public Dictionary<Weather.WeatherType, float> copiedWeather = new Dictionary<Weather.WeatherType, float>()
+        {
+            { Weather.WeatherType.LightRain, 0.01f },
+            { Weather.WeatherType.HeavyRain, 0.01f },
+            { Weather.WeatherType.Thunderstorm, 0.01f },
+            { Weather.WeatherType.Fog, 0.01f },
+            { Weather.WeatherType.LightSnow, 0.01f },
+            { Weather.WeatherType.HeavySnow, 0.01f },
+            { Weather.WeatherType.Blizzard, 0.01f }
+        };
+
         public int shift = 0;
         public int maxShift = 0;
         public List<RegionForecastPanel> panels = new List<RegionForecastPanel>();
@@ -184,7 +195,7 @@ public class ForecastDialog : Dialog
             float groupOffset = 0f;
             for (int i = 0; i < regions.Count; i++)
             {
-                if(i != 0 && i % 4 == 0)
+                if (i != 0 && i % 4 == 0)
                 {
                     offsetCounter++;
                     groupOffset = 100f * offsetCounter;
@@ -238,12 +249,15 @@ public class ForecastDialog : Dialog
     {
         public Slider.SliderID weatherSlider = new Slider.SliderID("forecastWeather", false);
 
+        public SimpleButton copy, paste;
+
+        public bool editMode;
         public string acronym = "";
         public string regionName;
         public MenuLabel regionNameLabel;
         public List<FSprite> weatherSprites;
         public List<MenuLabel> weatherLabels;
-        public List<SymbolButton> weatherButtons;
+        public List<WeatherButton> weatherButtons;
         public RoundedRect rect;
 
         public SimpleButton weatherStateButton;
@@ -254,8 +268,9 @@ public class ForecastDialog : Dialog
 
         public RegionForecastPanel(Menu.Menu menu, MenuObject owner, Vector2 pos, string region) : base(menu, owner, pos)
         {
+            editMode = false;
             acronym = region;
-            regionName = Region.GetRegionFullName(region, SlugcatStats.Name.White);
+            regionName = region == "GLOBAL" ? "GLOBAL" : Region.GetRegionFullName(region, SlugcatStats.Name.White);
             rect = new RoundedRect(menu, this, new Vector2(), new Vector2(350f, 250f), true);
             regionNameLabel = new MenuLabel(menu, this, regionName, new Vector2(rect.size.x / 2, rect.size.y - 20f), new Vector2(), true);
             regionNameLabel.label.alignment = FLabelAlignment.Center;
@@ -263,18 +278,22 @@ public class ForecastDialog : Dialog
             subObjects.Add(regionNameLabel);
 
             int x = 0;
-            weatherButtons = new List<SymbolButton>();
+            weatherButtons = new List<WeatherButton>();
             weatherSprites = new List<FSprite>();
             weatherLabels = new List<MenuLabel>();
 
             if (regionWeatherProbability.ContainsKey(acronym))
             {
-                selectedWeather = regionWeatherProbability[acronym].ElementAt(0).Key;
-                foreach (KeyValuePair<Weather.WeatherType,float> weather in regionWeatherProbability[acronym])
+                foreach (KeyValuePair<Weather.WeatherType, float> weather in regionWeatherProbability[acronym])
                 {
-                    SymbolButton weatherButton = new SymbolButton(menu, this, $"{weather.Key}", $"{weather.Key}", new Vector2(20f + (45f * x), 145f));
+                    WeatherButton weatherButton = new WeatherButton(menu, this, $"{weather.Key}", $"{weather.Key}", new Vector2(20f + (45f * x), 145f));
                     weatherButton.size = new Vector2(35f, 35f);
                     weatherButton.roundedRect.size = weatherButton.size;
+                    weatherButton.enabled = weather.Value != 0f;
+                    if (weather.Key == selectedWeather)
+                    {
+                        weatherButton.color = new HSLColor(25 / 360f, 1f, 0.6f).rgb;
+                    }
                     subObjects.Add(weatherButton);
                     weatherButtons.Add(weatherButton);
 
@@ -288,11 +307,16 @@ public class ForecastDialog : Dialog
             probabilitySlider = new HorizontalSlider(menu, this, "", new Vector2(30f, 75f), new Vector2(270f, 0f), weatherSlider, false);
             subObjects.Add(probabilitySlider);
 
-            weatherStateButton = new SimpleButton(menu, this, "FORECAST", "state", new Vector2(20f, 20f), new Vector2(80f, 30f));
-            subObjects.Add(weatherStateButton);
-
             editButton = new SimpleButton(menu, this, "EDIT", "edit", new Vector2(rect.size.x - 100f, 20f), new Vector2(80f, 30f));
             subObjects.Add(editButton);
+
+            //temp?
+            copy = new SimpleButton(menu, this, "COPY", "copy", new Vector2(20f, 20f), new Vector2(50f, 30f));
+            subObjects.Add(copy);
+
+            paste = new SimpleButton(menu, this, "PASTE", "paste", new Vector2(80f, 20f), new Vector2(50f, 30f));
+            subObjects.Add(paste);
+
         }
 
         public override void GrafUpdate(float timeStacker)
@@ -308,9 +332,64 @@ public class ForecastDialog : Dialog
         public override void Singal(MenuObject sender, string message)
         {
             base.Singal(sender, message);
-            if(Enum.TryParse(message, out Weather.WeatherType weatherParse))
+            if(message == "copy")
             {
-                selectedWeather = weatherParse;
+                (owner as RFPanelContainer).copiedWeather = regionWeatherProbability[acronym];
+            }
+            if(message == "paste")
+            {
+                regionWeatherProbability[acronym] = (owner as RFPanelContainer).copiedWeather;
+            }
+            
+            //If not in edit mode, allow selecting weathers
+            if (!editMode)
+            {
+                if (sender is WeatherButton)
+                {
+                    if (!(sender as WeatherButton).enabled)
+                    {
+                        menu.PlaySound(SoundID.MENU_Error_Ping);
+                        return;
+                    }
+                }
+                if (Enum.TryParse(message, out Weather.WeatherType weatherParse))
+                {
+                    selectedWeather = weatherParse;
+                    HSLColor col = new HSLColor(25 / 360f, 1f, 0.6f);
+                    foreach (WeatherButton button in weatherButtons)
+                    {
+                        button.color = new HSLColor(1f, 0f, 0.8f).rgb;
+                    }
+                    (sender as WeatherButton).color = col.rgb;
+                }
+            }
+            //In edit mode, allow turning weathers on and off
+            else
+            {
+                int oneWeather = regionWeatherProbability[acronym].Count(kvp => kvp.Value > 0f);
+
+                if (Enum.TryParse(message, out Weather.WeatherType weatherParse))
+                {
+                    var button = sender as WeatherButton;
+                    if (button == null) return;
+
+                    if (!button.enabled || oneWeather >= 2)
+                    {
+                        button.enabled = !button.enabled;
+                        regionWeatherProbability[acronym][weatherParse] = button.enabled ? 0.01f : 0f;
+                        UpdateOtherValues(weatherParse);
+                    }
+                }
+
+            }
+            //Toggle edit mode
+            if (message == "edit")
+            {
+                editMode = !editMode;
+                HSLColor col = !editMode ? new HSLColor(1f, 0f, 0.8f) : new HSLColor(25 / 360f, 1f, 0.6f);
+                rect.borderColor = col;
+                menu.PlaySound(editMode ? SoundID.MENU_Checkbox_Uncheck : SoundID.MENU_Checkbox_Check);
+                probabilitySlider.buttonBehav.greyedOut = editMode;
             }
         }
 
@@ -329,9 +408,15 @@ public class ForecastDialog : Dialog
 
         public void SliderSetValue(Slider slider, float setValue)
         {
+            if(setValue == 0f) { setValue = 0.01f; }
             if (regionWeatherProbability.ContainsKey(acronym))
             {
+                if (regionWeatherProbability[acronym][selectedWeather] == 0f)
+                {
+                    return;
+                }
                 regionWeatherProbability[acronym][selectedWeather] = setValue;
+                UpdateOtherValues(selectedWeather);
             }
         }
 
@@ -339,10 +424,85 @@ public class ForecastDialog : Dialog
         {
             if (regionWeatherProbability.ContainsKey(acronym))
             {
+                if (regionWeatherProbability[acronym][selectedWeather] == 0f)
+                {
+                    return 0f;
+                }
                 return regionWeatherProbability[acronym][selectedWeather];
             }
             return 0f;
         }
+
+        public void UpdateOtherValues(Weather.WeatherType ignoreValue)
+        {
+            float sum = 0f;
+            float updatedValue = regionWeatherProbability[acronym][ignoreValue];
+            float minValue = 0.01f;
+
+            foreach (KeyValuePair<Weather.WeatherType, float> kvp in regionWeatherProbability[acronym])
+            {
+                sum += kvp.Value;
+            }
+
+            float otherSum = sum - updatedValue;
+            float excess = 1.0f - sum; 
+            bool increase = excess > 0f;
+
+            List<Weather.WeatherType> keysToModify = new List<Weather.WeatherType>();
+            foreach (KeyValuePair<Weather.WeatherType, float> kvp in regionWeatherProbability[acronym])
+            {
+                if (kvp.Key != ignoreValue && kvp.Value > 0f)
+                {
+                    keysToModify.Add(kvp.Key);
+                }
+            }
+
+            foreach (Weather.WeatherType key in keysToModify)
+            {
+                float weight = regionWeatherProbability[acronym][key] / otherSum;
+                float change = weight * Math.Abs(excess);
+
+                if (increase)
+                {
+                    regionWeatherProbability[acronym][key] += change;
+                }
+                else
+                {
+                    regionWeatherProbability[acronym][key] -= change;
+                }
+            }
+
+            int adjusted = 0;
+            foreach (Weather.WeatherType key in keysToModify)
+            {
+                if (regionWeatherProbability[acronym][key] < minValue)
+                {
+                    regionWeatherProbability[acronym][key] = minValue;
+                    adjusted++;
+                }
+            }
+
+            regionWeatherProbability[acronym][ignoreValue] -= (minValue * adjusted);
+            if(updatedValue == 0.01f)
+            {
+                regionWeatherProbability[acronym][ignoreValue] = updatedValue;
+            }
+
+            float finalSum = 0f;
+            foreach (KeyValuePair<Weather.WeatherType, float> kvp in regionWeatherProbability[acronym])
+            {
+                finalSum += kvp.Value;
+            }
+
+            if (finalSum != 1f)
+            {
+                foreach (Weather.WeatherType key in regionWeatherProbability[acronym].Keys.ToList())
+                {
+                    regionWeatherProbability[acronym][key] /= finalSum;
+                }
+            }
+        }
+
     }
 }
 

@@ -14,13 +14,35 @@ public static class WeatherData
     {
         string rootFolder = Application.persistentDataPath + Path.DirectorySeparatorChar;
         string path = rootFolder + "Forecast" + Path.DirectorySeparatorChar + "Forecast.txt";
+        List<string> regions = Region.GetFullRegionOrder();
         bool forecastSection = false;
+
+        //Assign default probabilities if none present
+        regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
+
+        Dictionary<Weather.WeatherType, float> defaultWeathers = new Dictionary<Weather.WeatherType, float>
+        {
+            { Weather.WeatherType.LightRain, 0.3f },
+            { Weather.WeatherType.HeavyRain, 0.3f },
+            { Weather.WeatherType.Thunderstorm, 0.15f },
+            { Weather.WeatherType.Fog, 0.05f },
+            { Weather.WeatherType.LightSnow, 0.1f },
+            { Weather.WeatherType.HeavySnow, 0.05f },
+            { Weather.WeatherType.Blizzard, 0.05f }
+        };
+
+        regionWeatherProbability.Add("GLOBAL", defaultWeathers);
+        foreach (string reg in regions)
+        {
+            // Add a new entry for the region with a dictionary of weather types and probabilities
+            regionWeatherProbability.Add(reg, defaultWeathers);
+        }
 
         if (File.Exists(path))
         {
             string[] data = File.ReadAllLines(path);
-            regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
             regionWeatherForecasts = new Dictionary<string, List<Weather.WeatherType>>();
+            regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
 
             for (int i = 0; i < data.Length; i++)
             {
@@ -70,9 +92,14 @@ public static class WeatherData
                     if (!regionWeatherForecasts.ContainsKey(reg))
                     {
                         regionWeatherForecasts.Add(reg, forecast);
+                        ForecastLog.Log($"LOAD: {reg} forecast is {forecast[0]} | {forecast[1]} | {forecast[2]}");
                     }
                 }
             }
+        }
+        else
+        {
+            //If there is no save file for weather probabilities, load defaults from a built-in text file
         }
     }
 
