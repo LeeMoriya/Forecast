@@ -13,13 +13,22 @@ public class WeatherHooks
     public static Dictionary<Room, WeatherController.WeatherSettings> roomSettings = new Dictionary<Room, WeatherController.WeatherSettings>();
     public static DebugWeatherUI debugUI;
 
-    public static List<RoomRain.DangerType> invalidDangerTypes = new List<RoomRain.DangerType>() //Invalid dangerTypes, don't spawn a WeatherController if the room uses one of these
+    public static List<RoomRain.DangerType> invalidDangerTypes;
+
+    static WeatherHooks()
     {
-        RoomRain.DangerType.AerieBlizzard,
-        RoomRain.DangerType.Flood,
-        RoomRain.DangerType.None,
-        MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard
-    };
+        invalidDangerTypes = new List<RoomRain.DangerType>()
+        {
+            RoomRain.DangerType.AerieBlizzard,
+            RoomRain.DangerType.Flood,
+            RoomRain.DangerType.None
+        };
+
+        if (ModManager.MSC)
+        {
+            invalidDangerTypes.Add(MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard);
+        }
+    }
 
     public static float rainIntensity; //OLD - used for classic snow
 
@@ -245,16 +254,19 @@ public class WeatherHooks
             {
                 self.world.rainCycle.timer += 25;
             }
-            if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha4))
+            if (ModManager.MSC)
             {
-                //Toggle AerieBlizzard and normal Blizzard
-                if (self.roomSettings.DangerType == RoomRain.DangerType.AerieBlizzard)
+                if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha4))
                 {
-                    self.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
-                }
-                else if (self.roomSettings.DangerType == MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard)
-                {
-                    self.roomSettings.DangerType = RoomRain.DangerType.AerieBlizzard;
+                    //Toggle AerieBlizzard and normal Blizzard
+                    if (self.roomSettings.DangerType == RoomRain.DangerType.AerieBlizzard)
+                    {
+                        self.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
+                    }
+                    else if (self.roomSettings.DangerType == MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard)
+                    {
+                        self.roomSettings.DangerType = RoomRain.DangerType.AerieBlizzard;
+                    }
                 }
             }
         }

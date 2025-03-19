@@ -79,6 +79,7 @@ public class ForecastConfig : OptionInterface
     public List<OpSimpleImageButton> forecastButtons;
 
     public static bool preferenceUpdate = false;
+    public static bool updateRegionSettingsButtons = false;
 
     //Debug
     public OpSimpleButton debugButton;
@@ -96,7 +97,6 @@ public class ForecastConfig : OptionInterface
 
         regionSettings = new Dictionary<string, int>();
         customRegionSettings = new Dictionary<string, Dictionary<string, List<string>>>();
-        LoadCustomRegionSettings();
 
         weatherType = config.Bind<int>("weatherType", 0);
         supportMode = config.Bind<bool>("supportMode", false);
@@ -129,6 +129,7 @@ public class ForecastConfig : OptionInterface
         snowPuffs = config.Bind<bool>("snowPuffs", true);
 
         debugMode = config.Bind<bool>("debugMode", false);
+        LoadCustomRegionSettings();
     }
 
     public static void LoadRegionWeather() // TODO - Obsolete?
@@ -215,6 +216,12 @@ public class ForecastConfig : OptionInterface
                     if (!regionSettings.ContainsKey(array[i]))
                     {
                         regionSettings[array[i]] = 3;
+                        ForecastLog.Log("Switch to 3");
+                    }
+                    else if (supportMode.Value)
+                    {
+                        regionSettings[array[i]] = 3;
+                        ForecastLog.Log("Switch to 3 - support mode");
                     }
                 }
                 bool globalSettings = false;
@@ -266,22 +273,23 @@ public class ForecastConfig : OptionInterface
                     Debug.LogException(new Exception($"FORECAST: Custom settings for {array[i]} is missing GLOBAL settings!"));
                 }
             }
+            updateRegionSettingsButtons = true;
         }
 
         //Debug - print loaded tags
-        foreach (string reg in customRegionSettings.Keys)
-        {
-            foreach (string key in customRegionSettings[reg].Keys)
-            {
-                string tags = "";
-                foreach (string tag in customRegionSettings[reg][key])
-                {
-                    tags += tag;
-                    tags += " ";
-                }
-                ForecastLog.Log("FORECAST: " + key + ": " + tags);
-            }
-        }
+        //foreach (string reg in customRegionSettings.Keys)
+        //{
+        //    foreach (string key in customRegionSettings[reg].Keys)
+        //    {
+        //        string tags = "";
+        //        foreach (string tag in customRegionSettings[reg][key])
+        //        {
+        //            tags += tag;
+        //            tags += " ";
+        //        }
+        //        ForecastLog.Log("FORECAST: " + key + ": " + tags);
+        //    }
+        //}
     }
 
     public override void Initialize()
@@ -306,7 +314,7 @@ public class ForecastConfig : OptionInterface
         rainBanner.alpha = weatherType.Value == 1 ? 0f : 1f;
 
         //Version label
-        OpLabel version = new OpLabel(300f, 525f, $"Version: 1.03     -     By LeeMoriya", false);
+        OpLabel version = new OpLabel(300f, 525f, $"Version: {ForecastMod.versionNum}     -     By LeeMoriya", false);
         version.color = new Color(0.4f, 0.4f, 0.4f);
         version.label.alignment = FLabelAlignment.Center;
         options.AddItems(version, rainBanner);
@@ -660,8 +668,22 @@ public class ForecastConfig : OptionInterface
         regionLabels[index].color = regionButtons[index].colorEdge;
 
         forecastButtons[index].greyedOut = regionSettings[region] != 2;
-
         SaveRegionWeather();
+    }
+
+    private void UpdateRegionSettingsButtons()
+    {
+        for (int i = 0; i < regionSettings.Count; i++)
+        {
+            int val = regionSettings.ElementAt(i).Value;
+            regionButtons[i].text = RegionModText(val);
+            regionButtons[i].colorEdge = RegionButtonColor(val);
+            regionRects[i].colorEdge = regionButtons[i].colorEdge;
+            regionRects[i].colorFill = regionButtons[i].colorEdge;
+            customLabels[i].color = regionButtons[i].colorEdge;
+            regionLabels[i].color = regionButtons[i].colorEdge;
+            forecastButtons[i].greyedOut = val != 2;
+        }
     }
 
     private Color RegionButtonColor(int val)
@@ -803,6 +825,11 @@ public class ForecastConfig : OptionInterface
                 weatherChances[i].text = weatherPreference.Value ? "-" : $"{Mathf.Round(val * 100f).ToString()}%";
             }
             preferenceUpdate = false;
+        }
+        if (updateRegionSettingsButtons)
+        {
+            UpdateRegionSettingsButtons();
+            updateRegionSettingsButtons = false;
         }
     }
 }

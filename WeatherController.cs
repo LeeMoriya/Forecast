@@ -156,15 +156,21 @@ public class WeatherController : UpdatableAndDeletable
             }
 
             //If MSC is disabled or Blizzard is turned off -- Switch danger type to AerieBlizzard
-            //room.roomSettings.DangerType = RoomRain.DangerType.AerieBlizzard;
-            room.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
-
-            //Otherwise, remove the roomRain from the room
-            if (room.roomSettings.DangerType == MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard)
+            if (ModManager.MSC)
             {
-                room.RemoveObject(room.roomRain);
-                room.roomRain.Destroy();
-                room.roomRain = null;
+                room.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
+
+                //Otherwise, remove the roomRain from the room
+                if (room.roomSettings.DangerType == MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard)
+                {
+                    room.RemoveObject(room.roomRain);
+                    room.roomRain.Destroy();
+                    room.roomRain = null;
+                }
+            }
+            else
+            {
+                room.roomSettings.DangerType = RoomRain.DangerType.AerieBlizzard;
             }
         }
         //Background test
@@ -256,7 +262,7 @@ public class WeatherController : UpdatableAndDeletable
     public override void Update(bool eu)
     {
         base.Update(eu);
-        if (disabled || WeatherForecast.weatherlessRegions.Contains(room.world.region.name))
+        if (disabled || WeatherForecast.weatherlessRegions.Contains(settings.regionName))
         {
             if (!disabled)
             {
@@ -266,9 +272,7 @@ public class WeatherController : UpdatableAndDeletable
             return;
         }
 
-
         settings.Update();
-
 
         if (room.BeingViewed)
         {
