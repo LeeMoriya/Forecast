@@ -110,6 +110,17 @@ public class RainDrop : CosmeticSprite
         }
         lastLastLastPos = lastLastPos;
         lastLastPos = lastPos;
+        //Decrease splash scale on hit
+        if (collision)
+        {
+            splashCounter -= 0.1f;
+            if (splashCounter < 0f)
+            {
+                splashCounter = 0f;
+                reset = true;
+            }
+            return;
+        }
         //Control fall speed of normal and background drops, tied to rain intensity.
         if (backgroundDrop)
         {
@@ -149,53 +160,38 @@ public class RainDrop : CosmeticSprite
                 }
             }
         }
-        //Decrease splash scale on hit
-        if (collision)
-        {
-            splashCounter = splashCounter - 0.1f;
-            if (splashCounter < 0f)
-            {
-                splashCounter = 0f;
-            }
-        }
-        //Raindrop hits floor or water
+        
+        // Raindrop hits water surface
         bool hitWater = room.GetTile(pos).WaterSurface;
-        if (hitWater && spawner.settings.waterCollision)
+        if (hitWater)
         {
-            if (room.water && UnityEngine.Random.value > 0.98)
+            if (spawner.settings.waterCollision && room.water && UnityEngine.Random.value > 0.98f)
             {
-                room.waterObject?.Explosion(pos, 0.45f, 0.89f);
+                room.waterObject?.Explosion(pos, 0.55f, 0.91f);
             }
-            pos.y = room.MiddleOfTile(pos).y + UnityEngine.Random.Range(2f, 9f);
-            vel.y *= -0.01f;
-            vel.x *= 0.2f;
-            timeToDie = true;
-            splashCounter = UnityEngine.Random.Range(0.9f, 1.1f);
+
+            Vector2 surfacePos = new Vector2(pos.x, room.waterObject.DetailedWaterLevel(pos.x));
+
+            pos.y = surfacePos.y -10f;
+            lastPos = pos;
+            vel *= new Vector2(0.2f, -0.01f);
+            splashCounter = UnityEngine.Random.Range(0.4f, 0.8f);
             collision = true;
+            return;
         }
-        //Raindrop hits floor or water
-        if (room.GetTile(pos).Solid || hitWater)
+
+        // Raindrop hits tile
+        if (room.GetTile(pos).Solid)
         {
-            //Decrease velocity if raindrop hits a solid surface or water and increase splash counter
-            if (UnityEngine.Random.value > 0.01f)
-            {
-                if (vel.y < 0f && !timeToDie)
-                {
-                    pos.y = room.MiddleOfTile(pos).y + 11f;
-                    vel.y = vel.y * -0.01f;
-                    vel.x = vel.x * 0.2f;
-                    timeToDie = true;
-                    splashCounter = UnityEngine.Random.Range(0.9f, 1.1f);
-                    collision = true;
-                }
-                else
-                {
-                    reset = true;
-                }
-            }
+            pos.y = room.MiddleOfTile(pos).y + 11f;
+            lastPos = pos;
+            vel *= new Vector2(0.2f, -0.01f);
+            splashCounter = UnityEngine.Random.Range(0.4f, 0.8f);
+            collision = true;
+            return;
         }
         //If raindrop falls below room bottom, or if rain intensity is 0, remove it.
-        if (pos.y < -100f || spawner.settings.currentIntensity == 0f)
+        if (pos.y < -100f || spawner.settings.currentIntensity == 0f || pos.y < room.floatWaterLevel)
         {
             reset = true;
         }
@@ -250,14 +246,17 @@ public class RainDrop : CosmeticSprite
         //If background drops encounter a depth in the room texture lower than their own depth value, treat it as a collision.
         if (backgroundDrop && !reset && !collision && rCam.IsViewedByCameraPosition(rCam.cameraNumber, pos) && rCam.DepthAtCoordinate(pos) < depth)
         {
-            splashCounter = 1f;
-            timeToDie = true;
-            sLeaser.sprites[1].color = Color.Lerp(color, rCam.PixelColorAtCoordinate(pos), 0.7f);
-            collision = true;
+            if (!collision)
+            {
+                splashCounter = 1f;
+                timeToDie = true;
+                sLeaser.sprites[1].color = Color.Lerp(color, rCam.PixelColorAtCoordinate(pos), 0.7f);
+                collision = true;
+            }
         }
         if (splashCounter > 0f && !backgroundDrop)
         {
-            sLeaser.sprites[1].color = Color.Lerp(color, rCam.PixelColorAtCoordinate(pos), 0.2f);
+            sLeaser.sprites[1].color = Color.Lerp(rCam.currentPalette.fogColor, color, depth * 0.9f);
         }
         if (splashCounter > 0f)
         {
@@ -280,7 +279,7 @@ public class RainDrop : CosmeticSprite
             sLeaser.sprites[0].alpha = alpha;
         }
         //Delete raindrop if it falls a certain distance below the currently viewed room camera
-        if (pos.y < (rCam.pos.y - 100f) || (splashCounter <= 0f && timeToDie))
+        if (pos.y < (rCam.pos.y - 100f))
         {
             reset = true;
         }

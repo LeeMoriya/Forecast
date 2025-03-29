@@ -41,6 +41,7 @@ public class ForecastConfig : OptionInterface
     public static Configurable<int> lightningChance;
     public static Configurable<int> strikeDamageType;
     public static Configurable<Color> strikeColor;
+    public static Configurable<bool> greenLightning;
 
     public static Configurable<bool> endBlizzard;
     public static Configurable<bool> effectColors;
@@ -49,8 +50,9 @@ public class ForecastConfig : OptionInterface
     public static Configurable<bool> debugMode;
 
     //Manual Configurables
-    public static Dictionary<string, int> regionSettings;
+    public static Dictionary<string, int> regionSettings = new Dictionary<string, int>();
     public static Dictionary<string, Dictionary<string, List<string>>> customRegionSettings;
+    public static Dictionary<WeatherForecast.Weather.WeatherType, float> copiedWeather;
 
     //Menu
     public OpImage rainBanner;
@@ -67,6 +69,7 @@ public class ForecastConfig : OptionInterface
     public OpScrollBox settingsBox;
     public OpSimpleButton bgToggle;
     public OpSimpleButton strikeToggle;
+    public OpSimpleButton greenToggle;
     public OpLabel supportWarning;
     public OpLabel supportWarningDesc;
     public OpSimpleButton strikeTypeToggle;
@@ -95,7 +98,7 @@ public class ForecastConfig : OptionInterface
     {
         WeatherData.Load();
 
-        regionSettings = new Dictionary<string, int>();
+        //regionSettings = new Dictionary<string, int>();
         customRegionSettings = new Dictionary<string, Dictionary<string, List<string>>>();
 
         weatherType = config.Bind<int>("weatherType", 0);
@@ -123,6 +126,7 @@ public class ForecastConfig : OptionInterface
         lightningChance = config.Bind<int>("lightningChance", 15);
         strikeDamageType = config.Bind<int>("strikeDamageType", 0);
         strikeColor = config.Bind<Color>("strikeColor", new Color(1f, 1f, 0.95f, 1f));
+        greenLightning = config.Bind<bool>("greenLightning", true);
 
         endBlizzard = config.Bind<bool>("endBlizzard", true);
         effectColors = config.Bind<bool>("effectColors", true);
@@ -132,7 +136,7 @@ public class ForecastConfig : OptionInterface
         LoadCustomRegionSettings();
     }
 
-    public static void LoadRegionWeather() // TODO - Obsolete?
+    public static void LoadRegionWeather()
     {
         string savePath = $"{Application.persistentDataPath}{Path.DirectorySeparatorChar}ModConfigs{Path.DirectorySeparatorChar}Forecast";
         string filePath = $"{savePath}{Path.DirectorySeparatorChar}settings.txt";
@@ -273,8 +277,8 @@ public class ForecastConfig : OptionInterface
                     Debug.LogException(new Exception($"FORECAST: Custom settings for {array[i]} is missing GLOBAL settings!"));
                 }
             }
-            updateRegionSettingsButtons = true;
         }
+        updateRegionSettingsButtons = true;
 
         //Debug - print loaded tags
         //foreach (string reg in customRegionSettings.Keys)
@@ -330,7 +334,7 @@ public class ForecastConfig : OptionInterface
         supportModeButton.OnClick += SupportModeButton_OnClick;
         options.AddItems(supportRect, supportTitle, supportDesc, supportModeButton);
 
-        float settingsHeight = 1440f;
+        float settingsHeight = 1520f;
         settingsBox = new OpScrollBox(new Vector2(0f, 0f), new Vector2(600f, 400f), settingsHeight, false, true, true);
         options.AddItems(settingsBox);
 
@@ -447,7 +451,7 @@ public class ForecastConfig : OptionInterface
         float lightningAnchor = visualAnchor - 290f;
         OpLabel lightningLabel = new OpLabel(new Vector2(290f, lightningAnchor + 15f), new Vector2(), "- LIGHTNING SETTINGS -", FLabelAlignment.Center);
 
-        OpRect lightningSettingsRect = new OpRect(new Vector2(15f, lightningAnchor - 313.5f), new Vector2(555f, 320f));
+        OpRect lightningSettingsRect = new OpRect(new Vector2(15f, lightningAnchor - 403.5f), new Vector2(555f, 410f));
         lightningSettingsRect.colorFill = new Color(1f, 1f, 0f);
 
         settingsBox.AddItems(lightningLabel, lightningSettingsRect);
@@ -471,11 +475,19 @@ public class ForecastConfig : OptionInterface
         OpLabel strikeChanceDesc = new OpLabel(160f, lightningAnchor - 210f, "The percentage chance a strike will occur at each interval");
         settingsBox.AddItems(strikeChanceSlider, strikeChanceLabel, strikeChanceDesc);
 
+        //Strike Damage
         OpLabel strikeTypeLabel = new OpLabel(160f, lightningAnchor - 270f, "DAMAGE TYPE");
         OpLabel strikeTypeDesc = new OpLabel(160f, lightningAnchor - 290f, "What type of damage a lightning strike will inflict upon hit");
         strikeTypeToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 295f), new Vector2(110f, 45f), StrikeDamageValue());
         strikeTypeToggle.OnClick += StrikeTypeToggle_OnClick;
         settingsBox.AddItems(strikeTypeLabel, strikeTypeDesc, strikeTypeToggle);
+
+        //Green Strikes
+        OpLabel greenStrikeLabel = new OpLabel(160f, lightningAnchor - 350f, "GREEN LIGHTNING");
+        OpLabel greenStrikeDesc = new OpLabel(160f, lightningAnchor - 370f, "Makes lighting strikes green in Shaded Citadel and The Exterior");
+        greenToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 375f), new Vector2(110f, 45f), greenLightning.Value ? "ENABLED" : "DISABLED");
+        greenToggle.OnClick += GreenToggle_OnClick;
+        settingsBox.AddItems(greenStrikeLabel, greenStrikeDesc, greenToggle);
 
         //Support Label
         supportWarning = new OpLabel(new Vector2(290f, 220f), new Vector2(), "SUPPORT MODE ENABLED", FLabelAlignment.Center, true);
@@ -552,6 +564,8 @@ public class ForecastConfig : OptionInterface
         }
         #endregion
 
+        //UpdateRegionSettingsButtons();
+
         ForecastLog.Log($"Support Mode: {(supportMode.Value ? "ON" : "OFF")}");
         OnConfigReset += ForecastConfig_OnConfigReset;
     }
@@ -584,6 +598,7 @@ public class ForecastConfig : OptionInterface
     private void StrikeToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => lightningStrikes.Value, v => lightningStrikes.Value = v);
     private void BgToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => backgroundLightning.Value, v => backgroundLightning.Value = v);
     private void SupportModeButton_OnClick(UIfocusable trigger) => ToggleSetting(() => supportMode.Value, v => supportMode.Value = v);
+    private void GreenToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => greenLightning.Value, v => greenLightning.Value = v);
 
     private void StrikeTypeToggle_OnClick(UIfocusable trigger)
     {
@@ -668,6 +683,7 @@ public class ForecastConfig : OptionInterface
         regionLabels[index].color = regionButtons[index].colorEdge;
 
         forecastButtons[index].greyedOut = regionSettings[region] != 2;
+        //updateRegionSettingsButtons = true;
         SaveRegionWeather();
     }
 
@@ -683,6 +699,7 @@ public class ForecastConfig : OptionInterface
             customLabels[i].color = regionButtons[i].colorEdge;
             regionLabels[i].color = regionButtons[i].colorEdge;
             forecastButtons[i].greyedOut = val != 2;
+            ForecastLog.Log($"Updating region button for: {regionSettings.ElementAt(i).Key} = {val}");
         }
     }
 
@@ -797,6 +814,7 @@ public class ForecastConfig : OptionInterface
         backgroundCollisionToggle.text = backgroundCollision.Value ? "ENABLED" : "DISABLED";
         debugButton.text = debugMode.Value ? "DEBUG: ON" : "DEBUG: OFF";
         preferenceToggle.text = weatherPreference.Value ? "ENABLED" : "DISABLED";
+        greenToggle.text = greenLightning.Value ? "ENABLED" : "DISABLED";
         windToggle.text = WindDirectionValue();
         intensityToggle.text = IntensityValue();
         strikeTypeToggle.text = StrikeDamageValue();
@@ -828,7 +846,7 @@ public class ForecastConfig : OptionInterface
         }
         if (updateRegionSettingsButtons)
         {
-            UpdateRegionSettingsButtons();
+            //UpdateRegionSettingsButtons();
             updateRegionSettingsButtons = false;
         }
     }

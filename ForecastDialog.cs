@@ -334,11 +334,11 @@ public class ForecastDialog : Dialog
             base.Singal(sender, message);
             if(message == "copy")
             {
-                (owner as RFPanelContainer).copiedWeather = regionWeatherProbability[acronym];
+                ForecastConfig.copiedWeather = regionWeatherProbability[acronym];
             }
             if(message == "paste")
             {
-                regionWeatherProbability[acronym] = (owner as RFPanelContainer).copiedWeather;
+                regionWeatherProbability[acronym] = ForecastConfig.copiedWeather;
             }
             
             //If not in edit mode, allow selecting weathers

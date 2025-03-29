@@ -32,6 +32,8 @@ public class ForecastDialog2 : Dialog
         WeatherData.Load();
         this.region = region;
 
+        ForecastLog.Log($"Customise {region}: {(WeatherForecast.regionWeatherProbability.ContainsKey(region) ? "Present in Dict" : "NOT present in Dict")}");
+
         leftAnchor = Custom.GetScreenOffsets()[0];
         pages[0].pos.y += 2000f;
         pages[0].pos.x = leftAnchor + 0.01f;
@@ -85,6 +87,14 @@ public class ForecastDialog2 : Dialog
     public override void Singal(MenuObject sender, string message)
     {
         base.Singal(sender, message);
+        if (message == "copy")
+        {
+            ForecastConfig.copiedWeather = WeatherForecast.regionWeatherProbability[region];
+        }
+        if (message == "paste")
+        {
+            WeatherForecast.regionWeatherProbability[region] = ForecastConfig.copiedWeather;
+        }
         if (message == "CLOSE")
         {
             PlaySound(SoundID.HUD_Exit_Game);

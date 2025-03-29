@@ -7,6 +7,7 @@ using RWCustom;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Runtime.CompilerServices;
+using MoreSlugcats;
 
 public class WeatherHooks
 {
@@ -46,6 +47,20 @@ public class WeatherHooks
 
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize; //Remove settings
         On.WinState.CycleCompleted += WinState_CycleCompleted;
+        On.RoomRain.DrawSprites += RoomRain_DrawSprites;
+    }
+
+    private static void RoomRain_DrawSprites(On.RoomRain.orig_DrawSprites orig, RoomRain self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+    {
+        //Fix to stop freeze when deleting RoomRain at cycle start if weather is Blizzard
+        if (ModManager.MSC && self.room != null && self.room.roomSettings != null && self.room.roomSettings.DangerType == MoreSlugcatsEnums.RoomRainDangerType.Blizzard)
+        {
+            sLeaser.CleanSpritesAndRemove();
+            return;
+        }
+
+            orig.Invoke(self, sLeaser, rCam, timeStacker, camPos);
+        
     }
 
     private static void WinState_CycleCompleted(On.WinState.orig_CycleCompleted orig, WinState self, RainWorldGame game)
@@ -143,10 +158,11 @@ public class WeatherHooks
         //Add Weather Object
         if (self.realizedRoom != null && self.realizedRoom.roomRain != null)
         {
-            if (!self.shelter && !self.gate && !invalidDangerTypes.Contains(self.realizedRoom.roomRain.dangerType))
+            if (!self.shelter && !self.gate && self.realizedRoom.roomSettings.RainIntensity > 0f && !invalidDangerTypes.Contains(self.realizedRoom.roomRain.dangerType))
             {
                 if (!roomSettings.ContainsKey(self.realizedRoom))
                 {
+                    if(ModManager.MSC && game.manager.artificerDreamNumber != -1) { return; }
                     self.realizedRoom.AddObject(new WeatherController(self.realizedRoom));
                 }
             }
@@ -168,7 +184,10 @@ public class WeatherHooks
             }
             if (ceilingCount < (room.Width * 0.95))
             {
-                room.AddObject(new WeatherController(room));
+                if (!roomSettings.ContainsKey(room))
+                {
+                    room.AddObject(new WeatherController(room));
+                }
             }
         }
     }

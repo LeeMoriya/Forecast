@@ -14,8 +14,26 @@ public static class WeatherData
     {
         string rootFolder = Application.persistentDataPath + Path.DirectorySeparatorChar;
         string path = rootFolder + "Forecast" + Path.DirectorySeparatorChar + "Forecast.txt";
-        List<string> regions = Region.GetFullRegionOrder();
+        List<string> regions = new List<string>();
         bool forecastSection = false;
+
+        string[] array = new string[]
+        {
+            ""
+        };
+        string regionPath = AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar.ToString() + "regions.txt");
+        if (File.Exists(path))
+        {
+            array = File.ReadAllLines(regionPath);
+        }
+        for (int i = 0; i < array.Length; i++)
+        {
+            if (!regions.Contains(array[i]))
+            {
+                regions.Add(array[i]);
+                ForecastLog.Log($"Loading region... {array[i]}");
+            }
+        }
 
         //Assign default probabilities if none present
         regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
@@ -36,13 +54,14 @@ public static class WeatherData
         {
             // Add a new entry for the region with a dictionary of weather types and probabilities
             regionWeatherProbability.Add(reg, defaultWeathers);
+            ForecastLog.Log($"Adding {reg} to regionWeatherProbability");
         }
 
         if (File.Exists(path))
         {
             string[] data = File.ReadAllLines(path);
             regionWeatherForecasts = new Dictionary<string, List<Weather.WeatherType>>();
-            regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
+            //regionWeatherProbability = new Dictionary<string, Dictionary<Weather.WeatherType, float>>();
 
             for (int i = 0; i < data.Length; i++)
             {
@@ -75,6 +94,10 @@ public static class WeatherData
                     if (!regionWeatherProbability.ContainsKey(reg))
                     {
                         regionWeatherProbability.Add(reg, regionWeathers);
+                    }
+                    else
+                    {
+                        regionWeatherProbability[reg] = regionWeathers;
                     }
                 }
                 else
