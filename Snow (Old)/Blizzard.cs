@@ -552,7 +552,7 @@ public class Blizzard : UpdatableAndDeletable
                         }
                         if (room.water)
                         {
-                            num *= Mathf.InverseLerp(room.FloatWaterLevel(bodyChunk.pos.x) - 100f, room.FloatWaterLevel(bodyChunk.pos.x), bodyChunk.pos.y);
+                            //num *= Mathf.InverseLerp(room.FloatWaterLevel(bodyChunk.pos.x) - 100f, room.FloatWaterLevel(bodyChunk.pos.x), bodyChunk.pos.y);
                         }
                         if (num > 0f)
                         {

@@ -170,7 +170,7 @@ public class RainDrop : CosmeticSprite
                 room.waterObject?.Explosion(pos, 0.55f, 0.91f);
             }
 
-            Vector2 surfacePos = new Vector2(pos.x, room.waterObject.DetailedWaterLevel(pos.x));
+            Vector2 surfacePos = new Vector2(pos.x, room.waterObject.DetailedWaterLevel(pos));
 
             pos.y = surfacePos.y -10f;
             lastPos = pos;

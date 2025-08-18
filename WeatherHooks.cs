@@ -27,7 +27,7 @@ public class WeatherHooks
 
         if (ModManager.MSC)
         {
-            invalidDangerTypes.Add(MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard);
+            invalidDangerTypes.Add(DLCSharedEnums.RoomRainDangerType.Blizzard);
         }
     }
 
@@ -53,7 +53,7 @@ public class WeatherHooks
     private static void RoomRain_DrawSprites(On.RoomRain.orig_DrawSprites orig, RoomRain self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
         //Fix to stop freeze when deleting RoomRain at cycle start if weather is Blizzard
-        if (ModManager.MSC && self.room != null && self.room.roomSettings != null && self.room.roomSettings.DangerType == MoreSlugcatsEnums.RoomRainDangerType.Blizzard)
+        if (ModManager.MSC && self.room != null && self.room.roomSettings != null && self.room.roomSettings.DangerType == DLCSharedEnums.RoomRainDangerType.Blizzard)
         {
             sLeaser.CleanSpritesAndRemove();
             return;
@@ -280,9 +280,9 @@ public class WeatherHooks
                     //Toggle AerieBlizzard and normal Blizzard
                     if (self.roomSettings.DangerType == RoomRain.DangerType.AerieBlizzard)
                     {
-                        self.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
+                        self.roomSettings.DangerType = DLCSharedEnums.RoomRainDangerType.Blizzard;
                     }
-                    else if (self.roomSettings.DangerType == MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard)
+                    else if (self.roomSettings.DangerType == DLCSharedEnums.RoomRainDangerType.Blizzard)
                     {
                         self.roomSettings.DangerType = RoomRain.DangerType.AerieBlizzard;
                     }

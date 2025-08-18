@@ -165,7 +165,7 @@ public class WeatherController : UpdatableAndDeletable
             //If MSC is disabled or Blizzard is turned off -- Switch danger type to AerieBlizzard
             if (ModManager.MSC)
             {
-                room.roomSettings.DangerType = MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard;
+                room.roomSettings.DangerType = DLCSharedEnums.RoomRainDangerType.Blizzard;
             }
             else
             {
@@ -272,7 +272,7 @@ public class WeatherController : UpdatableAndDeletable
         }
         if (settings.weatherType == 2)
         {
-            if (ModManager.MSC && room.fullyLoaded && room.roomSettings.DangerType == MoreSlugcats.MoreSlugcatsEnums.RoomRainDangerType.Blizzard)
+            if (ModManager.MSC && room.fullyLoaded && room.roomSettings.DangerType == DLCSharedEnums.RoomRainDangerType.Blizzard)
             {
                 if (room.roomRain != null)
                 {
@@ -477,8 +477,10 @@ public class WeatherController : UpdatableAndDeletable
             newFadeB.Apply(false);
             room.game.cameras[0].fadeTexB = newFadeB;
         }
+        room.game.cameras[0].ApplyEffectColorsToPaletteTexture(ref newFadeA, room.roomSettings.EffectColorA, room.roomSettings.EffectColorB);
+        room.game.cameras[0].ApplyEffectColorsToPaletteTexture(ref newFadeB, room.roomSettings.EffectColorA, room.roomSettings.EffectColorB);
+
         room.game.cameras[0].ApplyFade();
-        //room.game.cameras[0].ApplyPalette();
 
         if (exportTexture)
         {
