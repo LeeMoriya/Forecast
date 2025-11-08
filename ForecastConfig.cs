@@ -108,8 +108,8 @@ public class ForecastConfig : OptionInterface
         weatherChance = config.Bind<int>("weatherChance", 100, new ConfigAcceptableRange<int>(0, 100));
         windDirection = config.Bind<int>("windDirection", 0, new ConfigAcceptableRange<int>(0, 3));
 
-        weatherPreference = config.Bind<bool>("weatherPreference", false);
-        weatherRandomness = config.Bind<int>("weatherRandomness", 25, new ConfigAcceptableRange<int>(0, 100));
+        weatherPreference = config.Bind<bool>("weatherPreference", true);
+        weatherRandomness = config.Bind<int>("weatherRandomness", 10, new ConfigAcceptableRange<int>(0, 100));
 
         particleLimit = config.Bind<int>("particleLimit", 100);
 
@@ -754,7 +754,7 @@ public class ForecastConfig : OptionInterface
         switch (weatherIntensity.Value)
         {
             case 0:
-                return "DYNAMIC";
+                return "DYNAMIC\n(Recommended)";
             case 1:
                 return "LOW";
             case 2:

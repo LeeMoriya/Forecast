@@ -10,6 +10,7 @@ using Menu.Remix.MixedUI;
 using Menu.Remix;
 using System.IO;
 using static WeatherForecast;
+using System.Text.RegularExpressions;
 
 public class ForecastDialog : Dialog
 {
@@ -255,6 +256,7 @@ public class ForecastDialog : Dialog
         public string acronym = "";
         public string regionName;
         public MenuLabel regionNameLabel;
+        public MenuLabel weatherTypeLabel;
         public List<FSprite> weatherSprites;
         public List<MenuLabel> weatherLabels;
         public List<WeatherButton> weatherButtons;
@@ -274,13 +276,16 @@ public class ForecastDialog : Dialog
             rect = new RoundedRect(menu, this, new Vector2(), new Vector2(350f, 250f), true);
             regionNameLabel = new MenuLabel(menu, this, regionName, new Vector2(rect.size.x / 2, rect.size.y - 20f), new Vector2(), true);
             regionNameLabel.label.alignment = FLabelAlignment.Center;
+            weatherTypeLabel = new MenuLabel(menu, this, "", new Vector2(rect.size.x / 2, rect.size.y - 45f), new Vector2(), false);
             subObjects.Add(rect);
             subObjects.Add(regionNameLabel);
+            subObjects.Add(weatherTypeLabel);
 
             int x = 0;
             weatherButtons = new List<WeatherButton>();
             weatherSprites = new List<FSprite>();
             weatherLabels = new List<MenuLabel>();
+
 
             if (regionWeatherProbability.ContainsKey(acronym))
             {
@@ -366,21 +371,23 @@ public class ForecastDialog : Dialog
             //In edit mode, allow turning weathers on and off
             else
             {
-                int oneWeather = regionWeatherProbability[acronym].Count(kvp => kvp.Value > 0f);
-
-                if (Enum.TryParse(message, out Weather.WeatherType weatherParse))
+                if (regionWeatherProbability.ContainsKey(acronym))
                 {
-                    var button = sender as WeatherButton;
-                    if (button == null) return;
+                    int oneWeather = regionWeatherProbability[acronym].Count(kvp => kvp.Value > 0f);
 
-                    if (!button.enabled || oneWeather >= 2)
+                    if (Enum.TryParse(message, out Weather.WeatherType weatherParse))
                     {
-                        button.enabled = !button.enabled;
-                        regionWeatherProbability[acronym][weatherParse] = button.enabled ? 0.01f : 0f;
-                        UpdateOtherValues(weatherParse);
+                        var button = sender as WeatherButton;
+                        if (button == null) return;
+
+                        if (!button.enabled || oneWeather >= 2)
+                        {
+                            button.enabled = !button.enabled;
+                            regionWeatherProbability[acronym][weatherParse] = button.enabled ? 0.01f : 0f;
+                            UpdateOtherValues(weatherParse);
+                        }
                     }
                 }
-
             }
             //Toggle edit mode
             if (message == "edit")
@@ -402,6 +409,14 @@ public class ForecastDialog : Dialog
                 {
                     weatherLabels[i].text = $"{Mathf.RoundToInt(regionWeatherProbability[acronym].ElementAt(i).Value * 100)}%";
                     weatherButtons[i].symbolSprite.color = regionWeatherProbability[acronym].ElementAt(i).Value > 0f ? new Color(1f, 1f, 1f) : new Color(0.4f, 0.4f, 0.4f);
+                }
+            }
+            weatherTypeLabel.text = "";
+            for (int i = 0; i < weatherButtons.Count; i++)
+            {
+                if(weatherButtons[i] != null && weatherButtons[i].MouseOver)
+                {
+                    weatherTypeLabel.text = Regex.Replace(weatherButtons[i].symbolSprite.element.name, "(?<!^)([A-Z])", " $1");
                 }
             }
         }

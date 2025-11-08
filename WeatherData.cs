@@ -22,7 +22,7 @@ public static class WeatherData
             ""
         };
         string regionPath = AssetManager.ResolveFilePath("World" + Path.DirectorySeparatorChar.ToString() + "regions.txt");
-        if (File.Exists(path))
+        if (File.Exists(regionPath))
         {
             array = File.ReadAllLines(regionPath);
         }
@@ -52,7 +52,7 @@ public static class WeatherData
         regionWeatherProbability.Add("GLOBAL", defaultWeathers);
         foreach (string reg in regions)
         {
-            // Add a new entry for the region with a dictionary of weather types and probabilities
+            //Add a new entry for the region with a dictionary of weather types and probabilities
             regionWeatherProbability.Add(reg, defaultWeathers);
             ForecastLog.Log($"Adding {reg} to regionWeatherProbability");
         }

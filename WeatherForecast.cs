@@ -83,7 +83,7 @@ public static class WeatherForecast
         //Pick a weather based on the current weather's preference
         else
         {
-            if (UnityEngine.Random.value < ForecastConfig.weatherRandomness.Value)
+            if (UnityEngine.Random.value >= ForecastConfig.weatherRandomness.Value)
             {
                 Weather weather = new Weather(lastWeather);
 
