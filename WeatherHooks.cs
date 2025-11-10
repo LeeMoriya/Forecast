@@ -59,7 +59,7 @@ public class WeatherHooks
             return;
         }
 
-            orig.Invoke(self, sLeaser, rCam, timeStacker, camPos);
+        orig.Invoke(self, sLeaser, rCam, timeStacker, camPos);
         
     }
 
@@ -104,6 +104,11 @@ public class WeatherHooks
                 {
                     debugUI.Update();
                 }
+            }
+            else if(debugUI != null)
+            {
+                debugUI.RemoveSprites();
+                debugUI = null;
             }
         }
     }

@@ -30,6 +30,14 @@ public class DebugWeatherUI
 
     public void Update()
     {
+        if (settings == null || settings?.owner?.room?.game?.cameras[0]?.room?.abstractRoom?.name != settings?.roomName)
+        {
+            for (int i = 0; i < labels.Count; i++)
+            {
+                labels[i].alpha -= 0.025f;
+            }
+            return;
+        }
         if (toggle)
         {
             for (int i = 0; i < labels.Count; i++)
@@ -137,6 +145,10 @@ public class DebugWeatherUI
             labels[i].SetAnchor(0f, 1f);
             labels[i].SetPosition(new Vector2(20.01f, 768.01f - 45f - (20f * i)));
             container.AddChild(labels[i]);
+            if (toggle)
+            {
+                labels[i].alpha = 0f;
+            }
         }
         container.MoveToFront();
     }

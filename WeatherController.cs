@@ -157,7 +157,7 @@ public class WeatherController : UpdatableAndDeletable
                 room.game.cameras[0].LoadPalette(room.roomSettings.fadePalette.palette, ref origFadePalB);
             }
 
-            if (!interior)
+            if (!interior && ForecastConfig.snowSources.Value)
             {
                 room.AddObject(new SnowPlacer(this));
             }
@@ -321,7 +321,7 @@ public class WeatherController : UpdatableAndDeletable
             room.game.cameras[0].blizzardGraphics.oldWhiteOut = Mathf.Pow(settings.currentIntensity, 1.3f) * settings.currentIntensity;
             room.game.cameras[0].blizzardGraphics.whiteOut = Mathf.Pow(settings.currentIntensity, 1.3f) * settings.currentIntensity;
 
-            //Test
+            //Apply snowy palette
             if (room.BeingViewed)
             {
                 ApplyPalette();
@@ -331,46 +331,49 @@ public class WeatherController : UpdatableAndDeletable
         if (!interior && room.game != null && room != null && !room.abstractRoom.gate && room.ReadyForPlayer)
         {
             //Add background lightning flashes
-            if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Thunderstorm)
+            if ((ForecastConfig.strikeWeathers.Value == 0 && settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Thunderstorm) || (ForecastConfig.strikeWeathers.Value == 1 && (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Thunderstorm || settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Blizzard)) || ForecastConfig.strikeWeathers.Value == 2)
             {
-                if (room.game != null && !room.abstractRoom.shelter && settings.backgroundLightning && room.roomRain != null)
+                if (settings.currentIntensity > 0.7f || ForecastConfig.strikeWeathers.Value == 2)
                 {
-                    if ((room.roomRain.dangerType == RoomRain.DangerType.Rain || room.roomRain.dangerType == RoomRain.DangerType.FloodAndRain) && settings.currentIntensity > 0.7f && room.lightning == null)
+                    if (room.game != null && !room.abstractRoom.shelter && settings.backgroundLightning && room.roomRain != null)
                     {
-                        room.lightning = new Lightning(room, 1f, false);
-                        room.lightning.bkgOnly = true;
-                        room.lightning.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
-                        room.lightning.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), settings.currentIntensity);
-                        room.AddObject(room.lightning);
-                    }
-                }
-                //Generate lightning strikes
-                if (settings.lightningStrikes && room.roomSettings.RainIntensity > 0.8f && room.BeingViewed && room.roomRain != null)
-                {
-                    lightningCounter += 0.025f;
-                    if (lightningCounter >= settings.lightningInterval)
-                    {
-                        lightningCounter = 0;
-                        if (UnityEngine.Random.Range(0, 100) <= settings.lightningChance)
+                        if ((room.roomRain.dangerType == RoomRain.DangerType.Rain || room.roomRain.dangerType == RoomRain.DangerType.FloodAndRain) && room.lightning == null)
                         {
-                            if (settings.greenLightning && room.game.IsStorySession)
+                            room.lightning = new Lightning(room, 1f, false);
+                            room.lightning.bkgOnly = true;
+                            room.lightning.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
+                            room.lightning.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), settings.currentIntensity);
+                            room.AddObject(room.lightning);
+                        }
+                    }
+                    //Generate lightning strikes
+                    if (settings.lightningStrikes && room.BeingViewed && room.roomRain != null)
+                    {
+                        lightningCounter += 0.025f;
+                        if (lightningCounter >= settings.lightningInterval)
+                        {
+                            lightningCounter = 0;
+                            if (UnityEngine.Random.Range(0, 100) <= settings.lightningChance)
                             {
-                                List<string> greenRegions = new List<string>()
+                                if (settings.greenLightning && room.game.IsStorySession)
+                                {
+                                    List<string> greenRegions = new List<string>()
                                 {
                                     "UW","SH","RM","LM"
                                 };
-                                if (greenRegions.Contains(room.world.name))
-                                {
-                                    room.AddObject(new LightningStrike(this, new Color(0f,1f,0f)));
+                                    if (greenRegions.Contains(room.world.name))
+                                    {
+                                        room.AddObject(new LightningStrike(this, new Color(0f, 1f, 0f)));
+                                    }
+                                    else
+                                    {
+                                        room.AddObject(new LightningStrike(this, settings.strikeColor));
+                                    }
                                 }
                                 else
                                 {
                                     room.AddObject(new LightningStrike(this, settings.strikeColor));
                                 }
-                            }
-                            else
-                            {
-                                room.AddObject(new LightningStrike(this, settings.strikeColor));
                             }
                         }
                     }

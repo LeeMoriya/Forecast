@@ -40,12 +40,14 @@ public class ForecastConfig : OptionInterface
     public static Configurable<int> lightningInterval;
     public static Configurable<int> lightningChance;
     public static Configurable<int> strikeDamageType;
+    public static Configurable<int> strikeWeathers;
     public static Configurable<Color> strikeColor;
     public static Configurable<bool> greenLightning;
 
     public static Configurable<bool> endBlizzard;
     public static Configurable<bool> effectColors;
     public static Configurable<bool> snowPuffs;
+    public static Configurable<bool> snowSources;
 
     public static Configurable<bool> debugMode;
 
@@ -73,6 +75,7 @@ public class ForecastConfig : OptionInterface
     public OpLabel supportWarning;
     public OpLabel supportWarningDesc;
     public OpSimpleButton strikeTypeToggle;
+    public OpSimpleButton strikeWeatherToggle;
     public OpSlider intervalSlider;
     public OpSlider strikeChanceSlider;
     public OpSimpleButton backgroundCollisionToggle;
@@ -80,6 +83,7 @@ public class ForecastConfig : OptionInterface
     public List<OpLabel> weatherChances;
     public List<OpImage> weatherIcons;
     public List<OpSimpleImageButton> forecastButtons;
+    public OpSimpleButton snowSourceToggle;
 
     public static bool preferenceUpdate = false;
     public static bool updateRegionSettingsButtons = false;
@@ -125,12 +129,14 @@ public class ForecastConfig : OptionInterface
         lightningInterval = config.Bind<int>("lightningInterval", 10, new ConfigAcceptableRange<int>(1, 60));
         lightningChance = config.Bind<int>("lightningChance", 15);
         strikeDamageType = config.Bind<int>("strikeDamageType", 0);
+        strikeWeathers = config.Bind<int>("strikeWeathers", 0);
         strikeColor = config.Bind<Color>("strikeColor", new Color(1f, 1f, 0.95f, 1f));
         greenLightning = config.Bind<bool>("greenLightning", true);
 
         endBlizzard = config.Bind<bool>("endBlizzard", true);
         effectColors = config.Bind<bool>("effectColors", true);
         snowPuffs = config.Bind<bool>("snowPuffs", true);
+        snowSources = config.Bind<bool>("snowSources", true);
 
         debugMode = config.Bind<bool>("debugMode", false);
         LoadCustomRegionSettings();
@@ -334,7 +340,7 @@ public class ForecastConfig : OptionInterface
         supportModeButton.OnClick += SupportModeButton_OnClick;
         options.AddItems(supportRect, supportTitle, supportDesc, supportModeButton);
 
-        float settingsHeight = 1520f;
+        float settingsHeight = 1900f;
         settingsBox = new OpScrollBox(new Vector2(0f, 0f), new Vector2(600f, 400f), settingsHeight, false, true, true);
         options.AddItems(settingsBox);
 
@@ -451,7 +457,7 @@ public class ForecastConfig : OptionInterface
         float lightningAnchor = visualAnchor - 290f;
         OpLabel lightningLabel = new OpLabel(new Vector2(290f, lightningAnchor + 15f), new Vector2(), "- LIGHTNING SETTINGS -", FLabelAlignment.Center);
 
-        OpRect lightningSettingsRect = new OpRect(new Vector2(15f, lightningAnchor - 403.5f), new Vector2(555f, 410f));
+        OpRect lightningSettingsRect = new OpRect(new Vector2(15f, lightningAnchor - 483.5f), new Vector2(555f, 490f));
         lightningSettingsRect.colorFill = new Color(1f, 1f, 0f);
 
         settingsBox.AddItems(lightningLabel, lightningSettingsRect);
@@ -482,12 +488,35 @@ public class ForecastConfig : OptionInterface
         strikeTypeToggle.OnClick += StrikeTypeToggle_OnClick;
         settingsBox.AddItems(strikeTypeLabel, strikeTypeDesc, strikeTypeToggle);
 
+        //Strike Weathers
+        OpLabel strikeWeatherLabel = new OpLabel(160f, lightningAnchor - 350f, "WEATHER TYPES");
+        OpLabel strikeWeatherDesc = new OpLabel(160f, lightningAnchor - 370f, "The weather types lightning strikes can occur in");
+        strikeWeatherToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 375f), new Vector2(110f, 45f), StrikeWeathers());
+        strikeWeatherToggle.OnClick += StrikeWeatherToggle_OnClick;
+        settingsBox.AddItems(strikeWeatherLabel, strikeWeatherDesc, strikeWeatherToggle);
+
         //Green Strikes
-        OpLabel greenStrikeLabel = new OpLabel(160f, lightningAnchor - 350f, "GREEN LIGHTNING");
-        OpLabel greenStrikeDesc = new OpLabel(160f, lightningAnchor - 370f, "Makes lighting strikes green in Shaded Citadel and The Exterior");
-        greenToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 375f), new Vector2(110f, 45f), greenLightning.Value ? "ENABLED" : "DISABLED");
+        OpLabel greenStrikeLabel = new OpLabel(160f, lightningAnchor - 430f, "GREEN LIGHTNING");
+        OpLabel greenStrikeDesc = new OpLabel(160f, lightningAnchor - 450f, "Makes lighting strikes green in Shaded Citadel and The Exterior");
+        greenToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 455), new Vector2(110f, 45f), greenLightning.Value ? "ENABLED" : "DISABLED");
         greenToggle.OnClick += GreenToggle_OnClick;
         settingsBox.AddItems(greenStrikeLabel, greenStrikeDesc, greenToggle);
+
+        //SNOW SETTINGS
+        float snowAnchor = lightningAnchor - 540f;
+        OpLabel snowLabel = new OpLabel(new Vector2(290f, snowAnchor + 15f), new Vector2(), "- SNOW SETTINGS -", FLabelAlignment.Center);
+
+        OpRect snowSettingsRect = new OpRect(new Vector2(15f, snowAnchor - 483.5f), new Vector2(555f, 490f));
+        snowSettingsRect.colorFill = new Color(0.5f, 1f, 1f);
+
+        settingsBox.AddItems(snowLabel, snowSettingsRect);
+
+        //Snow Sources
+        OpLabel snowSourceLabel = new OpLabel(160f, snowAnchor - 30f, "SNOW SOURCES");
+        OpLabel snowSourceDesc = new OpLabel(160f, snowAnchor - 50f, "Dynamically places snow sources during snowy weather");
+        snowSourceToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 55f), new Vector2(110f, 45f), snowSources.Value ? "ENABLED" : "DISABLED");
+        snowSourceToggle.OnClick += SnowSourceToggle_OnClick;
+        settingsBox.AddItems(snowSourceLabel, snowSourceDesc, snowSourceToggle);
 
         //Support Label
         supportWarning = new OpLabel(new Vector2(290f, 220f), new Vector2(), "SUPPORT MODE ENABLED", FLabelAlignment.Center, true);
@@ -599,7 +628,20 @@ public class ForecastConfig : OptionInterface
     private void BgToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => backgroundLightning.Value, v => backgroundLightning.Value = v);
     private void SupportModeButton_OnClick(UIfocusable trigger) => ToggleSetting(() => supportMode.Value, v => supportMode.Value = v);
     private void GreenToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => greenLightning.Value, v => greenLightning.Value = v);
+    private void SnowSourceToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => snowSources.Value, v => snowSources.Value = v);
 
+    private void StrikeWeatherToggle_OnClick(UIfocusable trigger)
+    {
+        if (strikeWeathers.Value == 2)
+        {
+            strikeWeathers.Value = 0;
+        }
+        else
+        {
+            strikeWeathers.Value++;
+        }
+        config.Save();
+    }
     private void StrikeTypeToggle_OnClick(UIfocusable trigger)
     {
         if (strikeDamageType.Value == 2)
@@ -749,6 +791,20 @@ public class ForecastConfig : OptionInterface
         return "";
     }
 
+    private string StrikeWeathers()
+    {
+        switch (strikeWeathers.Value)
+        {
+            case 0:
+                return "THUNDERSTORM";
+            case 1:
+                return "THUNDERSTORM\n& BLIZZARD";
+            case 2:
+                return "ALL";
+        }
+        return "";
+    }
+
     private string IntensityValue()
     {
         switch (weatherIntensity.Value)
@@ -815,9 +871,11 @@ public class ForecastConfig : OptionInterface
         debugButton.text = debugMode.Value ? "DEBUG: ON" : "DEBUG: OFF";
         preferenceToggle.text = weatherPreference.Value ? "ENABLED" : "DISABLED";
         greenToggle.text = greenLightning.Value ? "ENABLED" : "DISABLED";
+        snowSourceToggle.text = snowSources.Value ? "ENABLED" : "DISABLED";
         windToggle.text = WindDirectionValue();
         intensityToggle.text = IntensityValue();
         strikeTypeToggle.text = StrikeDamageValue();
+        strikeWeatherToggle.text = StrikeWeathers();
 
         randomnessSlider.greyedOut = !weatherPreference.Value;
 
