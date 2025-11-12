@@ -506,7 +506,7 @@ public class ForecastConfig : OptionInterface
         float snowAnchor = lightningAnchor - 540f;
         OpLabel snowLabel = new OpLabel(new Vector2(290f, snowAnchor + 15f), new Vector2(), "- SNOW SETTINGS -", FLabelAlignment.Center);
 
-        OpRect snowSettingsRect = new OpRect(new Vector2(15f, snowAnchor - 483.5f), new Vector2(555f, 490f));
+        OpRect snowSettingsRect = new OpRect(new Vector2(15f, snowAnchor - 183.5f), new Vector2(555f, 190f));
         snowSettingsRect.colorFill = new Color(0.5f, 1f, 1f);
 
         settingsBox.AddItems(snowLabel, snowSettingsRect);

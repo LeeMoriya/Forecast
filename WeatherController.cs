@@ -335,10 +335,11 @@ public class WeatherController : UpdatableAndDeletable
             {
                 if (settings.currentIntensity > 0.7f || ForecastConfig.strikeWeathers.Value == 2)
                 {
-                    if (room.game != null && !room.abstractRoom.shelter && settings.backgroundLightning && room.roomRain != null)
+                    if (room.game != null && !room.abstractRoom.shelter && settings.backgroundLightning)
                     {
-                        if ((room.roomRain.dangerType == RoomRain.DangerType.Rain || room.roomRain.dangerType == RoomRain.DangerType.FloodAndRain) && room.lightning == null)
+                        if (room.lightning == null)
                         {
+                            ForecastLog.Log($"Adding lightning to room {room.abstractRoom.name}");
                             room.lightning = new Lightning(room, 1f, false);
                             room.lightning.bkgOnly = true;
                             room.lightning.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
@@ -347,7 +348,7 @@ public class WeatherController : UpdatableAndDeletable
                         }
                     }
                     //Generate lightning strikes
-                    if (settings.lightningStrikes && room.BeingViewed && room.roomRain != null)
+                    if (settings.lightningStrikes && room.BeingViewed)
                     {
                         lightningCounter += 0.025f;
                         if (lightningCounter >= settings.lightningInterval)
