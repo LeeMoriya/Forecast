@@ -53,6 +53,11 @@ public class WeatherController : UpdatableAndDeletable
         }
         WeatherHooks.roomSettings.Add(room, settings);
 
+        Setup();
+    }
+
+    public void Setup()
+    {
         skyreach = new List<Vector2>();
         camSkyreach = new List<Vector2>();
         ceilingTiles = new List<IntVector2>();
@@ -163,17 +168,18 @@ public class WeatherController : UpdatableAndDeletable
             }
 
             //If MSC is disabled or Blizzard is turned off -- Switch danger type to AerieBlizzard
-            if (ModManager.MSC)
+            if (!ForecastConfig.classicSnow.Value)
             {
-                room.roomSettings.DangerType = DLCSharedEnums.RoomRainDangerType.Blizzard;
-            }
-            else
-            {
-                room.roomSettings.DangerType = RoomRain.DangerType.AerieBlizzard;
+                if (ModManager.MSC || ModManager.Watcher)
+                {
+                    room.roomSettings.DangerType = DLCSharedEnums.RoomRainDangerType.Blizzard;
+                }
+                else
+                {
+                    room.roomSettings.DangerType = RoomRain.DangerType.AerieBlizzard;
+                }
             }
         }
-        //Background test
-        //room.AddObject(new BackgroundRain(this));
     }
 
     public void AddRaindrops(int rainDropsToSpawn)
@@ -208,7 +214,7 @@ public class WeatherController : UpdatableAndDeletable
 
     public void AddSnowflakes(int snowFlakesToSpawn)
     {
-        if (room != null && room.BeingViewed)
+        if (room != null)
         {
             if (camPos != null)
             {
@@ -225,6 +231,8 @@ public class WeatherController : UpdatableAndDeletable
                         Vector2 spawnPos = spawn + offset2;
                         if (RayTraceSky(spawnPos, new Vector2(0f, 1f)))
                         {
+                            ForecastLog.LogOnce("Snow3");
+
                             SnowFlake snowFlake = new SnowFlake(spawnPos, Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), settings.currentIntensity, this);
                             room.AddObject(snowFlake);
                             //snowFlake.reset = true;
@@ -237,7 +245,7 @@ public class WeatherController : UpdatableAndDeletable
                     }
                     catch
                     {
-                        //ForecastLog.Log("ERROR SPAWNING SNOWFLAKE");
+                        ForecastLog.Log("ERROR SPAWNING SNOWFLAKE");
                     }
                 }
             }
@@ -272,7 +280,7 @@ public class WeatherController : UpdatableAndDeletable
         }
         if (settings.weatherType == 2)
         {
-            if (ModManager.MSC && room.fullyLoaded && room.roomSettings.DangerType == DLCSharedEnums.RoomRainDangerType.Blizzard)
+            if ((ModManager.MSC || ModManager.Watcher) && room.fullyLoaded && room.roomSettings.DangerType == DLCSharedEnums.RoomRainDangerType.Blizzard)
             {
                 if (room.roomRain != null)
                 {
@@ -293,10 +301,17 @@ public class WeatherController : UpdatableAndDeletable
             camPos = room.game.cameras[0].pos + new Vector2(room.game.rainWorld.screenSize.x / 2, room.game.rainWorld.screenSize.y / 2);
         }
         //Particle limit
-        if (settings.weatherType == 0)
+        if (settings.weatherType == 0 || (settings.weatherType == 2 && ForecastConfig.classicSnow.Value))
         {
             rainAmount = Mathf.Lerp(0, settings.particleLimit, settings.currentIntensity);
-            rainLimit = (int)Mathf.Lerp(0, Mathf.Lerp(0f, (rainAmount * 9), room.roomSettings.RainIntensity), settings.currentIntensity);
+            if (settings.weatherType == 0)
+            {
+                rainLimit = (int)Mathf.Lerp(0, Mathf.Lerp(0f, (rainAmount * 9), room.roomSettings.RainIntensity), settings.currentIntensity);
+            }
+            if (settings.weatherType == 2 && ForecastConfig.classicSnow.Value)
+            {
+                rainLimit = (int)Mathf.Lerp(0, Mathf.Lerp(0f, (rainAmount * 9), room.roomSettings.RainIntensity), settings.currentIntensity) * 5;
+            }
         }
         //Cloud cover
         if (settings.dynamicClouds)
@@ -308,19 +323,29 @@ public class WeatherController : UpdatableAndDeletable
             room.roomSettings.Clouds = settings.cloudCover;
         }
         //Snowy weather - making it look the same between AerieBlizzard and normal Blizzard
-        if (settings.currentWeather.weatherIndex == 2 && room.game.cameras[0].blizzardGraphics != null)
+        if (settings.currentWeather.weatherIndex == 2)
         {
-            room.game.cameras[0].blizzardGraphics.oldSnowFallIntensity = settings.currentIntensity;
-            room.game.cameras[0].blizzardGraphics.snowfallIntensity = settings.currentIntensity;
-            room.game.cameras[0].blizzardGraphics.oldBlizzardIntensity = settings.currentIntensity;
-            room.game.cameras[0].blizzardGraphics.blizzardIntensity = settings.currentIntensity;
-            room.game.cameras[0].blizzardGraphics.oldWindStrength = settings.currentIntensity;
-            room.game.cameras[0].blizzardGraphics.windStrength = settings.currentIntensity;
-            room.game.cameras[0].blizzardGraphics.oldWindAngle = room.game.cameras[0].blizzardGraphics.windAngle;
-            room.game.cameras[0].blizzardGraphics.windAngle = Mathf.Lerp(Mathf.Lerp(room.game.cameras[0].blizzardGraphics.WindAngle, Mathf.Sin((float)room.world.rainCycle.TimeUntilRain / 900f) * 0.64f, 0.1f) * settings.currentIntensity, Mathf.Sign(Mathf.Sin((float)room.world.rainCycle.TimeUntilRain / 900f) * 0.64f * 1.2f), 0.2f * (0f - Mathf.Abs(Mathf.Lerp(room.game.cameras[0].blizzardGraphics.WindAngle, Mathf.Sin((float)room.world.rainCycle.TimeUntilRain / 900f) * 0.64f, 0.1f) * settings.currentIntensity))) * Mathf.Lerp(0f, 0.75f, room.world.rainCycle.CycleProgression * 3f);
-            room.game.cameras[0].blizzardGraphics.oldWhiteOut = Mathf.Pow(settings.currentIntensity, 1.3f) * settings.currentIntensity;
-            room.game.cameras[0].blizzardGraphics.whiteOut = Mathf.Pow(settings.currentIntensity, 1.3f) * settings.currentIntensity;
-
+            if (room.game.cameras[0].blizzardGraphics != null && !ForecastConfig.classicSnow.Value)
+            {
+                room.game.cameras[0].blizzardGraphics.oldSnowFallIntensity = settings.currentIntensity;
+                room.game.cameras[0].blizzardGraphics.snowfallIntensity = settings.currentIntensity;
+                room.game.cameras[0].blizzardGraphics.oldBlizzardIntensity = settings.currentIntensity; //Water glitches
+                room.game.cameras[0].blizzardGraphics.blizzardIntensity = settings.currentIntensity; //Watcher glitche
+                room.game.cameras[0].blizzardGraphics.oldWindStrength = settings.currentIntensity;
+                room.game.cameras[0].blizzardGraphics.windStrength = settings.currentIntensity;
+                room.game.cameras[0].blizzardGraphics.oldWindAngle = room.game.cameras[0].blizzardGraphics.windAngle;
+                room.game.cameras[0].blizzardGraphics.windAngle = Mathf.Lerp(Mathf.Lerp(room.game.cameras[0].blizzardGraphics.WindAngle, Mathf.Sin((float)room.world.rainCycle.TimeUntilRain / 900f) * 0.64f, 0.1f) * settings.currentIntensity, Mathf.Sign(Mathf.Sin((float)room.world.rainCycle.TimeUntilRain / 900f) * 0.64f * 1.2f), 0.2f * (0f - Mathf.Abs(Mathf.Lerp(room.game.cameras[0].blizzardGraphics.WindAngle, Mathf.Sin((float)room.world.rainCycle.TimeUntilRain / 900f) * 0.64f, 0.1f) * settings.currentIntensity))) * Mathf.Lerp(0f, 0.75f, room.world.rainCycle.CycleProgression * 3f);
+                room.game.cameras[0].blizzardGraphics.oldWhiteOut = Mathf.Pow(settings.currentIntensity, 1.3f) * settings.currentIntensity;
+                room.game.cameras[0].blizzardGraphics.whiteOut = Mathf.Pow(settings.currentIntensity, 1.3f) * settings.currentIntensity;
+            }
+            else
+            {
+                if (!interior && (room.world.rainCycle.timer - room.world.rainCycle.cycleLength) / 2400f > -0.5f && blizzard == null)
+                {
+                    blizzard = new Blizzard(this);
+                    room.AddObject(blizzard);
+                }
+            }
             //Apply snowy palette
             if (room.BeingViewed)
             {
@@ -381,7 +406,7 @@ public class WeatherController : UpdatableAndDeletable
                 }
             }
             //Add rain particles
-            if (settings.currentWeather.weatherIndex == 0)
+            if (settings.weatherType == 0)
             {
                 snowFlakes = 0;
                 if (rainDrops < ((room.Width - ceilingCount) * rainLimit) / room.Width)
@@ -389,8 +414,15 @@ public class WeatherController : UpdatableAndDeletable
                     AddRaindrops(rainLimit - rainDrops);
                 }
             }
+            if (settings.weatherType == 2 && ForecastConfig.classicSnow.Value)
+            {
+                rainDrops = 0;
+                if (snowFlakes < ((room.Width - ceilingCount) * rainLimit) / room.Width)
+                {
+                    AddSnowflakes(rainLimit - snowFlakes);
+                }
+            }
         }
-
 
         //Quick reload palette
         if (ForecastConfig.debugMode.Value && Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.Alpha5))
@@ -536,6 +568,11 @@ public class WeatherController : UpdatableAndDeletable
             this.owner = owner;
             regionName = region;
             roomName = room;
+            Setup();
+        }
+
+        public void Setup()
+        {
             //Apply generic settings
             weatherType = ForecastConfig.weatherType.Value;
             //Weather override
@@ -565,11 +602,11 @@ public class WeatherController : UpdatableAndDeletable
             }
 
             //Overwrite with global settings from region if they exist and that region is set to custom
-            if (ForecastConfig.customRegionSettings.ContainsKey(region) && ForecastConfig.regionSettings.ContainsKey(region) && ForecastConfig.regionSettings[region] == 3)
+            if (ForecastConfig.customRegionSettings.ContainsKey(regionName) && ForecastConfig.regionSettings.ContainsKey(regionName) && ForecastConfig.regionSettings[regionName] == 3)
             {
-                foreach (string key in ForecastConfig.customRegionSettings[region].Keys)
+                foreach (string key in ForecastConfig.customRegionSettings[regionName].Keys)
                 {
-                    if (key == "GLOBAL" || key == room)
+                    if (key == "GLOBAL" || key == roomName)
                     {
                         if (globalTags == null)
                         {
@@ -579,14 +616,14 @@ public class WeatherController : UpdatableAndDeletable
                         {
                             roomTags = new List<string>();
                         }
-                        List<string> tags = ForecastConfig.customRegionSettings[region][key];
+                        List<string> tags = ForecastConfig.customRegionSettings[regionName][key];
                         foreach (string tag in tags)
                         {
                             if (key == "GLOBAL")
                             {
                                 globalTags.Add(tag);
                             }
-                            if (key == room)
+                            if (key == roomName)
                             {
                                 roomTags.Add(tag);
                             }
@@ -681,13 +718,13 @@ public class WeatherController : UpdatableAndDeletable
             }
 
             //Wind Direction
-            if (!WeatherForecast.regionWindDirection.ContainsKey(region))
+            if (!WeatherForecast.regionWindDirection.ContainsKey(regionName))
             {
-                WeatherForecast.regionWindDirection.Add(region, windDirection);
+                WeatherForecast.regionWindDirection.Add(regionName, windDirection);
             }
             else
             {
-                windDirection = WeatherForecast.regionWindDirection[region];
+                windDirection = WeatherForecast.regionWindDirection[regionName];
             }
             if (!dynamic)
             {
@@ -720,47 +757,47 @@ public class WeatherController : UpdatableAndDeletable
                 startingIntensity = UnityEngine.Random.Range(-0.5f, 0.8f);
 
                 //If this is the first time its been determined, add it to the dictionary for reference later
-                if (!WeatherForecast.dynamicRegionStartingIntensity.ContainsKey(region))
+                if (!WeatherForecast.dynamicRegionStartingIntensity.ContainsKey(regionName))
                 {
-                    WeatherForecast.dynamicRegionStartingIntensity.Add(region, startingIntensity);
+                    WeatherForecast.dynamicRegionStartingIntensity.Add(regionName, startingIntensity);
                 }
                 //If there's already an entry for this region, overwrite the startingIntensity with what's stored
                 else
                 {
-                    startingIntensity = WeatherForecast.dynamicRegionStartingIntensity[region];
+                    startingIntensity = WeatherForecast.dynamicRegionStartingIntensity[regionName];
                 }
             }
 
             //Load Weather
-            currentWeather = new WeatherForecast.Weather(WeatherForecast.regionWeatherForecasts[region][0]);
+            currentWeather = new WeatherForecast.Weather(WeatherForecast.regionWeatherForecasts[regionName][0]);
 
-            ForecastLog.Log($"Current weather for {region} is {currentWeather.type}");
+            ForecastLog.Log($"Current weather for {regionName} is {currentWeather.type}");
             weatherType = currentWeather.weatherIndex;
             startingIntensity = currentWeather.minIntensity;
 
             //Determine whether region weather is disabled
-            if (!WeatherForecast.weatherlessRegions.Contains(region))
+            if (!WeatherForecast.weatherlessRegions.Contains(regionName))
             {
                 //Weather disabled because it failed the weather chance check
                 if (weatherChance < UnityEngine.Random.Range(0, 100))
                 {
-                    WeatherForecast.weatherlessRegions.Add(region);
-                    ForecastLog.Log($"FORECAST: Region: {region} failed weatherChance - DISABLED this cycle");
+                    WeatherForecast.weatherlessRegions.Add(regionName);
+                    ForecastLog.Log($"FORECAST: Region: {regionName} failed weatherChance - DISABLED this cycle");
                 }
                 //Weather disabled via Remix menu
-                if (region != "GLOBAL" && ForecastConfig.regionSettings[region] == 0)
+                if (regionName != "GLOBAL" && ForecastConfig.regionSettings[regionName] == 0)
                 {
-                    WeatherForecast.weatherlessRegions.Add(region);
-                    ForecastLog.Log($"FORECAST: Region: {region} weather disabled via Remix");
+                    WeatherForecast.weatherlessRegions.Add(regionName);
+                    ForecastLog.Log($"FORECAST: Region: {regionName} weather disabled via Remix");
                 }
                 //Weather disabled because support mode is active and this region isn't using custom settings
-                else if (region != "GLOBAL" && ForecastConfig.regionSettings[region] != 3 && ForecastConfig.supportMode.Value)
+                else if (regionName != "GLOBAL" && ForecastConfig.regionSettings[regionName] != 3 && ForecastConfig.supportMode.Value)
                 {
-                    WeatherForecast.weatherlessRegions.Add(region);
-                    ForecastLog.Log($"FORECAST: Region: {region} weather disabled due to Support Mode");
+                    WeatherForecast.weatherlessRegions.Add(regionName);
+                    ForecastLog.Log($"FORECAST: Region: {regionName} weather disabled due to Support Mode");
                 }
             }
-            ForecastLog.Log($"FORECAST: Generated settings for {room}");
+            ForecastLog.Log($"FORECAST: Generated settings for {regionName}");
         }
 
         public void Update()

@@ -320,6 +320,7 @@ public class ForecastDialog : Dialog
             subObjects.Add(copy);
 
             paste = new SimpleButton(menu, this, "PASTE", "paste", new Vector2(80f, 20f), new Vector2(50f, 30f));
+            paste.buttonBehav.greyedOut = ForecastConfig.copiedWeather == null;
             subObjects.Add(paste);
 
         }
@@ -339,9 +340,10 @@ public class ForecastDialog : Dialog
             base.Singal(sender, message);
             if(message == "copy")
             {
+                paste.buttonBehav.greyedOut = false;
                 ForecastConfig.copiedWeather = regionWeatherProbability[acronym];
             }
-            if(message == "paste")
+            if(ForecastConfig.copiedWeather != null && message == "paste")
             {
                 regionWeatherProbability[acronym] = ForecastConfig.copiedWeather;
             }

@@ -74,7 +74,7 @@ public class RainDrop : CosmeticSprite
             {
                 Destroy();
             }
-            if (spawner.settings.weatherType == 1)
+            if (spawner.settings.weatherType == 2)
             {
                 Destroy();
             }

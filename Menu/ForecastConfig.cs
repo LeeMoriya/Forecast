@@ -48,6 +48,9 @@ public class ForecastConfig : OptionInterface
     public static Configurable<bool> effectColors;
     public static Configurable<bool> snowPuffs;
     public static Configurable<bool> snowSources;
+    public static Configurable<bool> classicSnow;
+    public static Configurable<int> coldFactor;
+    public static Configurable<int> windSpeed;
 
     public static Configurable<bool> debugMode;
 
@@ -84,6 +87,12 @@ public class ForecastConfig : OptionInterface
     public List<OpImage> weatherIcons;
     public List<OpSimpleImageButton> forecastButtons;
     public OpSimpleButton snowSourceToggle;
+
+    public OpSimpleButton snowSlider;
+    public OpRect selector;
+    public OpLabel classicLabel, downpourLabel;
+    public OpSlider coldSlider;
+    public OpSlider windSlider;
 
     public static bool preferenceUpdate = false;
     public static bool updateRegionSettingsButtons = false;
@@ -137,6 +146,9 @@ public class ForecastConfig : OptionInterface
         effectColors = config.Bind<bool>("effectColors", true);
         snowPuffs = config.Bind<bool>("snowPuffs", true);
         snowSources = config.Bind<bool>("snowSources", true);
+        classicSnow = config.Bind<bool>("classicSnow", true);
+        coldFactor = config.Bind<int>("coldFactor", 5, new ConfigAcceptableRange<int>(0, 10));
+        windSpeed = config.Bind<int>("windSpeed", 10, new ConfigAcceptableRange<int>(0, 10));
 
         debugMode = config.Bind<bool>("debugMode", false);
         LoadCustomRegionSettings();
@@ -340,7 +352,7 @@ public class ForecastConfig : OptionInterface
         supportModeButton.OnClick += SupportModeButton_OnClick;
         options.AddItems(supportRect, supportTitle, supportDesc, supportModeButton);
 
-        float settingsHeight = 1900f;
+        float settingsHeight = 2300f;
         settingsBox = new OpScrollBox(new Vector2(0f, 0f), new Vector2(600f, 400f), settingsHeight, false, true, true);
         options.AddItems(settingsBox);
 
@@ -391,7 +403,7 @@ public class ForecastConfig : OptionInterface
         //BASIC SETTINGS
         float basicAnchor = globalForecastAnchor - 300f;
 
-        OpLabel basicLabel = new OpLabel(new Vector2(290f, basicAnchor + 15f), new Vector2(), "- BASIC SETTINGS -", FLabelAlignment.Center);
+        OpLabel basicLabel = new OpLabel(new Vector2(280f, basicAnchor + 15f), new Vector2(), "- BASIC SETTINGS -", FLabelAlignment.Center);
 
         OpRect basicSettingsRect = new OpRect(new Vector2(15f, basicAnchor - 313.5f), new Vector2(555f, 320f));
         basicSettingsRect.colorFill = new Color(0f, 0f, 1f);
@@ -425,7 +437,7 @@ public class ForecastConfig : OptionInterface
 
         //VISUAL SETTINGS
         float visualAnchor = basicAnchor - 370f;
-        OpLabel visualLabel = new OpLabel(new Vector2(290f, visualAnchor + 15f), new Vector2(), "- VISUAL SETTINGS -", FLabelAlignment.Center);
+        OpLabel visualLabel = new OpLabel(new Vector2(280f, visualAnchor + 15f), new Vector2(), "- VISUAL SETTINGS -", FLabelAlignment.Center);
 
         OpRect visualRect = new OpRect(new Vector2(15f, visualAnchor - 233.5f), new Vector2(555, 240f));
         visualRect.colorFill = new Color(1f, 0f, 1f);
@@ -455,7 +467,7 @@ public class ForecastConfig : OptionInterface
 
         //LIGHTNING SETTINGS
         float lightningAnchor = visualAnchor - 290f;
-        OpLabel lightningLabel = new OpLabel(new Vector2(290f, lightningAnchor + 15f), new Vector2(), "- LIGHTNING SETTINGS -", FLabelAlignment.Center);
+        OpLabel lightningLabel = new OpLabel(new Vector2(280f, lightningAnchor + 15f), new Vector2(), "- LIGHTNING SETTINGS -", FLabelAlignment.Center);
 
         OpRect lightningSettingsRect = new OpRect(new Vector2(15f, lightningAnchor - 483.5f), new Vector2(555f, 490f));
         lightningSettingsRect.colorFill = new Color(1f, 1f, 0f);
@@ -504,19 +516,45 @@ public class ForecastConfig : OptionInterface
 
         //SNOW SETTINGS
         float snowAnchor = lightningAnchor - 540f;
-        OpLabel snowLabel = new OpLabel(new Vector2(290f, snowAnchor + 15f), new Vector2(), "- SNOW SETTINGS -", FLabelAlignment.Center);
+        OpLabel snowLabel = new OpLabel(new Vector2(280f, snowAnchor + 15f), new Vector2(), "- SNOW SETTINGS -", FLabelAlignment.Center);
 
-        OpRect snowSettingsRect = new OpRect(new Vector2(15f, snowAnchor - 183.5f), new Vector2(555f, 190f));
+        OpRect snowSettingsRect = new OpRect(new Vector2(15f, snowAnchor - 383.5f), new Vector2(555f, 390f));
         snowSettingsRect.colorFill = new Color(0.5f, 1f, 1f);
 
         settingsBox.AddItems(snowLabel, snowSettingsRect);
 
+        //Classic Slider
+        snowSlider = new OpSimpleButton(new Vector2(30f, snowAnchor - 50f), new Vector2(520f, 35f));
+        snowSlider.colorFill = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
+        snowSlider.OnGrafUpdate += SnowSlider_OnGrafUpdate;
+        snowSlider.OnClick += SnowSliderToggle_OnClick;
+        selector = new OpRect(new Vector2(35f, snowAnchor - 45f), new Vector2(230f, 25f));
+        selector.fillAlpha = 1f;
+        selector.colorFill = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
+        classicLabel = new OpLabel(130f, snowAnchor - 42f, "FORECAST", false);
+        classicLabel.color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
+        downpourLabel = new OpLabel(390f, snowAnchor - 42f, "DOWNPOUR", false);
+        downpourLabel.color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
+        settingsBox.AddItems(snowSlider, selector, classicLabel, downpourLabel);
+
         //Snow Sources
-        OpLabel snowSourceLabel = new OpLabel(160f, snowAnchor - 30f, "SNOW SOURCES");
-        OpLabel snowSourceDesc = new OpLabel(160f, snowAnchor - 50f, "Dynamically places snow sources during snowy weather");
-        snowSourceToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 55f), new Vector2(110f, 45f), snowSources.Value ? "ENABLED" : "DISABLED");
+        OpLabel snowSourceLabel = new OpLabel(160f, snowAnchor - 100f, "SNOW SOURCES");
+        OpLabel snowSourceDesc = new OpLabel(160f, snowAnchor - 120f, "Dynamically places snow sources during snowy weather");
+        snowSourceToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 125f), new Vector2(110f, 45f), snowSources.Value ? "ENABLED" : "DISABLED");
         snowSourceToggle.OnClick += SnowSourceToggle_OnClick;
         settingsBox.AddItems(snowSourceLabel, snowSourceDesc, snowSourceToggle);
+
+        //Cold Factor
+        coldSlider = new OpSlider(coldFactor, new Vector2(30f, snowAnchor - 180f), 110, false);
+        OpLabel coldFactorLabel = new OpLabel(160f, snowAnchor - 170f, "COLD FACTOR");
+        OpLabel coldFactorDesc = new OpLabel(160f, snowAnchor - 190f, "Configure the rate at which you grown cold in Forecast style blizzards");
+        settingsBox.AddItems(coldSlider, coldFactorLabel, coldFactorDesc);
+
+        //Wind Speed
+        windSlider = new OpSlider(windSpeed, new Vector2(30f, snowAnchor - 260f), 110, false);
+        OpLabel windSpeedLabel = new OpLabel(160f, snowAnchor - 250f, "WIND SPEED");
+        OpLabel windSpeedDesc = new OpLabel(160f, snowAnchor - 270f, "How easily the player is pushed by wind during Forecast style blizzards");
+        settingsBox.AddItems(windSlider, windSpeedLabel, windSpeedDesc);
 
         //Support Label
         supportWarning = new OpLabel(new Vector2(290f, 220f), new Vector2(), "SUPPORT MODE ENABLED", FLabelAlignment.Center, true);
@@ -599,6 +637,11 @@ public class ForecastConfig : OptionInterface
         OnConfigReset += ForecastConfig_OnConfigReset;
     }
 
+    private void SnowSlider_OnGrafUpdate(float timeStacker)
+    {
+        selector.fillAlpha = Mathf.Lerp(1f,0.7f,snowSlider.bumpBehav.flash);
+    }
+
     private void ForecastButton_OnClick(UIfocusable trigger)
     {
         var rw = GameObject.FindObjectOfType<RainWorld>();
@@ -629,6 +672,9 @@ public class ForecastConfig : OptionInterface
     private void SupportModeButton_OnClick(UIfocusable trigger) => ToggleSetting(() => supportMode.Value, v => supportMode.Value = v);
     private void GreenToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => greenLightning.Value, v => greenLightning.Value = v);
     private void SnowSourceToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => snowSources.Value, v => snowSources.Value = v);
+    private void SnowSliderToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => classicSnow.Value, v => classicSnow.Value = v);
+
+
 
     private void StrikeWeatherToggle_OnClick(UIfocusable trigger)
     {
@@ -876,6 +922,9 @@ public class ForecastConfig : OptionInterface
         intensityToggle.text = IntensityValue();
         strikeTypeToggle.text = StrikeDamageValue();
         strikeWeatherToggle.text = StrikeWeathers();
+        classicLabel.color = classicSnow.Value ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.VeryDarkGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
+        downpourLabel.color = classicSnow.Value ? Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey) : Menu.Menu.MenuRGB(Menu.Menu.MenuColors.VeryDarkGrey);
+        selector.PosX = classicSnow.Value ? 35f : 315f;
 
         randomnessSlider.greyedOut = !weatherPreference.Value;
 

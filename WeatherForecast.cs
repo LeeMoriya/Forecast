@@ -219,7 +219,7 @@ public static class WeatherForecast
                     weatherIndex = 0;
                     minIntensity = 0f;
                     maxIntensity = 0.1f;
-                    nextPreference.Add(WeatherType.LightRain, 0.8f);
+                    nextPreference.Add(WeatherType.LightRain, 0.1f);
                     nextPreference.Add(WeatherType.LightSnow, 0.9f);
                     break;
                 case WeatherType.LightSnow:

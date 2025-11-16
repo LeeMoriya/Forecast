@@ -43,8 +43,8 @@ public class ForecastMod : BaseUnityPlugin
             LoadSprites();
             WeatherHooks.Patch();
             //RainPalette.Patch();
-            //new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_ScreenShake);
-            //new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.MicroScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_MicroScreenShake);
+            new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_ScreenShake);
+            new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.MicroScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_MicroScreenShake);
             init = true;
         }
 
@@ -165,7 +165,19 @@ public class ForecastMod : BaseUnityPlugin
 
     private float RainCycle_get_MicroScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
     {
-        if (ForecastConfig.weatherType.Value == 0 && ForecastConfig.endBlizzard.Value)
+        WeatherController.WeatherSettings settings = null;
+        for (int i = 0; i < rainCycle.world.game.Players.Count; i++)
+        {
+            if ((bool)(rainCycle.world.game.Players[i].Room?.realizedRoom?.BeingViewed))
+            {
+                if (WeatherHooks.roomSettings.ContainsKey(rainCycle.world.game.Players[i].Room.realizedRoom))
+                {
+                    settings = WeatherHooks.roomSettings[rainCycle.world.game.Players[i].Room.realizedRoom];
+                }
+            }
+        }
+
+        if (ForecastConfig.classicSnow.Value && settings != null && settings.weatherType == 2)
         {
             return 0f;
         }
@@ -174,7 +186,19 @@ public class ForecastMod : BaseUnityPlugin
 
     private float RainCycle_get_ScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
     {
-        if (ForecastConfig.weatherType.Value == 0 && ForecastConfig.endBlizzard.Value)
+        WeatherController.WeatherSettings settings = null;
+        for (int i = 0; i < rainCycle.world.game.Players.Count; i++)
+        {
+            if ((bool)(rainCycle.world.game.Players[i].Room?.realizedRoom?.BeingViewed))
+            {
+                if (WeatherHooks.roomSettings.ContainsKey(rainCycle.world.game.Players[i].Room.realizedRoom))
+                {
+                    settings = WeatherHooks.roomSettings[rainCycle.world.game.Players[i].Room.realizedRoom];
+                }
+            }
+        }
+
+        if (ForecastConfig.classicSnow.Value && settings != null && settings.weatherType == 2)
         {
             return 0f;
         }
@@ -186,7 +210,6 @@ public class ForecastMod : BaseUnityPlugin
     public static bool paletteChange = true;
     public static bool rainbow = false;
     public static bool decals = true;
-    public static List<string> rainRegions = new List<string>();
     public static List<ExposureController> exposureControllers;
     public static int blizzardDirection;
     public static bool interiorRain = true;

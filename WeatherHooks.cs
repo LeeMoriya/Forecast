@@ -25,7 +25,7 @@ public class WeatherHooks
             RoomRain.DangerType.None
         };
 
-        if (ModManager.MSC)
+        if (ModManager.MSC || ModManager.Watcher)
         {
             invalidDangerTypes.Add(DLCSharedEnums.RoomRainDangerType.Blizzard);
         }
@@ -36,7 +36,7 @@ public class WeatherHooks
     public static void Patch()
     {
         On.Room.Update += Room_Update;
-        On.Room.Loaded += Room_Loaded;
+        //On.Room.Loaded += Room_Loaded;
         On.AbstractRoom.RealizeRoom += AbstractRoom_RealizeRoom;
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
         On.Lightning.ctor += Lightning_ctor;
@@ -44,16 +44,28 @@ public class WeatherHooks
         On.Player.ctor += Player_ctor;
         On.StoryGameSession.ctor += StoryGameSession_ctor;
         On.RainWorld.Update += RainWorld_Update;
-
+        On.RoomRain.Update += RoomRain_Update;
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize; //Remove settings
         On.WinState.CycleCompleted += WinState_CycleCompleted;
         On.RoomRain.DrawSprites += RoomRain_DrawSprites;
     }
 
+    private static void RoomRain_Update(On.RoomRain.orig_Update orig, RoomRain self, bool eu)
+    {
+        if (roomSettings.ContainsKey(self.room))
+        {
+            if (roomSettings[self.room].weatherType == 2 && ForecastConfig.classicSnow.Value)
+            {
+                return;
+            }
+        }
+        orig.Invoke(self,eu);
+    }
+
     private static void RoomRain_DrawSprites(On.RoomRain.orig_DrawSprites orig, RoomRain self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
     {
         //Fix to stop freeze when deleting RoomRain at cycle start if weather is Blizzard
-        if (ModManager.MSC && self.room != null && self.room.roomSettings != null && self.room.roomSettings.DangerType == DLCSharedEnums.RoomRainDangerType.Blizzard)
+        if ((ModManager.MSC || ModManager.Watcher) && self.room != null && self.room.roomSettings != null && self.room.roomSettings.DangerType == DLCSharedEnums.RoomRainDangerType.Blizzard)
         {
             sLeaser.CleanSpritesAndRemove();
             return;
@@ -142,7 +154,7 @@ public class WeatherHooks
                 ForecastMod.exposureControllers[i].RemoveDebugLabels();
             }
         }
-        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value)
+        if (ForecastConfig.classicSnow.Value)
         {
             ForecastMod.exposureControllers = new List<ExposureController>();
         }
@@ -151,7 +163,7 @@ public class WeatherHooks
     private static void Player_ctor(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
     {
         orig.Invoke(self, abstractCreature, world);
-        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value && self.room.game.session is StoryGameSession)
+        if (ForecastConfig.classicSnow.Value && self.room.game.session is StoryGameSession)
         {
             ForecastMod.exposureControllers.Add(new ExposureController(self));
         }
@@ -169,6 +181,15 @@ public class WeatherHooks
                 {
                     if(ModManager.MSC && game.manager.artificerDreamNumber != -1) { return; }
                     self.realizedRoom.AddObject(new WeatherController(self.realizedRoom));
+
+                    if (roomSettings.ContainsKey(self.realizedRoom) && roomSettings[self.realizedRoom].weatherType == 2 && ForecastConfig.classicSnow.Value)
+                    {
+                        if (self.realizedRoom.game != null && !self.realizedRoom.abstractRoom.shelter)
+                        {
+                            ForecastLog.Log("Adding WeatherSounds");
+                            self.realizedRoom.AddObject(new WeatherSounds(self.realizedRoom));
+                        }
+                    }
                 }
             }
         }
@@ -249,10 +270,11 @@ public class WeatherHooks
     private static void Room_Loaded(On.Room.orig_Loaded orig, Room self)
     {
         orig.Invoke(self);
-        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value)
+        if (roomSettings.ContainsKey(self) && roomSettings[self].weatherType == 2 && ForecastConfig.classicSnow.Value)
         {
             if (self.game != null && !self.abstractRoom.shelter)
             {
+                ForecastLog.Log("Adding WeatherSounds");
                 self.AddObject(new WeatherSounds(self));
             }
         }
@@ -260,7 +282,7 @@ public class WeatherHooks
     private static void Room_Update(On.Room.orig_Update orig, Room self)
     {
         orig.Invoke(self);
-        if (ForecastConfig.weatherType.Value == 1 && ForecastConfig.endBlizzard.Value && self.world.rainCycle.RainDarkPalette > 0f)
+        if (self.BeingViewed && roomSettings.ContainsKey(self) && roomSettings[self].weatherType == 2 && ForecastConfig.classicSnow.Value && self.world.rainCycle.RainDarkPalette > 0f)
         {
             //Update exposure
             if (ForecastMod.exposureControllers != null & ForecastMod.exposureControllers.Count > 0)
@@ -278,7 +300,7 @@ public class WeatherHooks
             {
                 self.world.rainCycle.timer += 25;
             }
-            if (ModManager.MSC)
+            if (ModManager.MSC || ModManager.Watcher)
             {
                 if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Alpha4))
                 {
