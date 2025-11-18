@@ -545,9 +545,9 @@ public class ForecastConfig : OptionInterface
         settingsBox.AddItems(snowSourceLabel, snowSourceDesc, snowSourceToggle);
 
         //Cold Factor
-        coldSlider = new OpSlider(coldFactor, new Vector2(30f, snowAnchor - 180f), 110, false);
-        OpLabel coldFactorLabel = new OpLabel(160f, snowAnchor - 170f, "COLD FACTOR");
-        OpLabel coldFactorDesc = new OpLabel(160f, snowAnchor - 190f, "Configure the rate at which you grown cold in Forecast style blizzards");
+        coldSlider = new OpSlider(coldFactor, new Vector2(30f, snowAnchor - 190f), 110, false);
+        OpLabel coldFactorLabel = new OpLabel(160f, snowAnchor - 180f, "COLD FACTOR");
+        OpLabel coldFactorDesc = new OpLabel(160f, snowAnchor - 200f, "Configure the rate at which you grown cold in Forecast style blizzards");
         settingsBox.AddItems(coldSlider, coldFactorLabel, coldFactorDesc);
 
         //Wind Speed

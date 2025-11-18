@@ -23,13 +23,13 @@ public class Blizzard : UpdatableAndDeletable
         }
         this.preciptator = preciptator;
         room = preciptator.room;
-        particleLimit = 70;
+        particleLimit = 100;
         if (room.roomSettings.RainIntensity > 0f)
         {
-            room.AddObject(new ScrollingTexture(room, this, "overlay1", 4.5f, 0.3f));
-            room.AddObject(new ScrollingTexture(room, this, "overlay1", 8.5f, 0.31f));
-            room.AddObject(new ScrollingTexture(room, this, "overlay2", 5f, 1f));
+            room.AddObject(new ScrollingTexture(room, this, "overlay1", 6.5f, 0.31f));
+            room.AddObject(new ScrollingTexture(room, this, "overlay2", 4f, 1f));
             room.AddObject(new ScrollingTexture(room, this, "overlay2", 6.3f, 1f));
+            room.AddObject(new ScrollingTexture(room, this, "overlay1", 2f, 0.3f));
         }
     }
 
@@ -51,7 +51,8 @@ public class Blizzard : UpdatableAndDeletable
             }
         }
         //Wind
-        intensity = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.061f, room.roomSettings.RainIntensity), Mathf.Lerp(0.5f, 1f, TimePastCycleEnd));
+        float windStrength = Mathf.Lerp(0f, 0.065f, Mathf.InverseLerp(0f, 10, ForecastConfig.windSpeed.Value));
+        intensity = Mathf.Lerp(0f, Mathf.Lerp(0f, windStrength, room.roomSettings.RainIntensity), Mathf.Lerp(0.5f, 1f, TimePastCycleEnd));
         ThrowAroundObjects();
         //Camera Shake
         if (room.BeingViewed)
@@ -164,54 +165,57 @@ public class Blizzard : UpdatableAndDeletable
         public float lastRotation, rotation;
         public bool reset;
         public float alpha, lastAlpha = 0f;
-        public float xSway;
-        public float ySway;
+        public Vector2 dir;
+        public float speed = UnityEngine.Random.Range(37f, 45f);
 
         public Particle(Blizzard owner)
         {
             this.owner = owner;
-            xSway = UnityEngine.Random.Range(15f, 25f) * UnityEngine.Random.Range(1f, 1.5f);
-            ySway = UnityEngine.Random.Range(7f, 12f) * UnityEngine.Random.Range(1f, 1.5f);
-            pos = new Vector2(UnityEngine.Random.Range(0f, 1400f), UnityEngine.Random.Range(0f, 900f));
+            if (ForecastMod.blizzardDirection == 1)
+            {
+                dir = Custom.DegToVec(255f);
+                pos = new Vector2(UnityEngine.Random.Range(300f, 5000f), UnityEngine.Random.Range(1000f, 1200f));
+            }
+            else
+            {
+                dir = Custom.DegToVec(115f);
+                pos = new Vector2(UnityEngine.Random.Range(-5000f, 300f), UnityEngine.Random.Range(1000f, 1200f));
+            }
+            vel = dir * speed;
         }
 
         public override void Update(bool eu)
         {
+            base.Update(eu);
             lastAlpha = alpha;
-            lastLastPos = lastPos;
-            lastPos = pos;
             lastRotation = rotation;
             rotation = Custom.AimFromOneVectorToAnother(lastPos, pos);
-            if (reset)
+
+            if (reset && room.BeingViewed)
             {
                 reset = false;
                 alpha = 0f;
-                pos = new Vector2(UnityEngine.Random.Range(-50f, 1600f), UnityEngine.Random.Range(-50f, 1100f));
-            }
-
-            if (ForecastMod.blizzardDirection == 1)
-            {
-                pos.x -= xSway * 2f;
-                pos.y -= ySway * 2f;
-                if (pos.x < -100f || pos.y < -100f)
+                if (ForecastMod.blizzardDirection == 1)
                 {
-                    reset = true;
+                    dir = Custom.DegToVec(255f);
+                    pos = new Vector2(UnityEngine.Random.Range(300f, 5000f), UnityEngine.Random.Range(1000f, 1200f));
                 }
-            }
-            else
-            {
-                pos.x += xSway * 2f;
-                pos.y -= ySway * 2f;
-                if (pos.x > 1400f || pos.y < -100f)
+                else
                 {
-                    reset = true;
+                    dir = Custom.DegToVec(115f);
+                    pos = new Vector2(UnityEngine.Random.Range(-5000f, 300f), UnityEngine.Random.Range(1000f, 1200f));
                 }
+                lastPos = pos;
+                vel = dir * speed;
+            }
+            if (pos.y < -400f)
+            {
+                reset = true;
             }
             if (alpha < Mathf.Lerp(0f, Mathf.Lerp(0f, 0.55f, room.roomSettings.RainIntensity), Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, owner.TimePastCycleEnd))))
             {
-                alpha += 0.025f;
+                alpha += 0.005f;
             }
-            base.Update(eu);
         }
 
         public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
@@ -227,8 +231,8 @@ public class Blizzard : UpdatableAndDeletable
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             sLeaser.sprites[0].alpha = Mathf.Lerp(lastAlpha, alpha, timeStacker);
-            sLeaser.sprites[0].x = Mathf.Lerp(lastPos.x, pos.x, timeStacker);
-            sLeaser.sprites[0].y = Mathf.Lerp(lastPos.y, pos.y, timeStacker);
+            sLeaser.sprites[0].x = Mathf.Lerp(lastPos.x, pos.x, timeStacker) - camPos.x;
+            sLeaser.sprites[0].y = Mathf.Lerp(lastPos.y, pos.y, timeStacker) - camPos.y;
             sLeaser.sprites[0].rotation = Mathf.Lerp(lastRotation, rotation, timeStacker);
             base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
         }
@@ -387,7 +391,7 @@ public class Vignette : ISingleCameraDrawable
         vignette.y = camera.game.rainWorld.screenSize.y / 2f;
         vignette.scaleX = (camera.game.rainWorld.screenSize.x * Mathf.Lerp(1.5f, 1f, Mathf.Lerp(controller.lastExposure, controller.exposure, timeStacker)) + 2f) / 16f;
         vignette.scaleY = (camera.game.rainWorld.screenSize.y * Mathf.Lerp(2.5f, 1.5f, Mathf.Lerp(controller.lastExposure, controller.exposure, timeStacker)) + 2f) / 16f;
-        vignette.alpha = Mathf.Lerp(0f, 0.5f, controller.exposure);
+        vignette.alpha = Mathf.Lerp(0f, 0.5f, Mathf.InverseLerp(0.1f, 1f, controller.exposure));
     }
 }
 
@@ -420,6 +424,7 @@ public class ExposureController
             vignette = new Vignette(this);
         }
         dead = false;
+        exposureRate = Mathf.Lerp(0f, 0.04f, Mathf.InverseLerp(0f, 10f, ForecastConfig.coldFactor.Value));
 
         ForecastLog.Log("EXPOSURE CONTROLLER - PLAYER " + player.playerState.playerNumber);
 
