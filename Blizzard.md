@@ -1,6 +1,6 @@
 # End-Of-Cycle Blizzard
 
-In Downpour's snow mode, the end-of-cycle DeathRain is replaced with a new Blizzard effect that ramps up in intensity 
+In Forecast's snow mode, the end-of-cycle DeathRain is replaced with a new Blizzard effect that ramps up in intensity 
 as the time after the end of the cycle increases. This effect exposes the player to the effects of the cold, increasing 
 their 'Exposure' the longer they are caught in it.
 
