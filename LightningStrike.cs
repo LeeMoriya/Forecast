@@ -80,14 +80,14 @@ public class LightningStrike : UpdatableAndDeletable
         public Vector2 endPos;
         public List<Vector2> pathPositions;
         public Color color;
-        public bool search = false;
+        public bool searchFinished = false;
         public bool spawn = false;
         public bool fade = false;
         public float xVar = 25f;
         public float yVar = 20f;
         public float fadeRate = 0.7f;
-        public float startAlpha = 1f;
         public bool tooFar = false;
+        public float lastAlpha, alpha;
         public LightningPath(Vector2 startPos, LightningStrike strike, Color col)
         {
             lightningStrike = strike;
@@ -97,6 +97,7 @@ public class LightningStrike : UpdatableAndDeletable
             {
                 pos
             };
+            alpha = 1f;
         }
 
         public override void Update(bool eu)
@@ -106,15 +107,17 @@ public class LightningStrike : UpdatableAndDeletable
             {
                 slatedForDeletetion = true;
             }
-            if (!search)
+            if (!searchFinished)
             {
                 Vector2 vec = pathPositions.Last();
                 vec.x += UnityEngine.Random.Range(xVar, -xVar);
                 vec.y -= UnityEngine.Random.Range(yVar, yVar * 2);
+
+                //Lightning path hit a surface
                 if (room.GetTile(vec).Terrain == Room.Tile.TerrainType.Solid || vec.y < room.floatWaterLevel)
                 {
                     pathPositions.Add(vec);
-                    search = true;
+                    searchFinished = true;
 
                     tooFar = false;
                     if (room != null && room.BeingViewed)
@@ -142,6 +145,11 @@ public class LightningStrike : UpdatableAndDeletable
             {
                 warning += 0.025f;
             }
+            if (spawn)
+            {
+                alpha -= 0.03f;
+            }
+            lastAlpha = alpha;
         }
 
         public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
@@ -150,7 +158,7 @@ public class LightningStrike : UpdatableAndDeletable
             for (int i = 0; i < pathPositions.Count; i++)
             {
                 sLeaser.sprites[i] = new FSprite("pixel", false);
-                sLeaser.sprites[i].alpha = startAlpha;
+                sLeaser.sprites[i].alpha = alpha;
                 sLeaser.sprites[i].color = color;
                 sLeaser.sprites[i].scaleX = 5f;
             }
@@ -159,20 +167,16 @@ public class LightningStrike : UpdatableAndDeletable
 
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
-            if (search)
+            if (searchFinished)
             {
-                if (warning == 0f && !spawn && startAlpha == 1f)
+                if (warning == 0f && !spawn)
                 {
                     room.AddObject(new LightningFlash(pathPositions.Last() + new Vector2(0f, 15f), color, 15f, 30f, true));
                     room.PlaySound(SoundID.Thunder_Close, pathPositions.Last(), 0.7f, 1f);
                 }
-                //warning += 0.024f * timeStacker;
                 if (!spawn && warning >= 1.5f)
                 {
-                    
-
                     InitiateSprites(sLeaser, rCam);
-                    startAlpha = 0f;
                     room.PlaySound(SoundID.Bomb_Explode, pathPositions.Last(), 1.3f, 0.8f);
                     room.PlaySound(SoundID.Thunder, pathPositions.Last(), 1f, 1f);
                     room.AddObject(new Smoke.BombSmoke(room, pathPositions.Last() + new Vector2(0f, 15f), null, new Color(0.01f, 0.01f, 0.01f)));
@@ -222,8 +226,8 @@ public class LightningStrike : UpdatableAndDeletable
                             sLeaser.sprites[i].x = Mathf.Lerp(pathPositions[i].x, pathPositions[i + 1].x, 0.5f) - camPos.x;
                             sLeaser.sprites[i].y = Mathf.Lerp(pathPositions[i].y, pathPositions[i + 1].y, 0.5f) - camPos.y;
                             sLeaser.sprites[i].scaleY = Vector2.Distance(pathPositions[i], pathPositions[i + 1]);
-                            sLeaser.sprites[i].scaleX -= 0.12f;
-                            sLeaser.sprites[i].alpha -= 3f * Time.deltaTime;
+                            //sLeaser.sprites[i].scaleX -= 0.12f;
+                            sLeaser.sprites[i].alpha = Mathf.Lerp(lastAlpha, alpha, timeStacker);
                         }
                     }
                 }

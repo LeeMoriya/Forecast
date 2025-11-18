@@ -602,7 +602,7 @@ public class ExposureController
                         {
                             ForecastLog.Log(bellRing.ToString());
                         }
-                        player.room.PlaySound(SoundID.MENU_Start_New_Game, player.mainBodyChunk, false, Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)), 1.3f);
+                        player.room.PlaySound(SoundID.MENU_Start_New_Game, player.mainBodyChunk, false, Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)), UnityEngine.Random.Range(1.25f,1.3f));
                         if (bellRing == 25)
                         {
                             if (!dead)
