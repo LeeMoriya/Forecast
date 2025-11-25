@@ -147,7 +147,7 @@ public class LightningStrike : UpdatableAndDeletable
             }
             if (spawn)
             {
-                alpha -= 0.03f;
+                alpha -= 0.05f;
             }
             lastAlpha = alpha;
         }
@@ -350,7 +350,10 @@ public class LightningStrike : UpdatableAndDeletable
         {
             if (size > 25f)
             {
-                room.AddObject(new Spark(pos, Custom.RNV() * 60f * UnityEngine.Random.value, color, null, 4, 50));
+                for (int i = 0; i < 5; i++)
+                {
+                    room.AddObject(new Spark(pos, Custom.RNV() * 30f * UnityEngine.Random.value, color, null, 4, 50));
+                }
             }
             if (life <= 0f && lastLife <= 0f)
             {

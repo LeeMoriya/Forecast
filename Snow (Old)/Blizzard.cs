@@ -464,11 +464,11 @@ public class ExposureController
 
     public void RemoveDebugLabels()
     {
-        labelPlayer.RemoveFromContainer();
-        labelExposure.RemoveFromContainer();
-        labelAmbient.RemoveFromContainer();
-        labelBlizzard.RemoveFromContainer();
-        labelCooldown.RemoveFromContainer();
+        labelPlayer?.RemoveFromContainer();
+        labelExposure?.RemoveFromContainer();
+        labelAmbient?.RemoveFromContainer();
+        labelBlizzard?.RemoveFromContainer();
+        labelCooldown?.RemoveFromContainer();
     }
 
     public void UpdateDebugLabels()

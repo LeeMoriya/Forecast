@@ -18,11 +18,11 @@ using BepInEx;
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
-[BepInPlugin("LeeMoriya.Forecast", "Forecast", "1.1.7")]
+[BepInPlugin("LeeMoriya.Forecast", "Forecast", "1.1.8")]
 public class ForecastMod : BaseUnityPlugin
 {
     public static bool init = false;
-    public static string versionNum = "1.1.7";
+    public static string versionNum = "1.1.8";
     public ForecastMod()
     {
         
@@ -166,17 +166,21 @@ public class ForecastMod : BaseUnityPlugin
     private float RainCycle_get_MicroScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
     {
         WeatherController.WeatherSettings settings = null;
-        for (int i = 0; i < rainCycle.world.game.Players.Count; i++)
+
+        var players = rainCycle?.world?.game?.Players;
+        if (players != null)
         {
-            if ((bool)(rainCycle.world.game.Players[i].Room?.realizedRoom?.BeingViewed))
+            foreach (var player in players)
             {
-                if (WeatherHooks.roomSettings.ContainsKey(rainCycle.world.game.Players[i].Room.realizedRoom))
+                var room = player?.Room?.realizedRoom;
+                if (room == null) continue;
+
+                if (room.BeingViewed == true && WeatherHooks.roomSettings.TryGetValue(room, out var ws))
                 {
-                    settings = WeatherHooks.roomSettings[rainCycle.world.game.Players[i].Room.realizedRoom];
+                    settings = ws;
                 }
             }
         }
-
         if (ForecastConfig.classicSnow.Value && settings != null && settings.weatherType == 2)
         {
             return 0f;
@@ -187,23 +191,28 @@ public class ForecastMod : BaseUnityPlugin
     private float RainCycle_get_ScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)
     {
         WeatherController.WeatherSettings settings = null;
-        for (int i = 0; i < rainCycle.world.game.Players.Count; i++)
+
+        var players = rainCycle?.world?.game?.Players;
+        if (players != null)
         {
-            if ((bool)(rainCycle.world.game.Players[i].Room?.realizedRoom?.BeingViewed))
+            foreach (var player in players)
             {
-                if (WeatherHooks.roomSettings.ContainsKey(rainCycle.world.game.Players[i].Room.realizedRoom))
+                var room = player?.Room?.realizedRoom;
+                if (room == null) continue;
+
+                if (room.BeingViewed == true && WeatherHooks.roomSettings.TryGetValue(room, out var ws))
                 {
-                    settings = WeatherHooks.roomSettings[rainCycle.world.game.Players[i].Room.realizedRoom];
+                    settings = ws;
                 }
             }
         }
-
         if (ForecastConfig.classicSnow.Value && settings != null && settings.weatherType == 2)
         {
             return 0f;
         }
         return orig.Invoke(rainCycle);
     }
+
 
     public static ForecastConfig Options;
     public static int palettecount = 0;

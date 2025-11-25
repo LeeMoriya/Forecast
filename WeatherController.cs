@@ -456,12 +456,14 @@ public class WeatherController : UpdatableAndDeletable
 
         Texture2D newFadeA = new Texture2D(origFadePalA.width, origFadePalA.height, TextureFormat.ARGB32, false);
         Texture2D newFadeB = new Texture2D(origFadePalB.width, origFadePalB.height, TextureFormat.ARGB32, false);
+        float darkness = room.game.cameras[0].PaletteDarkness();
 
         Color[] newAPixels = origFadePalA.GetPixels();
         Color[] newBPixels = origFadePalB.GetPixels();
-        Color[] snowPixels = ForecastMod.snowExt.GetPixels();
+        Color[] snowPixels = darkness > 0.6f ? ForecastMod.snowInt.GetPixels() : ForecastMod.snowExt.GetPixels();
 
-        float fadePercent = settings.currentIntensity;
+        float fadePercent = Mathf.Lerp(settings.currentIntensity, 0f, Mathf.InverseLerp(0f, 0.9f, darkness));
+        //ForecastLog.Log($"{room.abstractRoom.name} Darkness: {darkness} : FadePercent: {fadePercent}");
 
         //Fade Tex A
         for (int i = 0; i < newAPixels.Length; i++)
@@ -469,7 +471,7 @@ public class WeatherController : UpdatableAndDeletable
             if (interior)
             {
                 //Desaturate
-                newAPixels[i] = Custom.Desaturate(newAPixels[i], fadePercent);
+                newAPixels[i] = Custom.Desaturate(newAPixels[i], settings.currentIntensity);
             }
             else
             {
@@ -495,7 +497,7 @@ public class WeatherController : UpdatableAndDeletable
                 if (interior)
                 {
                     //Desaturate
-                    newBPixels[i] = Custom.Desaturate(newBPixels[i], fadePercent);
+                    newBPixels[i] = Custom.Desaturate(newBPixels[i], settings.currentIntensity);
                 }
                 else
                 {
@@ -513,6 +515,7 @@ public class WeatherController : UpdatableAndDeletable
             newFadeB.Apply(false);
             room.game.cameras[0].fadeTexB = newFadeB;
         }
+
         room.game.cameras[0].ApplyEffectColorsToPaletteTexture(ref newFadeA, room.roomSettings.EffectColorA, room.roomSettings.EffectColorB);
         room.game.cameras[0].ApplyEffectColorsToPaletteTexture(ref newFadeB, room.roomSettings.EffectColorA, room.roomSettings.EffectColorB);
 
