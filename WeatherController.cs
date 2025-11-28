@@ -67,63 +67,70 @@ public class WeatherController : UpdatableAndDeletable
         snowFlakes = 0;
         ceilingCount = 0;
 
-        for (int r = 0; r < room.TileWidth; r++)
+        if (!room.abstractRoom.gate)
         {
-            if (room.Tiles[r, room.TileHeight - 1].Solid)
+            for (int r = 0; r < room.TileWidth; r++)
             {
-                ceilingCount++;
-            }
-        }
-        //Gather list of open ceiling tiles for spawning particles
-        if (ceilingCount < (room.Width * 0.95f))
-        {
-            for (int i = 0; i < room.TileWidth; i++)
-            {
-                //Add every open air tile at the top of the room to a list
-                int j = room.TileHeight - 1;
-                if (room.GetTile(i, j).Terrain != Room.Tile.TerrainType.Solid && room.GetTile(i, j - 1).Terrain != Room.Tile.TerrainType.Solid && j > room.defaultWaterLevel)
+                if (room.Tiles[r, room.TileHeight - 1].Solid)
                 {
-                    ceilingTiles.Add(new IntVector2(i, j));
-                    //Check each tile below this one until it hits something solid
-                    for (int t = j - 1; t > 0; t--)
+                    ceilingCount++;
+                }
+            }
+            //Gather list of open ceiling tiles for spawning particles
+            if (ceilingCount < (room.Width * 0.95f))
+            {
+                for (int i = 0; i < room.TileWidth; i++)
+                {
+                    //Add every open air tile at the top of the room to a list
+                    int j = room.TileHeight - 1;
+                    if (room.GetTile(i, j).Terrain != Room.Tile.TerrainType.Solid && room.GetTile(i, j - 1).Terrain != Room.Tile.TerrainType.Solid && j > room.defaultWaterLevel)
                     {
-                        //If this tile is solid or is below the water level, add it to the list
-                        Room.Tile tile = room.GetTile(i, t);
-                        if (tile.Terrain == Room.Tile.TerrainType.Solid || t < room.defaultWaterLevel)
+                        ceilingTiles.Add(new IntVector2(i, j));
+                        //Check each tile below this one until it hits something solid
+                        for (int t = j - 1; t > 0; t--)
                         {
-                            groundTiles.Add(new IntVector2(i, t));
-                            surfaceTiles.Add(room.MiddleOfTile(i, t));
-                            break;
+                            //If this tile is solid or is below the water level, add it to the list
+                            Room.Tile tile = room.GetTile(i, t);
+                            if (tile.Terrain == Room.Tile.TerrainType.Solid || t < room.defaultWaterLevel)
+                            {
+                                groundTiles.Add(new IntVector2(i, t));
+                                surfaceTiles.Add(room.MiddleOfTile(i, t));
+                                break;
+                            }
+                            else if (tile.Terrain == Room.Tile.TerrainType.Slope || tile.Terrain == Room.Tile.TerrainType.Floor)
+                            {
+                                surfaceTiles.Add(room.MiddleOfTile(i, t));
+                            }
+                            //If there are no solid tiles below this one, add a position for the bottom of the room
+                            if (t == 0)
+                            {
+                                groundTiles.Add(new IntVector2(i, 0));
+                                break;
+                            }
                         }
-                        else if (tile.Terrain == Room.Tile.TerrainType.Slope || tile.Terrain == Room.Tile.TerrainType.Floor)
+                    }
+                }
+                foreach (Room.Tile tile in room.Tiles)
+                {
+                    if ((tile.Solid && room.GetTile(tile.X, tile.Y + 1).Terrain == Room.Tile.TerrainType.Air && room.GetTile(tile.X, tile.Y + 2).Terrain == Room.Tile.TerrainType.Air) ||
+                        tile.Terrain == Room.Tile.TerrainType.Slope && room.GetTile(tile.X, tile.Y + 1).Terrain == Room.Tile.TerrainType.Air && room.GetTile(tile.X, tile.Y + 2).Terrain == Room.Tile.TerrainType.Air)
+                    {
+                        skyreach.Add(room.MiddleOfTile(tile.X, tile.Y - 1));
+                        //Add snow decals to surfaces
+                        if (settings.currentWeather.weatherIndex == 2 && ForecastMod.decals)
                         {
-                            surfaceTiles.Add(room.MiddleOfTile(i, t));
-                        }
-                        //If there are no solid tiles below this one, add a position for the bottom of the room
-                        if (t == 0)
-                        {
-                            groundTiles.Add(new IntVector2(i, 0));
-                            break;
+                            if (UnityEngine.Random.value > 0.8f)
+                            {
+                                room.AddObject(new SnowPile(room.MiddleOfTile(tile.X, tile.Y - 1), UnityEngine.Random.Range(60f, 80f)));
+                            }
+                            room.AddObject(new SnowPile(room.MiddleOfTile(tile.X, tile.Y), UnityEngine.Random.Range(20f, 45f)));
                         }
                     }
                 }
             }
-            foreach (Room.Tile tile in room.Tiles)
+            else
             {
-                if ((tile.Solid && room.GetTile(tile.X, tile.Y + 1).Terrain == Room.Tile.TerrainType.Air && room.GetTile(tile.X, tile.Y + 2).Terrain == Room.Tile.TerrainType.Air) ||
-                    tile.Terrain == Room.Tile.TerrainType.Slope && room.GetTile(tile.X, tile.Y + 1).Terrain == Room.Tile.TerrainType.Air && room.GetTile(tile.X, tile.Y + 2).Terrain == Room.Tile.TerrainType.Air)
-                {
-                    skyreach.Add(room.MiddleOfTile(tile.X, tile.Y - 1));
-                    //Add snow decals to surfaces
-                    if (settings.currentWeather.weatherIndex == 2 && ForecastMod.decals)
-                    {
-                        if (UnityEngine.Random.value > 0.8f)
-                        {
-                            room.AddObject(new SnowPile(room.MiddleOfTile(tile.X, tile.Y - 1), UnityEngine.Random.Range(60f, 80f)));
-                        }
-                        room.AddObject(new SnowPile(room.MiddleOfTile(tile.X, tile.Y), UnityEngine.Random.Range(20f, 45f)));
-                    }
-                }
+                interior = true;
             }
         }
         else
@@ -449,23 +456,20 @@ public class WeatherController : UpdatableAndDeletable
 
     public void ApplyPalette()
     {
-        if (origFadePalA == null || origFadePalB == null || ForecastMod.snowExt == null || ForecastMod.snowInt == null)
+        if (origFadePalA == null || ForecastMod.snowExt == null || ForecastMod.snowInt == null)
         {
             return;
         }
 
-        Texture2D newFadeA = new Texture2D(origFadePalA.width, origFadePalA.height, TextureFormat.ARGB32, false);
-        Texture2D newFadeB = new Texture2D(origFadePalB.width, origFadePalB.height, TextureFormat.ARGB32, false);
         float darkness = room.game.cameras[0].PaletteDarkness();
-
-        Color[] newAPixels = origFadePalA.GetPixels();
-        Color[] newBPixels = origFadePalB.GetPixels();
         Color[] snowPixels = darkness > 0.6f ? ForecastMod.snowInt.GetPixels() : ForecastMod.snowExt.GetPixels();
 
         float fadePercent = Mathf.Lerp(settings.currentIntensity, 0f, Mathf.InverseLerp(0f, 0.9f, darkness));
         //ForecastLog.Log($"{room.abstractRoom.name} Darkness: {darkness} : FadePercent: {fadePercent}");
 
         //Fade Tex A
+        Texture2D newFadeA = new Texture2D(origFadePalA.width, origFadePalA.height, TextureFormat.ARGB32, false);
+        Color[] newAPixels = origFadePalA.GetPixels();
         for (int i = 0; i < newAPixels.Length; i++)
         {
             if (interior)
@@ -488,10 +492,13 @@ public class WeatherController : UpdatableAndDeletable
         newFadeA.SetPixels(newAPixels);
         newFadeA.Apply(false);
         room.game.cameras[0].fadeTexA = newFadeA;
+        room.game.cameras[0].ApplyEffectColorsToPaletteTexture(ref room.game.cameras[0].fadeTexA, room.roomSettings.EffectColorA, room.roomSettings.EffectColorB);
 
         //Fade Tex B
-        if (room.game.cameras[0].paletteB > -1)
+        if (room.game.cameras[0].paletteB > -1 && origFadePalB != null)
         {
+            Texture2D newFadeB = new Texture2D(origFadePalB.width, origFadePalB.height, TextureFormat.ARGB32, false);
+            Color[] newBPixels = origFadePalB.GetPixels();
             for (int i = 0; i < newBPixels.Length; i++)
             {
                 if (interior)
@@ -514,18 +521,43 @@ public class WeatherController : UpdatableAndDeletable
             newFadeB.SetPixels(newBPixels);
             newFadeB.Apply(false);
             room.game.cameras[0].fadeTexB = newFadeB;
+            room.game.cameras[0].ApplyEffectColorsToPaletteTexture(ref room.game.cameras[0].fadeTexB, room.roomSettings.EffectColorA, room.roomSettings.EffectColorB);
         }
 
-        room.game.cameras[0].ApplyEffectColorsToPaletteTexture(ref newFadeA, room.roomSettings.EffectColorA, room.roomSettings.EffectColorB);
-        room.game.cameras[0].ApplyEffectColorsToPaletteTexture(ref newFadeB, room.roomSettings.EffectColorA, room.roomSettings.EffectColorB);
-
         room.game.cameras[0].ApplyFade();
+
+        //Effect Colors - It looks kinda bad but it works so its probably fine :)
+        Color[] palCols = room.game.cameras[0].paletteTexture.GetPixels();
+
+        //Effect Color 1
+        palCols[190] = Custom.Desaturate(palCols[190], fadePercent);
+        palCols[191] = Custom.Desaturate(palCols[191], fadePercent);
+        palCols[158] = Custom.Desaturate(palCols[158], fadePercent);
+        palCols[159] = Custom.Desaturate(palCols[159], fadePercent);
+
+        //palCols[190] = Color.Lerp(palCols[190], Color.white, fadePercent);
+        //palCols[191] = Color.Lerp(palCols[191], Color.white, fadePercent);
+        //palCols[158] = Color.Lerp(palCols[158], Color.white, fadePercent);
+        //palCols[159] = Color.Lerp(palCols[159], Color.white, fadePercent);
+
+        //Effect Color 2
+        palCols[126] = Custom.Desaturate(palCols[126], fadePercent);
+        palCols[127] = Custom.Desaturate(palCols[127], fadePercent);
+        palCols[94] = Custom.Desaturate(palCols[94], fadePercent);
+        palCols[95] = Custom.Desaturate(palCols[95], fadePercent);
+
+        //palCols[126] = Color.Lerp(palCols[126], Color.white, fadePercent);
+        //palCols[127] = Color.Lerp(palCols[127], Color.white, fadePercent);
+        //palCols[94] = Color.Lerp(palCols[94], Color.white, fadePercent);
+        //palCols[95] = Color.Lerp(palCols[95], Color.white, fadePercent);
+
+        room.game.cameras[0].paletteTexture.SetPixels(palCols);
+        room.game.cameras[0].paletteTexture.Apply(false);
 
         if (exportTexture)
         {
             exportTexture = false;
-            File.WriteAllBytes($"{Custom.rootFolderDirectory}\\FadeTexA.png", newFadeA.EncodeToPNG());
-            File.WriteAllBytes($"{Custom.rootFolderDirectory}\\FadeTexB.png", newFadeB.EncodeToPNG());
+            File.WriteAllBytes($"{Custom.rootFolderDirectory}\\FullPalette.png", room.game.cameras[0].paletteTexture.EncodeToPNG());
         }
     }
 

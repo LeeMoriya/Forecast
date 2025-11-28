@@ -59,7 +59,7 @@ public class WeatherHooks
                 return;
             }
         }
-        orig.Invoke(self,eu);
+        orig.Invoke(self, eu);
     }
 
     private static void RoomRain_DrawSprites(On.RoomRain.orig_DrawSprites orig, RoomRain self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
@@ -72,7 +72,7 @@ public class WeatherHooks
         }
 
         orig.Invoke(self, sLeaser, rCam, timeStacker, camPos);
-        
+
     }
 
     private static void WinState_CycleCompleted(On.WinState.orig_CycleCompleted orig, WinState self, RainWorldGame game)
@@ -117,7 +117,7 @@ public class WeatherHooks
                     debugUI.Update();
                 }
             }
-            else if(debugUI != null)
+            else if (debugUI != null)
             {
                 debugUI.RemoveSprites();
                 debugUI = null;
@@ -175,11 +175,13 @@ public class WeatherHooks
         //Add Weather Object
         if (self.realizedRoom != null && self.realizedRoom.roomRain != null)
         {
-            if (!self.shelter && !self.gate && self.realizedRoom.roomSettings.RainIntensity > 0f && !invalidDangerTypes.Contains(self.realizedRoom.roomRain.dangerType))
+            //if (!self.shelter && !self.gate && self.realizedRoom.roomSettings.RainIntensity > 0f && !invalidDangerTypes.Contains(self.realizedRoom.roomRain.dangerType))
+
+            if (!self.shelter && self.realizedRoom.roomSettings.RainIntensity > 0f)
             {
                 if (!roomSettings.ContainsKey(self.realizedRoom))
                 {
-                    if(ModManager.MSC && game.manager.artificerDreamNumber != -1) { return; }
+                    if (ModManager.MSC && game.manager.artificerDreamNumber != -1) { return; }
                     self.realizedRoom.AddObject(new WeatherController(self.realizedRoom));
 
                     if (roomSettings.ContainsKey(self.realizedRoom) && roomSettings[self.realizedRoom].weatherType == 2 && ForecastConfig.classicSnow.Value)

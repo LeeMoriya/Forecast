@@ -9,22 +9,22 @@ using HUD;
 
 public class Blizzard : UpdatableAndDeletable
 {
-    public WeatherController preciptator;
+    public WeatherController owner;
     public int particleCount;
     public int particleLimit;
     public int cooldown;
     public float intensity = 0f;
 
-    public Blizzard(WeatherController preciptator)
+    public Blizzard(WeatherController owner)
     {
         if (ForecastConfig.debugMode.Value)
         {
             ForecastLog.Log("DOWNPOUR: Blizzard Created");
         }
-        this.preciptator = preciptator;
-        room = preciptator.room;
+        this.owner = owner;
+        room = owner.room;
         particleLimit = 100;
-        if (room.roomSettings.RainIntensity > 0f)
+        if (owner.settings.currentIntensity > 0f)
         {
             room.AddObject(new ScrollingTexture(room, this, "overlay1", 6.5f, 0.31f));
             room.AddObject(new ScrollingTexture(room, this, "overlay2", 4f, 1f));
@@ -35,7 +35,7 @@ public class Blizzard : UpdatableAndDeletable
 
     public override void Update(bool eu)
     {
-        if (room.roomSettings.RainIntensity == 0f)
+        if (owner.settings.currentIntensity == 0f)
         {
             return;
         }
@@ -44,7 +44,7 @@ public class Blizzard : UpdatableAndDeletable
         if (cooldown >= Mathf.Lerp(50, 10, Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd))))
         {
             cooldown = 0;
-            if (particleCount < Mathf.Lerp(0f, Mathf.Lerp(0f, particleLimit, room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd)))
+            if (particleCount < Mathf.Lerp(0f, Mathf.Lerp(0f, particleLimit, owner.settings.currentIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd)))
             {
                 particleCount++;
                 room.AddObject(new Particle(this));
@@ -52,12 +52,12 @@ public class Blizzard : UpdatableAndDeletable
         }
         //Wind
         float windStrength = Mathf.Lerp(0f, 0.065f, Mathf.InverseLerp(0f, 10, ForecastConfig.windSpeed.Value));
-        intensity = Mathf.Lerp(0f, Mathf.Lerp(0f, windStrength, room.roomSettings.RainIntensity), Mathf.Lerp(0.5f, 1f, TimePastCycleEnd));
+        intensity = Mathf.Lerp(0f, Mathf.Lerp(0f, windStrength, owner.settings.currentIntensity), Mathf.Lerp(0.5f, 1f, TimePastCycleEnd));
         ThrowAroundObjects();
         //Camera Shake
         if (room.BeingViewed)
         {
-            room.game.cameras[0].screenShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.3f, room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd));
+            room.game.cameras[0].screenShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.3f, owner.settings.currentIntensity), Mathf.InverseLerp(-0.5f, 0.5f, TimePastCycleEnd));
         }
         base.Update(eu);
     }
@@ -212,7 +212,7 @@ public class Blizzard : UpdatableAndDeletable
             {
                 reset = true;
             }
-            if (alpha < Mathf.Lerp(0f, Mathf.Lerp(0f, 0.55f, room.roomSettings.RainIntensity), Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, owner.TimePastCycleEnd))))
+            if (alpha < Mathf.Lerp(0f, Mathf.Lerp(0f, 0.55f, owner.owner.settings.currentIntensity), Mathf.Lerp(0f, 1f, Mathf.InverseLerp(-0.5f, 0.5f, owner.TimePastCycleEnd))))
             {
                 alpha += 0.005f;
             }
@@ -257,7 +257,7 @@ public class Blizzard : UpdatableAndDeletable
             this.owner = owner;
             spriteName = sprite;
             this.scrollSpeed = scrollSpeed;
-            this.alpha = Mathf.Lerp(0f, alpha, room.roomSettings.RainIntensity);
+            this.alpha = Mathf.Lerp(0f, alpha, owner.owner.settings.currentIntensity);
             ForecastLog.Log("DOWNPOUR: ScrollingTexture Added");
         }
 
@@ -402,6 +402,7 @@ public class ExposureController
     public RoomCamera cam;
     public Vignette vignette;
     public Blizzard blizzard;
+    public WeatherController.WeatherSettings settings;
     public float exposure, lastExposure = 0f;
     public float ambient = 0f;
     public float cooldown;
@@ -492,7 +493,7 @@ public class ExposureController
     public bool IsCold()
     {
         //Not a shelter, has RoomRain and is enabled in config
-        if (!player.room.abstractRoom.shelter && player.room.roomSettings.RainIntensity > 0f && player.room.world.region != null)
+        if (settings != null && !player.room.abstractRoom.shelter && settings.currentIntensity > 0f && player.room.world.region != null)
         {
             return true;
         }
@@ -501,6 +502,15 @@ public class ExposureController
 
     public void Update()
     {
+        if (settings == null && player.room != null)
+        {
+            if (WeatherHooks.roomSettings.ContainsKey(player.room))
+            {
+                settings = WeatherHooks.roomSettings[player.room];
+            }
+            return;
+        }
+
         lastExposure = exposure;
         if (player.room != null)
         {
@@ -538,8 +548,8 @@ public class ExposureController
                     //Exposure matches ambient temp
                     if (IsCold())
                     {
-                        cam.microShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.005f, player.room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.4f, 1f, TimePastCycleEnd));
-                        ambient = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, player.room.roomSettings.RainIntensity), Mathf.InverseLerp(0f, 3f, TimePastCycleEnd));
+                        cam.microShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.005f, settings.currentIntensity), Mathf.InverseLerp(-0.4f, 1f, TimePastCycleEnd));
+                        ambient = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, settings.currentIntensity), Mathf.InverseLerp(0f, 3f, TimePastCycleEnd));
                         if (exposure > ambient)
                         {
                             exposure -= 0.065f * exposureRate;
@@ -688,6 +698,7 @@ public class ExposureController
 public class WeatherSounds : UpdatableAndDeletable
 {
     public OmniDirectionalSound[] sfx;
+    public WeatherController.WeatherSettings settings;
     public bool blizzard;
     public float TimePastCycleEnd
     {
@@ -723,6 +734,7 @@ public class WeatherSounds : UpdatableAndDeletable
             };
             room.game.cameras[0].virtualMicrophone.ambientSoundPlayers.Add(new AmbientSoundPlayer(room.game.cameras[0].virtualMicrophone, sfx[i]));
         }
+
         CheckBlizzard();
     }
     public void CheckBlizzard()
@@ -743,6 +755,15 @@ public class WeatherSounds : UpdatableAndDeletable
 
     public override void Update(bool eu)
     {
+        if(settings == null)
+        {
+            if (WeatherHooks.roomSettings.ContainsKey(room))
+            {
+                settings = WeatherHooks.roomSettings[room];
+            }
+            return;
+        }
+
         bool sfx1 = false;
         bool sfx2 = false;
         bool sfx3 = false;
@@ -767,14 +788,14 @@ public class WeatherSounds : UpdatableAndDeletable
                     //All three sounds play
                     if (blizzard)
                     {
-                        room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 1.2f, room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0f, TimePastCycleEnd));
+                        room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 1.2f, settings.currentIntensity), Mathf.InverseLerp(-0.5f, 0f, TimePastCycleEnd));
                     }
                     //Indoors, so only sound two plays
                     else
                     {
                         if (room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound == sfx[2])
                         {
-                            room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.65f, room.roomSettings.RainIntensity), Mathf.InverseLerp(-0.5f, 0.3f, TimePastCycleEnd));
+                            room.game.cameras[0].virtualMicrophone.ambientSoundPlayers[i].aSound.volume = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.65f, settings.currentIntensity), Mathf.InverseLerp(-0.5f, 0.3f, TimePastCycleEnd));
                         }
                         else
                         {
