@@ -365,6 +365,10 @@ public class WeatherController : UpdatableAndDeletable
             //Add background lightning flashes
             if ((ForecastConfig.strikeWeathers.Value == 0 && settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Thunderstorm) || (ForecastConfig.strikeWeathers.Value == 1 && (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Thunderstorm || settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Blizzard)) || ForecastConfig.strikeWeathers.Value == 2)
             {
+                List<string> greenRegions = new List<string>()
+                                {
+                                    "UW","SH","RM","LM"
+                                };
                 if (settings.currentIntensity > 0.7f || ForecastConfig.strikeWeathers.Value == 2)
                 {
                     if (room.game != null && !room.abstractRoom.shelter && settings.backgroundLightning)
@@ -375,7 +379,14 @@ public class WeatherController : UpdatableAndDeletable
                             room.lightning = new Lightning(room, 1f, false);
                             room.lightning.bkgOnly = true;
                             room.lightning.bkgGradient[0] = room.game.cameras[0].currentPalette.skyColor;
-                            room.lightning.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), settings.currentIntensity);
+                            if (settings.greenLightning && room.game.IsStorySession && greenRegions.Contains(room.world.name))
+                            {
+                                room.lightning.bkgGradient[1] = new Color(0f, 1f, 0f);
+                            }
+                            else
+                            {
+                                room.lightning.bkgGradient[1] = Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), settings.currentIntensity);
+                            }
                             room.AddObject(room.lightning);
                         }
                     }
@@ -390,10 +401,7 @@ public class WeatherController : UpdatableAndDeletable
                             {
                                 if (settings.greenLightning && room.game.IsStorySession)
                                 {
-                                    List<string> greenRegions = new List<string>()
-                                {
-                                    "UW","SH","RM","LM"
-                                };
+                                   
                                     if (greenRegions.Contains(room.world.name))
                                     {
                                         room.AddObject(new LightningStrike(this, new Color(0f, 1f, 0f)));

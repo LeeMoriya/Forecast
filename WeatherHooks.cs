@@ -41,6 +41,7 @@ public class WeatherHooks
         On.StoryGameSession.AddPlayer += StoryGameSession_AddPlayer;
         On.Lightning.ctor += Lightning_ctor;
         On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
+        On.ArenaGameSession.ctor += ArenaGameSession_ctor;
         On.Player.ctor += Player_ctor;
         On.StoryGameSession.ctor += StoryGameSession_ctor;
         On.RainWorld.Update += RainWorld_Update;
@@ -48,6 +49,15 @@ public class WeatherHooks
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize; //Remove settings
         On.WinState.CycleCompleted += WinState_CycleCompleted;
         On.RoomRain.DrawSprites += RoomRain_DrawSprites;
+    }
+
+    private static void ArenaGameSession_ctor(On.ArenaGameSession.orig_ctor orig, ArenaGameSession self, RainWorldGame game)
+    {
+        orig.Invoke(self, game);
+        if (ForecastConfig.classicSnow.Value)
+        {
+            ForecastMod.exposureControllers = new List<ExposureController>();
+        }
     }
 
     private static void RoomRain_Update(On.RoomRain.orig_Update orig, RoomRain self, bool eu)

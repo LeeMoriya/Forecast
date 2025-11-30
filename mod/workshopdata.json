@@ -1,0 +1,17 @@
+{
+  "Title": "Forecast",
+  "Description": "Adds a new dynamic weather system to the game with many configurable settings.",
+  "ID": "leemoriya.forecast",
+  "Version": "1.1.8",
+  "TargetGameVersion": "v1.9.06",
+  "Requirements": "",
+  "RequirementNames": "",
+  "Authors": "LeeMoriya",
+  "Visibility": "Unlisted",
+  "Tags": [
+    "Game Mechanics",
+    "Cosmetics"
+  ],
+  "WorkshopID": 3018286165,
+  "UploadFilesOnly": true
+}

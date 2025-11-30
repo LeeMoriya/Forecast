@@ -41,6 +41,10 @@ public class ForecastMod : BaseUnityPlugin
         if (!init)
         {
             LoadSprites();
+
+            AssetBundle assetBundle = AssetBundle.LoadFromFile(AssetManager.ResolveFilePath("assetbundles/forecastshaders"));
+            self.Shaders.Add("LeeMoriya.FrostVignette", FShader.CreateShader("LeeMoriya.FrostVignette", assetBundle.LoadAsset<Shader>("Assets/Shaders/FrostVignette.shader")));
+
             WeatherHooks.Patch();
             //RainPalette.Patch();
             new Hook(typeof(RainCycle).GetProperty(nameof(RainCycle.ScreenShake)).GetGetMethod(), (Func<Func<RainCycle, float>, RainCycle, float>)RainCycle_get_ScreenShake);
@@ -160,6 +164,13 @@ public class ForecastMod : BaseUnityPlugin
             texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainMidHeavy.png")));
             texture.filterMode = FilterMode.Point;
             Futile.atlasManager.LoadAtlasFromTexture("rainMidHeavy", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("frostOverlay"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\frostOverlay.png")));
+            texture.filterMode = FilterMode.Bilinear;
+            Futile.atlasManager.LoadAtlasFromTexture("frostOverlay", texture, false);
         }
     }
 

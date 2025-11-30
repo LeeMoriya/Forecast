@@ -359,15 +359,15 @@ public class Vignette : ISingleCameraDrawable
     {
         this.controller = controller;
         camera = controller.cam;
-        vignette = new FSprite("Futile_White", true);
+        vignette = new FSprite("frostOverlay", true);
         vignette.alpha = 0f;
         vignette.color = Color.white;
         vignette.SetAnchor(0.5f, 0.5f);
         vignette.x = camera.game.rainWorld.screenSize.x / 2f;
         vignette.y = camera.game.rainWorld.screenSize.y / 2f;
-        vignette.scaleX = camera.game.rainWorld.screenSize.x;
-        vignette.scaleY = camera.game.rainWorld.screenSize.y;
-        vignette.shader = camera.game.rainWorld.Shaders["EdgeFade"];
+        vignette.scaleX = 2f;
+        vignette.scaleY = 2f;
+        vignette.shader = camera.game.rainWorld.Shaders["LeeMoriya.FrostVignette"];
         camera.AddSingleCameraDrawable(this);
         camera.ReturnFContainer("HUD").AddChild(vignette);
         ForecastLog.Log("VIGNETTE CREATED");
@@ -379,19 +379,19 @@ public class Vignette : ISingleCameraDrawable
         {
             camera.ReturnFContainer("HUD").AddChild(vignette);
         }
-        if (camera.currentPalette.darkness > 0.5f)
-        {
-            vignette.color = Color.Lerp(camera.currentPalette.skyColor, new Color(0.2f, 0.2f, 0.2f), 0.4f);
-        }
-        else
-        {
-            vignette.color = Color.Lerp(camera.currentPalette.texture.GetPixel(9, 5), Color.white, 0.4f);
-        }
+        //if (camera.currentPalette.darkness > 0.5f)
+        //{
+        //    vignette.color = Color.Lerp(camera.currentPalette.skyColor, new Color(0.2f, 0.2f, 0.2f), 0.4f);
+        //}
+        //else
+        //{
+        //    vignette.color = Color.Lerp(camera.currentPalette.texture.GetPixel(9, 5), Color.white, 0.4f);
+        //}
         vignette.x = camera.game.rainWorld.screenSize.x / 2f;
         vignette.y = camera.game.rainWorld.screenSize.y / 2f;
-        vignette.scaleX = (camera.game.rainWorld.screenSize.x * Mathf.Lerp(1.5f, 1f, Mathf.Lerp(controller.lastExposure, controller.exposure, timeStacker)) + 2f) / 16f;
-        vignette.scaleY = (camera.game.rainWorld.screenSize.y * Mathf.Lerp(2.5f, 1.5f, Mathf.Lerp(controller.lastExposure, controller.exposure, timeStacker)) + 2f) / 16f;
-        vignette.alpha = Mathf.Lerp(0f, 0.5f, Mathf.InverseLerp(0.1f, 1f, controller.exposure));
+        //vignette.scaleX = (camera.game.rainWorld.screenSize.x * Mathf.Lerp(1.5f, 1f, Mathf.Lerp(controller.lastExposure, controller.exposure, timeStacker)) + 2f) / 16f;
+        //vignette.scaleY = (camera.game.rainWorld.screenSize.y * Mathf.Lerp(2.5f, 1.5f, Mathf.Lerp(controller.lastExposure, controller.exposure, timeStacker)) + 2f) / 16f;
+        vignette.alpha = Mathf.Lerp(0f, 0.9f, Mathf.InverseLerp(0.1f, 0.9f, controller.exposure));
     }
 }
 
@@ -528,7 +528,7 @@ public class ExposureController
                 {
                     if (blizzard.TimePastCycleEnd > 0f)
                     {
-                        float scale = Mathf.Clamp(blizzard.TimePastCycleEnd, 0.00143f, 0.45f);
+                        float scale = Mathf.Clamp(blizzard.TimePastCycleEnd, 0.001f, 0.45f);
                         exposure += 0.025f * scale * exposureRate;
                     }
                     else
@@ -549,14 +549,14 @@ public class ExposureController
                     if (IsCold())
                     {
                         cam.microShake = Mathf.Lerp(0f, Mathf.Lerp(0f, 0.005f, settings.currentIntensity), Mathf.InverseLerp(-0.4f, 1f, TimePastCycleEnd));
-                        ambient = Mathf.Lerp(0f, Mathf.Lerp(0f, 1f, settings.currentIntensity), Mathf.InverseLerp(0f, 3f, TimePastCycleEnd));
+                        ambient = Mathf.Lerp(0f, 1f, Mathf.InverseLerp(0f, 20f, TimePastCycleEnd));
                         if (exposure > ambient)
                         {
                             exposure -= 0.065f * exposureRate;
                         }
                         else
                         {
-                            exposure += 0.065f * exposureRate;
+                            exposure = ambient;
                         }
                     }
                     //Safe in a shelter, exposure decreases
@@ -646,6 +646,10 @@ public class ExposureController
             if (ForecastConfig.debugMode.Value)
             {
                 UpdateDebugLabels();
+            }
+            if(vignette != null)
+            {
+                vignette.vignette.MoveToFront();
             }
         }
     }
