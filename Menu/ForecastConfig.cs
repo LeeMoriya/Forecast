@@ -45,13 +45,13 @@ public class ForecastConfig : OptionInterface
     public static Configurable<bool> greenLightning;
 
     public static Configurable<bool> endBlizzard;
-    public static Configurable<bool> effectColors;
     public static Configurable<bool> snowPuffs;
     public static Configurable<bool> snowSources;
     public static Configurable<bool> classicSnow;
     public static Configurable<int> coldFactor;
     public static Configurable<int> windSpeed;
     public static Configurable<bool> vignette;
+    public static Configurable<bool> effectColor;
 
     public static Configurable<bool> debugMode;
 
@@ -89,6 +89,7 @@ public class ForecastConfig : OptionInterface
     public List<OpSimpleImageButton> forecastButtons;
     public OpSimpleButton snowSourceToggle;
     public OpSimpleButton vignetteToggle;
+    public OpSimpleButton effectColorToggle;
 
     public OpSimpleButton snowSlider;
     public OpRect selector;
@@ -145,13 +146,13 @@ public class ForecastConfig : OptionInterface
         greenLightning = config.Bind<bool>("greenLightning", true);
 
         endBlizzard = config.Bind<bool>("endBlizzard", true);
-        effectColors = config.Bind<bool>("effectColors", true);
         snowPuffs = config.Bind<bool>("snowPuffs", true);
         snowSources = config.Bind<bool>("snowSources", true);
         classicSnow = config.Bind<bool>("classicSnow", true);
         coldFactor = config.Bind<int>("coldFactor", 5, new ConfigAcceptableRange<int>(0, 10));
         windSpeed = config.Bind<int>("windSpeed", 10, new ConfigAcceptableRange<int>(0, 10));
         vignette = config.Bind<bool>("vignette", true);
+        effectColor = config.Bind<bool>("effectColor", true);
 
         debugMode = config.Bind<bool>("debugMode", false);
         LoadCustomRegionSettings();
@@ -521,7 +522,7 @@ public class ForecastConfig : OptionInterface
         float snowAnchor = lightningAnchor - 540f;
         OpLabel snowLabel = new OpLabel(new Vector2(280f, snowAnchor + 15f), new Vector2(), "- SNOW SETTINGS -", FLabelAlignment.Center);
 
-        OpRect snowSettingsRect = new OpRect(new Vector2(15f, snowAnchor - 383.5f), new Vector2(555f, 390f));
+        OpRect snowSettingsRect = new OpRect(new Vector2(15f, snowAnchor - 443.5f), new Vector2(555f, 450f));
         snowSettingsRect.colorFill = new Color(0.5f, 1f, 1f);
 
         settingsBox.AddItems(snowLabel, snowSettingsRect);
@@ -565,6 +566,12 @@ public class ForecastConfig : OptionInterface
         vignetteToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 345f), new Vector2(110f, 45f), vignette.Value ? "ENABLED" : "DISABLED");
         vignetteToggle.OnClick += VignetteToggle_OnClick;
         settingsBox.AddItems(vignetteLabel, vignetteDesc, vignetteToggle);
+
+        OpLabel effectColorLabel = new OpLabel(160f, snowAnchor - 400f, "EFFECT COLORS");
+        OpLabel effectColorDesc = new OpLabel(160f, snowAnchor - 420f, "Desaturates and tints effect colors to better match snowy palettes");
+        effectColorToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 425f), new Vector2(110f, 45f), effectColor.Value ? "ENABLED" : "DISABLED");
+        effectColorToggle.OnClick += EffectColorToggle_OnClick;
+        settingsBox.AddItems(effectColorLabel, effectColorDesc, effectColorToggle);
 
         //Support Label
         supportWarning = new OpLabel(new Vector2(290f, 220f), new Vector2(), "SUPPORT MODE ENABLED", FLabelAlignment.Center, true);
@@ -684,8 +691,7 @@ public class ForecastConfig : OptionInterface
     private void SnowSourceToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => snowSources.Value, v => snowSources.Value = v);
     private void SnowSliderToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => classicSnow.Value, v => classicSnow.Value = v);
     private void VignetteToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => vignette.Value, v => vignette.Value = v);
-
-
+    private void EffectColorToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => effectColor.Value, v => effectColor.Value = v);
 
 
     private void StrikeWeatherToggle_OnClick(UIfocusable trigger)

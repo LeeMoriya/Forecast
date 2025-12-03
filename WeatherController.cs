@@ -537,29 +537,32 @@ public class WeatherController : UpdatableAndDeletable
         //Effect Colors - It looks kinda bad but it works so its probably fine :)
         Color[] palCols = room.game.cameras[0].paletteTexture.GetPixels();
 
-        //Effect Color 1
-        palCols[190] = Custom.Desaturate(palCols[190], fadePercent);
-        palCols[191] = Custom.Desaturate(palCols[191], fadePercent);
-        palCols[158] = Custom.Desaturate(palCols[158], fadePercent);
-        palCols[159] = Custom.Desaturate(palCols[159], fadePercent);
+        if (ForecastConfig.effectColor.Value)
+        {
+            //Effect Color 1
+            palCols[190] = Custom.Desaturate(palCols[190], fadePercent);
+            palCols[191] = Custom.Desaturate(palCols[191], fadePercent);
+            palCols[158] = Custom.Desaturate(palCols[158], fadePercent);
+            palCols[159] = Custom.Desaturate(palCols[159], fadePercent);
 
-        //palCols[190] = Color.Lerp(palCols[190], Color.white, fadePercent);
-        //palCols[191] = Color.Lerp(palCols[191], Color.white, fadePercent);
-        //palCols[158] = Color.Lerp(palCols[158], Color.white, fadePercent);
-        //palCols[159] = Color.Lerp(palCols[159], Color.white, fadePercent);
+            palCols[190] = Color.Lerp(palCols[190], Color.white, fadePercent * 0.5f);
+            palCols[191] = Color.Lerp(palCols[191], Color.white, fadePercent * 0.5f);
+            palCols[158] = Color.Lerp(palCols[158], Color.white, fadePercent * 0.5f);
+            palCols[159] = Color.Lerp(palCols[159], Color.white, fadePercent * 0.5f);
 
-        //Effect Color 2
-        palCols[126] = Custom.Desaturate(palCols[126], fadePercent);
-        palCols[127] = Custom.Desaturate(palCols[127], fadePercent);
-        palCols[94] = Custom.Desaturate(palCols[94], fadePercent);
-        palCols[95] = Custom.Desaturate(palCols[95], fadePercent);
+            //Effect Color 2
+            palCols[126] = Custom.Desaturate(palCols[126], fadePercent);
+            palCols[127] = Custom.Desaturate(palCols[127], fadePercent);
+            palCols[94] = Custom.Desaturate(palCols[94], fadePercent);
+            palCols[95] = Custom.Desaturate(palCols[95], fadePercent);
 
-        //palCols[126] = Color.Lerp(palCols[126], Color.white, fadePercent);
-        //palCols[127] = Color.Lerp(palCols[127], Color.white, fadePercent);
-        //palCols[94] = Color.Lerp(palCols[94], Color.white, fadePercent);
-        //palCols[95] = Color.Lerp(palCols[95], Color.white, fadePercent);
+            palCols[126] = Color.Lerp(palCols[126], Color.white, fadePercent * 0.5f);
+            palCols[127] = Color.Lerp(palCols[127], Color.white, fadePercent * 0.5f);
+            palCols[94] = Color.Lerp(palCols[94], Color.white, fadePercent * 0.5f);
+            palCols[95] = Color.Lerp(palCols[95], Color.white, fadePercent * 0.5f);
 
-        room.game.cameras[0].paletteTexture.SetPixels(palCols);
+            room.game.cameras[0].paletteTexture.SetPixels(palCols);
+        }
         room.game.cameras[0].paletteTexture.Apply(false);
 
         if (exportTexture)
