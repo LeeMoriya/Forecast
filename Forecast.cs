@@ -18,11 +18,11 @@ using BepInEx;
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
-[BepInPlugin("LeeMoriya.Forecast", "Forecast", "1.1.8")]
+[BepInPlugin("LeeMoriya.Forecast", "Forecast", "1.1.9")]
 public class ForecastMod : BaseUnityPlugin
 {
     public static bool init = false;
-    public static string versionNum = "1.1.8";
+    public static string versionNum = "1.1.9";
     public ForecastMod()
     {
         

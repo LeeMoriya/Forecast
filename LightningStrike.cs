@@ -177,7 +177,7 @@ public class LightningStrike : UpdatableAndDeletable
                 if (!spawn && warning >= 1.5f)
                 {
                     InitiateSprites(sLeaser, rCam);
-                    room.PlaySound(SoundID.Bomb_Explode, pathPositions.Last(), 1.3f, 0.8f);
+                    room.PlaySound(SoundID.Bomb_Explode, pathPositions.Last(), 1.2f, 0.8f);
                     room.PlaySound(SoundID.Thunder, pathPositions.Last(), 1f, 1f);
                     room.AddObject(new Smoke.BombSmoke(room, pathPositions.Last() + new Vector2(0f, 15f), null, new Color(0.01f, 0.01f, 0.01f)));
                     room.AddObject(new SootMark(room, pathPositions.Last() + new Vector2(0f, 15f), 50f, false));

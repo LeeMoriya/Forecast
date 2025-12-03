@@ -231,8 +231,8 @@ public class Blizzard : UpdatableAndDeletable
         public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             sLeaser.sprites[0].alpha = Mathf.Lerp(lastAlpha, alpha, timeStacker);
-            sLeaser.sprites[0].x = Mathf.Lerp(lastPos.x, pos.x, timeStacker) - camPos.x;
-            sLeaser.sprites[0].y = Mathf.Lerp(lastPos.y, pos.y, timeStacker) - camPos.y;
+            sLeaser.sprites[0].x = Mathf.Lerp(lastPos.x, pos.x, timeStacker);
+            sLeaser.sprites[0].y = Mathf.Lerp(lastPos.y, pos.y, timeStacker);
             sLeaser.sprites[0].rotation = Mathf.Lerp(lastRotation, rotation, timeStacker);
             base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
         }
@@ -389,8 +389,8 @@ public class Vignette : ISingleCameraDrawable
         //}
         vignette.x = camera.game.rainWorld.screenSize.x / 2f;
         vignette.y = camera.game.rainWorld.screenSize.y / 2f;
-        //vignette.scaleX = (camera.game.rainWorld.screenSize.x * Mathf.Lerp(1.5f, 1f, Mathf.Lerp(controller.lastExposure, controller.exposure, timeStacker)) + 2f) / 16f;
-        //vignette.scaleY = (camera.game.rainWorld.screenSize.y * Mathf.Lerp(2.5f, 1.5f, Mathf.Lerp(controller.lastExposure, controller.exposure, timeStacker)) + 2f) / 16f;
+        vignette.scaleX = Mathf.Lerp(4f, 2f, Mathf.InverseLerp(0.1f, 0.9f, controller.exposure));
+        vignette.scaleY = Mathf.Lerp(4f, 2f, Mathf.InverseLerp(0.1f, 0.9f, controller.exposure));
         vignette.alpha = Mathf.Lerp(0f, 0.9f, Mathf.InverseLerp(0.1f, 0.9f, controller.exposure));
     }
 }
@@ -420,7 +420,7 @@ public class ExposureController
         this.player = player;
         stats = new SlugcatStats(player.slugcatStats.name, player.slugcatStats.malnourished);
         cam = player.room.game.cameras[0];
-        if (player.playerState.playerNumber == 0)
+        if (player.playerState.playerNumber == 0 && ForecastConfig.vignette.Value)
         {
             vignette = new Vignette(this);
         }
@@ -608,10 +608,6 @@ public class ExposureController
                     {
                         bellCooldown = 0f;
                         bellRing++;
-                        if (ForecastConfig.debugMode.Value && bellRing > 0)
-                        {
-                            ForecastLog.Log(bellRing.ToString());
-                        }
                         player.room.PlaySound(SoundID.MENU_Start_New_Game, player.mainBodyChunk, false, Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)), UnityEngine.Random.Range(1.25f,1.3f));
                         if (bellRing == 25)
                         {
@@ -634,10 +630,6 @@ public class ExposureController
                     {
                         bellCooldown = 0;
                         bellRing--;
-                        if (ForecastConfig.debugMode.Value && bellRing > 0)
-                        {
-                            ForecastLog.Log(bellRing.ToString());
-                        }
                     }
                 }
                 bellRing = Mathf.Clamp(bellRing, 0, 25);

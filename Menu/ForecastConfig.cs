@@ -51,6 +51,7 @@ public class ForecastConfig : OptionInterface
     public static Configurable<bool> classicSnow;
     public static Configurable<int> coldFactor;
     public static Configurable<int> windSpeed;
+    public static Configurable<bool> vignette;
 
     public static Configurable<bool> debugMode;
 
@@ -87,6 +88,7 @@ public class ForecastConfig : OptionInterface
     public List<OpImage> weatherIcons;
     public List<OpSimpleImageButton> forecastButtons;
     public OpSimpleButton snowSourceToggle;
+    public OpSimpleButton vignetteToggle;
 
     public OpSimpleButton snowSlider;
     public OpRect selector;
@@ -149,6 +151,7 @@ public class ForecastConfig : OptionInterface
         classicSnow = config.Bind<bool>("classicSnow", true);
         coldFactor = config.Bind<int>("coldFactor", 5, new ConfigAcceptableRange<int>(0, 10));
         windSpeed = config.Bind<int>("windSpeed", 10, new ConfigAcceptableRange<int>(0, 10));
+        vignette = config.Bind<bool>("vignette", true);
 
         debugMode = config.Bind<bool>("debugMode", false);
         LoadCustomRegionSettings();
@@ -556,6 +559,13 @@ public class ForecastConfig : OptionInterface
         OpLabel windSpeedDesc = new OpLabel(160f, snowAnchor - 270f, "How easily the player is pushed by wind during Forecast style blizzards");
         settingsBox.AddItems(windSlider, windSpeedLabel, windSpeedDesc);
 
+        //Snow Sources
+        OpLabel vignetteLabel = new OpLabel(160f, snowAnchor - 320f, "ICY BORDER");
+        OpLabel vignetteDesc = new OpLabel(160f, snowAnchor - 340f, "Toggle an icy border that indicates coldness");
+        vignetteToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 345f), new Vector2(110f, 45f), vignette.Value ? "ENABLED" : "DISABLED");
+        vignetteToggle.OnClick += VignetteToggle_OnClick;
+        settingsBox.AddItems(vignetteLabel, vignetteDesc, vignetteToggle);
+
         //Support Label
         supportWarning = new OpLabel(new Vector2(290f, 220f), new Vector2(), "SUPPORT MODE ENABLED", FLabelAlignment.Center, true);
         supportWarningDesc = new OpLabel(new Vector2(290f, 180f), new Vector2(), "Forecast will only generate weather for regions with their own custom settings.\nTo allow weather for all regions, and to change the global settings, disable support mode.", FLabelAlignment.Center);
@@ -673,6 +683,8 @@ public class ForecastConfig : OptionInterface
     private void GreenToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => greenLightning.Value, v => greenLightning.Value = v);
     private void SnowSourceToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => snowSources.Value, v => snowSources.Value = v);
     private void SnowSliderToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => classicSnow.Value, v => classicSnow.Value = v);
+    private void VignetteToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => vignette.Value, v => vignette.Value = v);
+
 
 
 
@@ -940,6 +952,9 @@ public class ForecastConfig : OptionInterface
             intervalSlider.greyedOut = false;
             strikeChanceSlider.greyedOut = false;
         }
+            vignetteToggle.greyedOut = !classicSnow.Value;
+            windSlider.greyedOut = !classicSnow.Value;
+            coldSlider.greyedOut = !classicSnow.Value;
 
         if (preferenceUpdate)
         {
