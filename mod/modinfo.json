@@ -1,7 +1,7 @@
 {
   "id": "leemoriya.forecast",
   "name": "Forecast",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "authors": "LeeMoriya",
   "description": "Adds a new dynamic weather system to the game with many configurable settings.",
   "requirements": [],
