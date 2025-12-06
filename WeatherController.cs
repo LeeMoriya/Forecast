@@ -461,8 +461,12 @@ public class WeatherController : UpdatableAndDeletable
         }
     }
 
+    public void ApplyFogPalette()
+    {
 
-    public void ApplyPalette()
+    }
+
+    public void ApplySnowPalette()
     {
         if (origFadePalA == null || ForecastMod.snowExt == null || ForecastMod.snowInt == null)
         {
@@ -470,6 +474,7 @@ public class WeatherController : UpdatableAndDeletable
         }
 
         float darkness = room.game.cameras[0].PaletteDarkness();
+
         Color[] snowPixels = darkness > 0.6f ? ForecastMod.snowInt.GetPixels() : ForecastMod.snowExt.GetPixels();
 
         float fadePercent = Mathf.Lerp(settings.currentIntensity, 0f, Mathf.InverseLerp(0f, 0.9f, darkness));
@@ -495,6 +500,20 @@ public class WeatherController : UpdatableAndDeletable
                 Color result = new Color(1f - blend.r, 1f - blend.g, 1f - blend.b, blend.a);
 
                 newAPixels[i] = Color.Lerp(newAPixels[i], result, fadePercent);
+            }
+
+            if(settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
+            {
+                if (settings.currentIntensity > 0.5f)
+                {
+                    newAPixels[233].r = Mathf.InverseLerp(0.5f, 1f, settings.currentIntensity);
+                }
+                else
+                {
+                    newAPixels[233].r = 0f;
+                    newAPixels[233].g = 0f;
+                    newAPixels[233].b = Mathf.InverseLerp(0.5f, 1f, 1f - settings.currentIntensity);
+                }
             }
         }
         newFadeA.SetPixels(newAPixels);
@@ -524,6 +543,19 @@ public class WeatherController : UpdatableAndDeletable
                     Color result = new Color(1f - blend.r, 1f - blend.g, 1f - blend.b, blend.a);
 
                     newBPixels[i] = Color.Lerp(newBPixels[i], result, fadePercent);
+                }
+            }
+            if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
+            {
+                if (settings.currentIntensity > 0.5f)
+                {
+                    newBPixels[233].r = Mathf.InverseLerp(0.5f, 1f, settings.currentIntensity);
+                }
+                else
+                {
+                    newBPixels[233].r = 0f;
+                    newBPixels[233].g = 0f;
+                    newBPixels[233].b = Mathf.InverseLerp(0.5f, 1f, 1f - settings.currentIntensity);
                 }
             }
             newFadeB.SetPixels(newBPixels);
