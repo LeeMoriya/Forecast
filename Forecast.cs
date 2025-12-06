@@ -172,6 +172,20 @@ public class ForecastMod : BaseUnityPlugin
             texture.filterMode = FilterMode.Bilinear;
             Futile.atlasManager.LoadAtlasFromTexture("frostOverlay", texture, false);
         }
+        if (!Futile.atlasManager.DoesContainAtlas("fogOverlay1"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\fogOverlay1.png")));
+            texture.filterMode = FilterMode.Bilinear;
+            Futile.atlasManager.LoadAtlasFromTexture("fogOverlay1", texture, false);
+        }
+        if (!Futile.atlasManager.DoesContainAtlas("fogOverlay2"))
+        {
+            Texture2D texture = new Texture2D(0, 0);
+            texture.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\fogOverlay2.png")));
+            texture.filterMode = FilterMode.Bilinear;
+            Futile.atlasManager.LoadAtlasFromTexture("fogOverlay2", texture, false);
+        }
     }
 
     private float RainCycle_get_MicroScreenShake(Func<RainCycle, float> orig, RainCycle rainCycle)

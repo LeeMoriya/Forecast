@@ -567,6 +567,7 @@ public class ForecastConfig : OptionInterface
         vignetteToggle.OnClick += VignetteToggle_OnClick;
         settingsBox.AddItems(vignetteLabel, vignetteDesc, vignetteToggle);
 
+        //Effect Colors
         OpLabel effectColorLabel = new OpLabel(160f, snowAnchor - 400f, "EFFECT COLORS");
         OpLabel effectColorDesc = new OpLabel(160f, snowAnchor - 420f, "Desaturates and tints effect colors to better match snowy palettes");
         effectColorToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 425f), new Vector2(110f, 45f), effectColor.Value ? "ENABLED" : "DISABLED");

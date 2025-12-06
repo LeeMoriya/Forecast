@@ -137,7 +137,7 @@ public class WeatherController : UpdatableAndDeletable
         {
             interior = true;
         }
-        if (settings.currentWeather != null)
+        if (settings.currentWeather != null && !interior)
         {
             if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog) //TODO - Maybe implement fog palette manipulation discovered in PaletteTweaker
             {
@@ -151,6 +151,8 @@ public class WeatherController : UpdatableAndDeletable
                     room.roomSettings.effects.Add(new RoomSettings.RoomEffect(RoomSettings.RoomEffect.Type.Fog, 1f, false));
                 }
             }
+            room.AddObject(new FogOverlay(room, this, new Vector2(1f,0.05f), "fogOverlay1", 0.15f, 0.5f));
+            room.AddObject(new FogOverlay(room, this, new Vector2(-1f, -0.05f), "fogOverlay2", 0.05f, 0.8f));
         }
         //Rain
         if (settings.weatherType == 0 && settings.currentWeather.type != WeatherForecast.Weather.WeatherType.Fog)
@@ -163,12 +165,6 @@ public class WeatherController : UpdatableAndDeletable
         //Snow
         if (settings.weatherType == 2)
         {
-            room.game.cameras[0].LoadPalette(room.roomSettings.Palette, ref origFadePalA);
-            if (room.roomSettings.fadePalette != null && room.roomSettings.fadePalette.palette > -1)
-            {
-                room.game.cameras[0].LoadPalette(room.roomSettings.fadePalette.palette, ref origFadePalB);
-            }
-
             if (!interior && ForecastConfig.snowSources.Value)
             {
                 room.AddObject(new SnowPlacer(this));
@@ -186,6 +182,11 @@ public class WeatherController : UpdatableAndDeletable
                     room.roomSettings.DangerType = RoomRain.DangerType.AerieBlizzard;
                 }
             }
+        }
+        room.game.cameras[0].LoadPalette(room.roomSettings.Palette, ref origFadePalA);
+        if (room.roomSettings.fadePalette != null && room.roomSettings.fadePalette.palette > -1)
+        {
+            room.game.cameras[0].LoadPalette(room.roomSettings.fadePalette.palette, ref origFadePalB);
         }
     }
 
@@ -353,11 +354,15 @@ public class WeatherController : UpdatableAndDeletable
                     room.AddObject(blizzard);
                 }
             }
-            //Apply snowy palette
-            if (room.BeingViewed)
-            {
-                ApplyPalette();
-            }
+        }
+        //Apply snowy palette
+        if (room.BeingViewed)
+        {
+            ApplyPalette();
+            //if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
+            //{
+            //    Shader.SetGlobalFloat(RainWorld.ShadPropFogAmount, Mathf.Lerp(0f, 10f, room.world.rainCycle.CycleProgression));
+            //}
         }
 
         if (!interior && room.game != null && room != null && !room.abstractRoom.gate && room.ReadyForPlayer)
@@ -366,9 +371,9 @@ public class WeatherController : UpdatableAndDeletable
             if ((ForecastConfig.strikeWeathers.Value == 0 && settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Thunderstorm) || (ForecastConfig.strikeWeathers.Value == 1 && (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Thunderstorm || settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Blizzard)) || ForecastConfig.strikeWeathers.Value == 2)
             {
                 List<string> greenRegions = new List<string>()
-                                {
-                                    "UW","SH","RM","LM"
-                                };
+                {
+                    "UW","SH","RM","LM"
+                };
                 if (settings.currentIntensity > 0.7f || ForecastConfig.strikeWeathers.Value == 2)
                 {
                     if (room.game != null && !room.abstractRoom.shelter && settings.backgroundLightning)
@@ -401,7 +406,7 @@ public class WeatherController : UpdatableAndDeletable
                             {
                                 if (settings.greenLightning && room.game.IsStorySession)
                                 {
-                                   
+
                                     if (greenRegions.Contains(room.world.name))
                                     {
                                         room.AddObject(new LightningStrike(this, new Color(0f, 1f, 0f)));
@@ -461,12 +466,7 @@ public class WeatherController : UpdatableAndDeletable
         }
     }
 
-    public void ApplyFogPalette()
-    {
-
-    }
-
-    public void ApplySnowPalette()
+    public void ApplyPalette()
     {
         if (origFadePalA == null || ForecastMod.snowExt == null || ForecastMod.snowInt == null)
         {
@@ -485,34 +485,23 @@ public class WeatherController : UpdatableAndDeletable
         Color[] newAPixels = origFadePalA.GetPixels();
         for (int i = 0; i < newAPixels.Length; i++)
         {
-            if (interior)
+            if (settings.currentWeather.weatherIndex == 2)
             {
-                //Desaturate
-                newAPixels[i] = Custom.Desaturate(newAPixels[i], settings.currentIntensity);
-            }
-            else
-            {
-                //Screen Blending
-                Color invertA = new Color(1f - newAPixels[i].r, 1f - newAPixels[i].g, 1f - newAPixels[i].b, newAPixels[i].a);
-                Color invertB = new Color(1f - snowPixels[i].r, 1f - snowPixels[i].g, 1f - snowPixels[i].b, snowPixels[i].a);
-
-                Color blend = invertA * invertB;
-                Color result = new Color(1f - blend.r, 1f - blend.g, 1f - blend.b, blend.a);
-
-                newAPixels[i] = Color.Lerp(newAPixels[i], result, fadePercent);
-            }
-
-            if(settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
-            {
-                if (settings.currentIntensity > 0.5f)
+                if (interior)
                 {
-                    newAPixels[233].r = Mathf.InverseLerp(0.5f, 1f, settings.currentIntensity);
+                    //Desaturate
+                    newAPixels[i] = Custom.Desaturate(newAPixels[i], settings.currentIntensity);
                 }
                 else
                 {
-                    newAPixels[233].r = 0f;
-                    newAPixels[233].g = 0f;
-                    newAPixels[233].b = Mathf.InverseLerp(0.5f, 1f, 1f - settings.currentIntensity);
+                    //Screen Blending
+                    Color invertA = new Color(1f - newAPixels[i].r, 1f - newAPixels[i].g, 1f - newAPixels[i].b, newAPixels[i].a);
+                    Color invertB = new Color(1f - snowPixels[i].r, 1f - snowPixels[i].g, 1f - snowPixels[i].b, snowPixels[i].a);
+
+                    Color blend = invertA * invertB;
+                    Color result = new Color(1f - blend.r, 1f - blend.g, 1f - blend.b, blend.a);
+
+                    newAPixels[i] = Color.Lerp(newAPixels[i], result, fadePercent);
                 }
             }
         }
@@ -526,36 +515,26 @@ public class WeatherController : UpdatableAndDeletable
         {
             Texture2D newFadeB = new Texture2D(origFadePalB.width, origFadePalB.height, TextureFormat.ARGB32, false);
             Color[] newBPixels = origFadePalB.GetPixels();
-            for (int i = 0; i < newBPixels.Length; i++)
+            if (settings.currentWeather.weatherIndex == 2)
             {
-                if (interior)
+                for (int i = 0; i < newBPixels.Length; i++)
                 {
-                    //Desaturate
-                    newBPixels[i] = Custom.Desaturate(newBPixels[i], settings.currentIntensity);
-                }
-                else
-                {
-                    //Screen Blending
-                    Color invertA = new Color(1f - newBPixels[i].r, 1f - newBPixels[i].g, 1f - newBPixels[i].b, newBPixels[i].a);
-                    Color invertB = new Color(1f - snowPixels[i].r, 1f - snowPixels[i].g, 1f - snowPixels[i].b, snowPixels[i].a);
+                    if (interior)
+                    {
+                        //Desaturate
+                        newBPixels[i] = Custom.Desaturate(newBPixels[i], settings.currentIntensity);
+                    }
+                    else
+                    {
+                        //Screen Blending
+                        Color invertA = new Color(1f - newBPixels[i].r, 1f - newBPixels[i].g, 1f - newBPixels[i].b, newBPixels[i].a);
+                        Color invertB = new Color(1f - snowPixels[i].r, 1f - snowPixels[i].g, 1f - snowPixels[i].b, snowPixels[i].a);
 
-                    Color blend = invertA * invertB;
-                    Color result = new Color(1f - blend.r, 1f - blend.g, 1f - blend.b, blend.a);
+                        Color blend = invertA * invertB;
+                        Color result = new Color(1f - blend.r, 1f - blend.g, 1f - blend.b, blend.a);
 
-                    newBPixels[i] = Color.Lerp(newBPixels[i], result, fadePercent);
-                }
-            }
-            if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
-            {
-                if (settings.currentIntensity > 0.5f)
-                {
-                    newBPixels[233].r = Mathf.InverseLerp(0.5f, 1f, settings.currentIntensity);
-                }
-                else
-                {
-                    newBPixels[233].r = 0f;
-                    newBPixels[233].g = 0f;
-                    newBPixels[233].b = Mathf.InverseLerp(0.5f, 1f, 1f - settings.currentIntensity);
+                        newBPixels[i] = Color.Lerp(newBPixels[i], result, fadePercent);
+                    }
                 }
             }
             newFadeB.SetPixels(newBPixels);
@@ -566,36 +545,39 @@ public class WeatherController : UpdatableAndDeletable
 
         room.game.cameras[0].ApplyFade();
 
-        //Effect Colors - It looks kinda bad but it works so its probably fine :)
         Color[] palCols = room.game.cameras[0].paletteTexture.GetPixels();
 
-        if (ForecastConfig.effectColor.Value)
+        //Effect Colors - It looks kinda bad but it works so its probably fine :)
+        if (settings.currentWeather.weatherIndex == 2)
         {
-            //Effect Color 1
-            palCols[190] = Custom.Desaturate(palCols[190], fadePercent);
-            palCols[191] = Custom.Desaturate(palCols[191], fadePercent);
-            palCols[158] = Custom.Desaturate(palCols[158], fadePercent);
-            palCols[159] = Custom.Desaturate(palCols[159], fadePercent);
+            if (ForecastConfig.effectColor.Value)
+            {
+                //Effect Color 1
+                palCols[190] = Custom.Desaturate(palCols[190], fadePercent);
+                palCols[191] = Custom.Desaturate(palCols[191], fadePercent);
+                palCols[158] = Custom.Desaturate(palCols[158], fadePercent);
+                palCols[159] = Custom.Desaturate(palCols[159], fadePercent);
 
-            palCols[190] = Color.Lerp(palCols[190], Color.white, fadePercent * 0.5f);
-            palCols[191] = Color.Lerp(palCols[191], Color.white, fadePercent * 0.5f);
-            palCols[158] = Color.Lerp(palCols[158], Color.white, fadePercent * 0.5f);
-            palCols[159] = Color.Lerp(palCols[159], Color.white, fadePercent * 0.5f);
+                palCols[190] = Color.Lerp(palCols[190], Color.white, fadePercent * 0.5f);
+                palCols[191] = Color.Lerp(palCols[191], Color.white, fadePercent * 0.5f);
+                palCols[158] = Color.Lerp(palCols[158], Color.white, fadePercent * 0.5f);
+                palCols[159] = Color.Lerp(palCols[159], Color.white, fadePercent * 0.5f);
 
-            //Effect Color 2
-            palCols[126] = Custom.Desaturate(palCols[126], fadePercent);
-            palCols[127] = Custom.Desaturate(palCols[127], fadePercent);
-            palCols[94] = Custom.Desaturate(palCols[94], fadePercent);
-            palCols[95] = Custom.Desaturate(palCols[95], fadePercent);
+                //Effect Color 2
+                palCols[126] = Custom.Desaturate(palCols[126], fadePercent);
+                palCols[127] = Custom.Desaturate(palCols[127], fadePercent);
+                palCols[94] = Custom.Desaturate(palCols[94], fadePercent);
+                palCols[95] = Custom.Desaturate(palCols[95], fadePercent);
 
-            palCols[126] = Color.Lerp(palCols[126], Color.white, fadePercent * 0.5f);
-            palCols[127] = Color.Lerp(palCols[127], Color.white, fadePercent * 0.5f);
-            palCols[94] = Color.Lerp(palCols[94], Color.white, fadePercent * 0.5f);
-            palCols[95] = Color.Lerp(palCols[95], Color.white, fadePercent * 0.5f);
+                palCols[126] = Color.Lerp(palCols[126], Color.white, fadePercent * 0.5f);
+                palCols[127] = Color.Lerp(palCols[127], Color.white, fadePercent * 0.5f);
+                palCols[94] = Color.Lerp(palCols[94], Color.white, fadePercent * 0.5f);
+                palCols[95] = Color.Lerp(palCols[95], Color.white, fadePercent * 0.5f);
 
-            room.game.cameras[0].paletteTexture.SetPixels(palCols);
+            }
         }
-        room.game.cameras[0].paletteTexture.Apply(false);
+        room.game.cameras[0].paletteTexture.SetPixels(palCols);
+        room.game.cameras[0].paletteTexture.Apply(true);
 
         if (exportTexture)
         {
@@ -950,7 +932,7 @@ public class WeatherController : UpdatableAndDeletable
                     }
                 }
                 //Cap intensity at roomSettings intensity
-                if(currentIntensity > owner.room.roomSettings.RainIntensity)
+                if (currentIntensity > owner.room.roomSettings.RainIntensity)
                 {
                     currentIntensity = owner.room.roomSettings.RainIntensity;
                 }
