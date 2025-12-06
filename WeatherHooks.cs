@@ -49,6 +49,29 @@ public class WeatherHooks
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize; //Remove settings
         On.WinState.CycleCompleted += WinState_CycleCompleted;
         On.RoomRain.DrawSprites += RoomRain_DrawSprites;
+        On.Pomegranate.EnterSmashedMode += Pomegranate_EnterSmashedMode;
+    }
+
+    private static void Pomegranate_EnterSmashedMode(On.Pomegranate.orig_EnterSmashedMode orig, Pomegranate self)
+    {
+        //Pomegranates freeze the game when they're smashed open because we're messing with palettes in the WeatherController
+        //So... we pause palette updates for a tick :)
+        if (self.room != null)
+        {
+            WeatherController weatherController = null;
+            for (int i = 0; i < self.room.updateList.Count; i++)
+            {
+                if (self.room.updateList[i] is WeatherController)
+                {
+                    weatherController = self.room.updateList[i] as WeatherController;
+                }
+            }
+            if (weatherController != null)
+            {
+                weatherController.pauseUpdate = true;
+            }
+        }
+        orig.Invoke(self);
     }
 
     private static void ArenaGameSession_ctor(On.ArenaGameSession.orig_ctor orig, ArenaGameSession self, RainWorldGame game)

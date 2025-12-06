@@ -38,6 +38,7 @@ public class WeatherController : UpdatableAndDeletable
 
     public Color strikeColor = new Color(0f, 1f, 0f);
     public float lightningCounter;
+    public bool pauseUpdate = false;
 
     public WeatherController(Room weatherRoom)
     {
@@ -356,13 +357,17 @@ public class WeatherController : UpdatableAndDeletable
             }
         }
         //Apply snowy palette
-        if (room.BeingViewed)
+        if (room.BeingViewed && !pauseUpdate)
         {
             ApplyPalette();
             //if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
             //{
             //    Shader.SetGlobalFloat(RainWorld.ShadPropFogAmount, Mathf.Lerp(0f, 10f, room.world.rainCycle.CycleProgression));
             //}
+        }
+        else if (pauseUpdate)
+        {
+            pauseUpdate = false;
         }
 
         if (!interior && room.game != null && room != null && !room.abstractRoom.gate && room.ReadyForPlayer)
