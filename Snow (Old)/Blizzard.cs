@@ -603,36 +603,45 @@ public class ExposureController
                 //Death Bells
                 if (exposure >= 1f && !dead && player.playerState.playerNumber == 0)
                 {
-                    bellCooldown += 0.025f;
-                    if (bellCooldown > Mathf.Lerp(1f, 0.3f, Mathf.InverseLerp(0f, 22, bellRing)))
+                    bellCooldown += Time.deltaTime;
+
+                    float interval = Mathf.Lerp(1f, 0.3f, Mathf.InverseLerp(0f, 25f, bellRing));
+
+                    if (bellCooldown >= interval)
                     {
                         bellCooldown = 0f;
                         bellRing++;
-                        player.room.PlaySound(SoundID.MENU_Start_New_Game, player.mainBodyChunk, false, Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)), UnityEngine.Random.Range(1.25f,1.3f));
-                        if (bellRing == 25)
+
+                        player.room.PlaySound(
+                            SoundID.MENU_Start_New_Game,
+                            player.mainBodyChunk,
+                            false,
+                            Mathf.Lerp(0.7f, 1.8f, Mathf.InverseLerp(0f, 25f, bellRing)),
+                            UnityEngine.Random.Range(1.25f, 1.3f)
+                        );
+
+                        if (bellRing >= 25 && !dead)
                         {
-                            if (!dead)
-                            {
-                                player.Die();
-                                dead = true;
-                            }
-                        }
-                        else
-                        {
-                            dead = false;
+                            player.Die();
+                            dead = true;
                         }
                     }
                 }
-                else
+                else if (exposure < 0.99f)
                 {
-                    bellCooldown += 0.025f;
-                    if (bellCooldown > Mathf.Lerp(1f, 0.3f, Mathf.InverseLerp(0f, 22, bellRing)))
+                    bellCooldown += Time.deltaTime;
+
+                    float interval = Mathf.Lerp(1f, 0.3f, Mathf.InverseLerp(0f, 25f, bellRing));
+
+                    if (bellCooldown >= interval)
                     {
-                        bellCooldown = 0;
+                        bellCooldown = 0f;
                         bellRing--;
                     }
                 }
+
                 bellRing = Mathf.Clamp(bellRing, 0, 25);
+
             }
             exposure = Mathf.Clamp(exposure, 0f, 1f);
             if (ForecastConfig.debugMode.Value)

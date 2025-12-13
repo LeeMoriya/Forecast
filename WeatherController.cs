@@ -245,7 +245,7 @@ public class WeatherController : UpdatableAndDeletable
                             SnowFlake snowFlake = new SnowFlake(spawnPos, Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), settings.currentIntensity, this);
                             room.AddObject(snowFlake);
                             //snowFlake.reset = true;
-                            for (int s = 0; s < 1000; s++)
+                            for (int s = 0; s < 100; s++)
                             {
                                 snowFlake.Update(true);
                             }
@@ -431,20 +431,23 @@ public class WeatherController : UpdatableAndDeletable
                 }
             }
             //Add rain particles
-            if (settings.weatherType == 0)
+            if (room.world.rainCycle.CycleProgression < 1f)
             {
-                snowFlakes = 0;
-                if (rainDrops < ((room.Width - ceilingCount) * rainLimit) / room.Width)
+                if (settings.weatherType == 0)
                 {
-                    AddRaindrops(rainLimit - rainDrops);
+                    snowFlakes = 0;
+                    if (rainDrops < ((room.Width - ceilingCount) * rainLimit) / room.Width)
+                    {
+                        AddRaindrops(rainLimit - rainDrops);
+                    }
                 }
-            }
-            if (settings.weatherType == 2 && ForecastConfig.classicSnow.Value)
-            {
-                rainDrops = 0;
-                if (snowFlakes < ((room.Width - ceilingCount) * rainLimit) / room.Width)
+                if (settings.weatherType == 2 && ForecastConfig.classicSnow.Value)
                 {
-                    AddSnowflakes(rainLimit - snowFlakes);
+                    rainDrops = 0;
+                    if (snowFlakes < ((room.Width - ceilingCount) * rainLimit) / room.Width)
+                    {
+                        AddSnowflakes(rainLimit - snowFlakes);
+                    }
                 }
             }
         }

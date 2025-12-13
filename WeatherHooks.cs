@@ -31,8 +31,6 @@ public class WeatherHooks
         }
     }
 
-    public static float rainIntensity; //OLD - used for classic snow
-
     public static void Patch()
     {
         On.Room.Update += Room_Update;
@@ -48,7 +46,7 @@ public class WeatherHooks
         On.RoomRain.Update += RoomRain_Update;
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize; //Remove settings
         On.WinState.CycleCompleted += WinState_CycleCompleted;
-        On.RoomRain.DrawSprites += RoomRain_DrawSprites;
+        //On.RoomRain.DrawSprites += RoomRain_DrawSprites;
         On.Pomegranate.EnterSmashedMode += Pomegranate_EnterSmashedMode;
     }
 
@@ -104,6 +102,7 @@ public class WeatherHooks
         if ((ModManager.MSC || ModManager.Watcher) && self.room != null && self.room.roomSettings != null && self.room.roomSettings.DangerType == DLCSharedEnums.RoomRainDangerType.Blizzard)
         {
             sLeaser.CleanSpritesAndRemove();
+            self.Destroy();
             return;
         }
 
