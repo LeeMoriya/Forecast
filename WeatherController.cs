@@ -151,9 +151,9 @@ public class WeatherController : UpdatableAndDeletable
                 {
                     room.roomSettings.effects.Add(new RoomSettings.RoomEffect(RoomSettings.RoomEffect.Type.Fog, 1f, false));
                 }
+                room.AddObject(new FogOverlay(room, this, new Vector2(1f, 0.05f), "fogOverlay1", 0.15f, 0.5f));
+                room.AddObject(new FogOverlay(room, this, new Vector2(-1f, -0.05f), "fogOverlay2", 0.05f, 0.8f));
             }
-            room.AddObject(new FogOverlay(room, this, new Vector2(1f,0.05f), "fogOverlay1", 0.15f, 0.5f));
-            room.AddObject(new FogOverlay(room, this, new Vector2(-1f, -0.05f), "fogOverlay2", 0.05f, 0.8f));
         }
         //Rain
         if (settings.weatherType == 0 && settings.currentWeather.type != WeatherForecast.Weather.WeatherType.Fog)
