@@ -53,6 +53,8 @@ public class ForecastConfig : OptionInterface
     public static Configurable<bool> vignette;
     public static Configurable<bool> effectColor;
 
+    public static Configurable<bool> arenaSupport;
+
     public static Configurable<bool> debugMode;
 
     //Manual Configurables
@@ -90,6 +92,7 @@ public class ForecastConfig : OptionInterface
     public OpSimpleButton snowSourceToggle;
     public OpSimpleButton vignetteToggle;
     public OpSimpleButton effectColorToggle;
+    public OpSimpleButton arenaSupportToggle;
 
     public OpSimpleButton snowSlider;
     public OpRect selector;
@@ -123,6 +126,7 @@ public class ForecastConfig : OptionInterface
         weatherIntensity = config.Bind<int>("weatherIntensity", 0, new ConfigAcceptableRange<int>(0, 3));
         weatherChance = config.Bind<int>("weatherChance", 100, new ConfigAcceptableRange<int>(0, 100));
         windDirection = config.Bind<int>("windDirection", 0, new ConfigAcceptableRange<int>(0, 3));
+        arenaSupport = config.Bind<bool>("arenaSupport", true);
 
         weatherPreference = config.Bind<bool>("weatherPreference", true);
         weatherRandomness = config.Bind<int>("weatherRandomness", 10, new ConfigAcceptableRange<int>(0, 100));
@@ -356,7 +360,7 @@ public class ForecastConfig : OptionInterface
         supportModeButton.OnClick += SupportModeButton_OnClick;
         options.AddItems(supportRect, supportTitle, supportDesc, supportModeButton);
 
-        float settingsHeight = 2300f;
+        float settingsHeight = 2220f;
         settingsBox = new OpScrollBox(new Vector2(0f, 0f), new Vector2(600f, 400f), settingsHeight, false, true, true);
         options.AddItems(settingsBox);
 
@@ -409,7 +413,7 @@ public class ForecastConfig : OptionInterface
 
         OpLabel basicLabel = new OpLabel(new Vector2(280f, basicAnchor + 15f), new Vector2(), "- BASIC SETTINGS -", FLabelAlignment.Center);
 
-        OpRect basicSettingsRect = new OpRect(new Vector2(15f, basicAnchor - 313.5f), new Vector2(555f, 320f));
+        OpRect basicSettingsRect = new OpRect(new Vector2(15f, basicAnchor - 393.5f), new Vector2(555f, 400f));
         basicSettingsRect.colorFill = new Color(0f, 0f, 1f);
         settingsBox.AddItems(basicSettingsRect, basicLabel);
 
@@ -439,8 +443,15 @@ public class ForecastConfig : OptionInterface
         windToggle.OnClick += WindToggle_OnClick;
         settingsBox.AddItems(windLabel, windDesc, windToggle);
 
+        //Arena Support
+        OpLabel arenaLabel = new OpLabel(160f, basicAnchor - 350f, "ARENA WEATHER");
+        OpLabel arenaDesc = new OpLabel(160f, basicAnchor - 370f, "Enable the global weather forecast in Arena");
+        arenaSupportToggle = new OpSimpleButton(new Vector2(30f, basicAnchor - 375f), new Vector2(110f, 45f), arenaSupport.Value ? "ENABLED" : "DISABLED");
+        arenaSupportToggle.OnClick += ArenaSupportToggle_OnClick;
+        settingsBox.AddItems(arenaLabel, arenaDesc, arenaSupportToggle);
+
         //VISUAL SETTINGS
-        float visualAnchor = basicAnchor - 370f;
+        float visualAnchor = basicAnchor - 450f;
         OpLabel visualLabel = new OpLabel(new Vector2(280f, visualAnchor + 15f), new Vector2(), "- VISUAL SETTINGS -", FLabelAlignment.Center);
 
         OpRect visualRect = new OpRect(new Vector2(15f, visualAnchor - 233.5f), new Vector2(555, 240f));
@@ -693,6 +704,8 @@ public class ForecastConfig : OptionInterface
     private void SnowSliderToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => classicSnow.Value, v => classicSnow.Value = v);
     private void VignetteToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => vignette.Value, v => vignette.Value = v);
     private void EffectColorToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => effectColor.Value, v => effectColor.Value = v);
+    private void ArenaSupportToggle_OnClick(UIfocusable trigger) => ToggleSetting(() => arenaSupport.Value, v => arenaSupport.Value = v);
+
 
 
     private void StrikeWeatherToggle_OnClick(UIfocusable trigger)
@@ -937,6 +950,10 @@ public class ForecastConfig : OptionInterface
         preferenceToggle.text = weatherPreference.Value ? "ENABLED" : "DISABLED";
         greenToggle.text = greenLightning.Value ? "ENABLED" : "DISABLED";
         snowSourceToggle.text = snowSources.Value ? "ENABLED" : "DISABLED";
+        vignetteToggle.text = vignette.Value ? "ENABLED" : "DISABLED";
+        effectColorToggle.text = effectColor.Value ? "ENABLED" : "DISABLED";
+        arenaSupportToggle.text = arenaSupport.Value ? "ENABLED" : "DISABLED";
+
         windToggle.text = WindDirectionValue();
         intensityToggle.text = IntensityValue();
         strikeTypeToggle.text = StrikeDamageValue();
@@ -952,12 +969,16 @@ public class ForecastConfig : OptionInterface
             strikeTypeToggle.greyedOut = true;
             intervalSlider.greyedOut = true;
             strikeChanceSlider.greyedOut = true;
+            strikeWeatherToggle.greyedOut = true;
+            greenToggle.greyedOut = true;
         }
         else
         {
             strikeTypeToggle.greyedOut = false;
             intervalSlider.greyedOut = false;
             strikeChanceSlider.greyedOut = false;
+            strikeWeatherToggle.greyedOut = false;
+            greenToggle.greyedOut = false;
         }
             vignetteToggle.greyedOut = !classicSnow.Value;
             windSlider.greyedOut = !classicSnow.Value;

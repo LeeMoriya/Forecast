@@ -77,9 +77,12 @@ public class WeatherHooks
     private static void ArenaGameSession_ctor(On.ArenaGameSession.orig_ctor orig, ArenaGameSession self, RainWorldGame game)
     {
         orig.Invoke(self, game);
-        if (ForecastConfig.classicSnow.Value)
+        if (ForecastConfig.arenaSupport.Value)
         {
-            ForecastMod.exposureControllers = new List<ExposureController>();
+            if (ForecastConfig.classicSnow.Value)
+            {
+                ForecastMod.exposureControllers = new List<ExposureController>();
+            }
         }
     }
 
@@ -233,21 +236,24 @@ public class WeatherHooks
     private static void ArenaGameSession_SpawnPlayers(On.ArenaGameSession.orig_SpawnPlayers orig, ArenaGameSession self, Room room, List<int> suggestedDens)
     {
         orig.Invoke(self, room, suggestedDens);
-        int ceilingCount = 0;
-        if (self != null && room.roomRain != null)
+        if (ForecastConfig.arenaSupport.Value)
         {
-            for (int r = 0; r < room.TileWidth; r++)
+            int ceilingCount = 0;
+            if (self != null && room.roomRain != null)
             {
-                if (room.Tiles[r, room.TileHeight - 1].Solid)
+                for (int r = 0; r < room.TileWidth; r++)
                 {
-                    ceilingCount++;
+                    if (room.Tiles[r, room.TileHeight - 1].Solid)
+                    {
+                        ceilingCount++;
+                    }
                 }
-            }
-            if (ceilingCount < (room.Width * 0.95))
-            {
-                if (!roomSettings.ContainsKey(room))
+                if (ceilingCount < (room.Width * 0.95))
                 {
-                    room.AddObject(new WeatherController(room));
+                    if (!roomSettings.ContainsKey(room))
+                    {
+                        room.AddObject(new WeatherController(room));
+                    }
                 }
             }
         }
