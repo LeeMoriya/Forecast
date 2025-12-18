@@ -195,6 +195,11 @@ public class SnowFlake : CosmeticSprite
             {
                 reset = true;
             }
+
+        }
+        if (room.terrain != null && room.terrain.ObstructsTile(room.GetTilePosition(pos)))
+        {
+            reset = true;
         }
         if (pos.y < -100f)
         {

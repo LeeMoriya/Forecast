@@ -181,7 +181,7 @@ public class RainDrop : CosmeticSprite
         }
 
         // Raindrop hits tile
-        if (room.GetTile(pos).Solid)
+        if (room.GetTile(pos).Solid || (room.terrain != null && room.terrain.ObstructsTile(room.GetTilePosition(pos))))
         {
             pos.y = room.MiddleOfTile(pos).y + 11f;
             lastPos = pos;

@@ -140,7 +140,7 @@ public class ForecastConfig : OptionInterface
 
         rainVolume = config.Bind<bool>("rainVolume", true);
 
-        backgroundLightning = config.Bind<bool>("backgroundLightning", true);
+        backgroundLightning = config.Bind<bool>("backgroundLightning", false);
         lightningStrikes = config.Bind<bool>("lightningStrikes", true);
         lightningInterval = config.Bind<int>("lightningInterval", 10, new ConfigAcceptableRange<int>(1, 60));
         lightningChance = config.Bind<int>("lightningChance", 15);

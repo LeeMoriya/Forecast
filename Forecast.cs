@@ -18,11 +18,11 @@ using BepInEx;
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 
-[BepInPlugin("LeeMoriya.Forecast", "Forecast", "1.1.95")]
+[BepInPlugin("LeeMoriya.Forecast", "Forecast", "1.1.96")]
 public class ForecastMod : BaseUnityPlugin
 {
     public static bool init = false;
-    public static string versionNum = "1.1.95";
+    public static string versionNum = "1.1.96";
     public ForecastMod()
     {
         
@@ -75,18 +75,6 @@ public class ForecastMod : BaseUnityPlugin
         }
         ForecastMod.snowInt.LoadImage(File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowInt.png")));
         ForecastMod.snowInt.filterMode = FilterMode.Point;
-
-        byte[] rainbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\rainButton.png"));
-        Texture2D raintexture = new Texture2D(0, 0);
-        raintexture.filterMode = FilterMode.Point;
-        raintexture.LoadImage(rainbytes);
-        Futile.atlasManager.LoadAtlasFromTexture("rainbutton", raintexture, false);
-
-        byte[] snowbytes = File.ReadAllBytes(AssetManager.ResolveFilePath("sprites\\snowButton.png"));
-        Texture2D snowtexture = new Texture2D(0, 0);
-        snowtexture.filterMode = FilterMode.Point;
-        snowtexture.LoadImage(snowbytes);
-        Futile.atlasManager.LoadAtlasFromTexture("snowbutton", snowtexture, false);
 
         if (!Futile.atlasManager.DoesContainAtlas("bg_rain"))
         {

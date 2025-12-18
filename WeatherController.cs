@@ -54,7 +54,10 @@ public class WeatherController : UpdatableAndDeletable
         }
         WeatherHooks.roomSettings.Add(room, settings);
 
-        Setup();
+        if (!WeatherForecast.weatherlessRegions.Contains(settings.regionName))
+        {
+            Setup();
+        }
     }
 
     public void Setup()
