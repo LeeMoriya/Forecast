@@ -182,6 +182,10 @@ public class LightningStrike : UpdatableAndDeletable
                     for (int i = 0; i < pathPositions.Count; i++)
                     {
                         room.AddObject(new LightningImpact(pathPositions[i], 20f, color));
+                        for (int s = 0; s < 20; s++)
+                        {
+                            room.AddObject(new MouseSpark(pathPositions[i], Custom.RNV() * UnityEngine.Random.Range(1f,3f), UnityEngine.Random.Range(10f,50f), color));
+                        }
                     }
                     spawn = true;
                 }

@@ -140,7 +140,7 @@ public class WeatherController : UpdatableAndDeletable
         }
         if (settings.currentWeather != null && !interior)
         {
-            if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog) //TODO - Maybe implement fog palette manipulation discovered in PaletteTweaker
+            if (settings.currentWeather.type == WeatherForecast.Weather.WeatherType.Fog)
             {
                 RoomSettings.RoomEffect fog = room.roomSettings.effects.Find(x => x.type == RoomSettings.RoomEffect.Type.Fog);
                 if (fog != null && !interior)
@@ -240,12 +240,10 @@ public class WeatherController : UpdatableAndDeletable
                         Vector2 spawnPos = spawn + offset2;
                         if (RayTraceSky(spawnPos, new Vector2(0f, 1f)))
                         {
-                            ForecastLog.LogOnce("Snow3");
-
                             SnowFlake snowFlake = new SnowFlake(spawnPos, Color.Lerp(room.game.cameras[0].currentPalette.skyColor, new Color(1f, 1f, 1f), 0.1f), settings.currentIntensity, this);
                             room.AddObject(snowFlake);
                             //snowFlake.reset = true;
-                            for (int s = 0; s < 100; s++)
+                            for (int s = 0; s < 500; s++)
                             {
                                 snowFlake.Update(true);
                             }
@@ -336,10 +334,14 @@ public class WeatherController : UpdatableAndDeletable
         {
             if (room.game.cameras[0].blizzardGraphics != null && !ForecastConfig.classicSnow.Value)
             {
+                float num = Mathf.Lerp(room.game.cameras[0].blizzardGraphics.oldWindStrength, room.game.cameras[0].blizzardGraphics.WindStrength, room.game.cameras[0].blizzardGraphics.upDeLerp);
+                float num2 = Mathf.Lerp(room.game.cameras[0].blizzardGraphics.oldWindAngle, room.game.cameras[0].blizzardGraphics.WindAngle, room.game.cameras[0].blizzardGraphics.upDeLerp);
                 room.game.cameras[0].blizzardGraphics.oldSnowFallIntensity = settings.currentIntensity;
                 room.game.cameras[0].blizzardGraphics.snowfallIntensity = settings.currentIntensity;
-                room.game.cameras[0].blizzardGraphics.oldBlizzardIntensity = settings.currentIntensity; //Water glitches
-                room.game.cameras[0].blizzardGraphics.blizzardIntensity = settings.currentIntensity; //Watcher glitche
+                room.game.cameras[0].blizzardGraphics.oldBlizzardIntensity = settings.currentIntensity; 
+                room.game.cameras[0].blizzardGraphics.blizzardIntensity = settings.currentIntensity; 
+                room.roomSettings.WaveAmplitude = Mathf.Lerp(room.roomSettings.WaveAmplitude, num / 20f, 0.1f);
+                room.roomSettings.WaveLength = Mathf.Lerp(1f, 0.5f, settings.currentIntensity / 2f + Mathf.Abs(num2) / 2f);
                 room.game.cameras[0].blizzardGraphics.oldWindStrength = settings.currentIntensity;
                 room.game.cameras[0].blizzardGraphics.windStrength = settings.currentIntensity;
                 room.game.cameras[0].blizzardGraphics.oldWindAngle = room.game.cameras[0].blizzardGraphics.windAngle;
