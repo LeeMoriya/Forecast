@@ -197,7 +197,7 @@ public class SnowFlake : CosmeticSprite
             }
 
         }
-        if (room.terrain != null && room.terrain.ObstructsTile(room.GetTilePosition(pos)))
+        if (room.terrain != null && room.terrain.Contains(pos))
         {
             reset = true;
         }

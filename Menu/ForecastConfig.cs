@@ -10,6 +10,7 @@ using Menu;
 using Menu.Remix;
 using Menu.Remix.MixedUI;
 using UnityEngine.Video;
+using static WeatherForecast;
 
 public class ForecastConfig : OptionInterface
 {
@@ -100,6 +101,10 @@ public class ForecastConfig : OptionInterface
     public OpSlider coldSlider;
     public OpSlider windSlider;
 
+    public OpRect infoRect;
+    public OpLabel infoLabel;
+    public float infoAlpha = 0f;
+
     public static bool preferenceUpdate = false;
     public static bool updateRegionSettingsButtons = false;
 
@@ -146,7 +151,7 @@ public class ForecastConfig : OptionInterface
         lightningChance = config.Bind<int>("lightningChance", 15);
         strikeDamageType = config.Bind<int>("strikeDamageType", 0);
         strikeWeathers = config.Bind<int>("strikeWeathers", 0);
-        strikeColor = config.Bind<Color>("strikeColor", new Color(1f, 1f, 0.95f, 1f));
+        strikeColor = config.Bind<Color>("strikeColor", new Color(1f, 0.95f, 0.85f, 1f));
         greenLightning = config.Bind<bool>("greenLightning", true);
 
         endBlizzard = config.Bind<bool>("endBlizzard", true);
@@ -360,7 +365,7 @@ public class ForecastConfig : OptionInterface
         supportModeButton.OnClick += SupportModeButton_OnClick;
         options.AddItems(supportRect, supportTitle, supportDesc, supportModeButton);
 
-        float settingsHeight = 2220f;
+        float settingsHeight = 2180f;
         settingsBox = new OpScrollBox(new Vector2(0f, 0f), new Vector2(600f, 400f), settingsHeight, false, true, true);
         options.AddItems(settingsBox);
 
@@ -590,6 +595,13 @@ public class ForecastConfig : OptionInterface
         supportWarningDesc = new OpLabel(new Vector2(290f, 180f), new Vector2(), "Forecast will only generate weather for regions with their own custom settings.\nTo allow weather for all regions, and to change the global settings, disable support mode.", FLabelAlignment.Center);
         options.AddItems(supportWarning, supportWarningDesc);
 
+        //INFO LABEL
+        infoRect = new OpRect(new Vector2(10f, 420f), new Vector2(580f, 80f));
+        infoRect.OnGrafUpdate += InfoRect_OnGrafUpdate;
+        infoLabel = new OpLabel(new Vector2(20f, 480f), new Vector2(), "TEST\n\nThis a description", FLabelAlignment.Left, false);
+        infoLabel.label.SetAnchor(0f, 1f);
+        options.AddItems(infoRect, infoLabel);
+
         #endregion
 
         #region Regions Tab
@@ -664,6 +676,13 @@ public class ForecastConfig : OptionInterface
 
         ForecastLog.Log($"Support Mode: {(supportMode.Value ? "ON" : "OFF")}");
         OnConfigReset += ForecastConfig_OnConfigReset;
+    }
+
+    private void InfoRect_OnGrafUpdate(float timeStacker)
+    {
+        infoRect.fillAlpha = infoAlpha;
+        infoRect.colorEdge = new Color(1f,1f,0f,infoAlpha);
+        infoLabel.alpha = infoAlpha;
     }
 
     private void SnowSlider_OnGrafUpdate(float timeStacker)
@@ -751,7 +770,24 @@ public class ForecastConfig : OptionInterface
         lightningChance.Value = 15;
         strikeDamageType.Value = 1;
 
+        Dictionary<Weather.WeatherType, float> defaultWeathers = new Dictionary<Weather.WeatherType, float>
+        {
+            { Weather.WeatherType.LightRain, 0.3f },
+            { Weather.WeatherType.HeavyRain, 0.3f },
+            { Weather.WeatherType.Thunderstorm, 0.15f },
+            { Weather.WeatherType.Fog, 0.05f },
+            { Weather.WeatherType.LightSnow, 0.1f },
+            { Weather.WeatherType.HeavySnow, 0.05f },
+            { Weather.WeatherType.Blizzard, 0.05f }
+        };
+
+        regionWeatherProbability["GLOBAL"] = defaultWeathers;
+
+
         config.Save();
+        WeatherData.Save();
+        Custom.rainWorld.processManager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
+
     }
 
     private void WindToggle_OnClick(UIfocusable trigger)
@@ -918,6 +954,52 @@ public class ForecastConfig : OptionInterface
     public override void Update()
     {
         base.Update();
+
+        if (forecastEdit.MouseOver)
+        {
+            infoAlpha += 0.1f;
+            infoLabel.text = LabelTest.WrapText("GLOBAL FORECAST\nAdjust the probabilities that certain weathers will occur, or disable certain weathers entirely. Each cycle, a weather will be selected based on the chances you define here. The 'GLOBAL' forecast applies to all regions by default, unless you have configured a custom forecast for a specific region.", false, 570f);
+        }
+        else if (preferenceToggle.MouseOver)
+        {
+            infoAlpha += 0.1f;
+            infoLabel.text = LabelTest.WrapText("WEATHER PREFERENCE\nThis setting disables the GLOBAL forecast in favor of more realistic weather transitions. Each weather has it's own list of preferred weathers it will change into next cycle, preventing scenarios like light rain one cycle, and a blizzard the next.", false, 570f);
+        }
+        else if (randomnessSlider.MouseOver)
+        {
+            infoAlpha += 0.1f;
+            infoLabel.text = LabelTest.WrapText("WEATHER RANDOMNESS\nIf you are using the Weather Preference setting, you can adjust this slider to introduce some additional randomness to the forecast. Based on the percentage, a completely random weather will be selected.", false, 570f);
+        }
+        else if (intensityToggle.MouseOver)
+        {
+            infoAlpha += 0.1f;
+            infoLabel.text = LabelTest.WrapText("WEATHER INTENSITY\nEach weather type has a minimum and maximum intensity. In dynamic mode, weather intensity will gradually progress from the minimum to the maximum as the cycle progresses, or you can set it to a fixed value.", false, 570f);
+        }
+        else if (backgroundCollisionToggle.MouseOver)
+        {
+            infoAlpha += 0.1f;
+            infoLabel.text = LabelTest.WrapText("BACKGROUND COLLISION\nEach weather particle has a chance of colliding with elements in the background instead of just normal room geometry. This can look more realistic but may also result in less particles hitting the floor in taller rooms.", false, 570f);
+        }
+        else if (snowSlider.MouseOver && snowSlider.MousePos.x < 300f)
+        {
+            infoAlpha += 0.1f;
+            infoLabel.text = LabelTest.WrapText("FORECAST STYLE\nForecast's own snow style; has it's own snowflake particles and a unique end-of-cycle Blizzard. After cycle end the temperature will decrease and the wind will pick up. Your exposure to the cold is indicated by an icy border and eventually, beating drums will signal your imminent death.", false, 570f);
+        }
+        else if (snowSlider.MouseOver && snowSlider.MousePos.x >= 300f)
+        {
+            infoAlpha += 0.1f;
+            infoLabel.text = LabelTest.WrapText("DOWNPOUR STYLE\nUses the snowfall shader added in the Downpour DLC as well as it's end-of-cycle Blizzard. Has the same hypothermia mechanics present in Saint's campaign, however if you do not own a DLC, the weather will change back to rain at the end of the cycle.", false, 570f);
+        }
+        else if (snowSourceToggle.MouseOver)
+        {
+            infoAlpha += 0.1f;
+            infoLabel.text = LabelTest.WrapText("SNOW SOURCES\nDuring snowy weather, snow piles will be dynamically placed in rooms. As the cycle progresses, the snow will accumulate. Unfortunately can look quite jarring in dark places like Shaded Citadel.", false, 570f);
+        }
+        else
+        {
+            infoAlpha -= 0.025f;
+        }
+        infoAlpha = Mathf.Clamp01(infoAlpha);
 
         if (!supportMode.Value)
         {
