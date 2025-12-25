@@ -75,6 +75,12 @@ public class WeatherHooks
     private static void ArenaGameSession_ctor(On.ArenaGameSession.orig_ctor orig, ArenaGameSession self, RainWorldGame game)
     {
         orig.Invoke(self, game);
+        WeatherData.Load();
+
+        if (WeatherForecast.regionWeatherForecasts == null || WeatherForecast.regionWeatherForecasts.Keys.Count == 0)
+        {
+            WeatherForecast.InitialWeather();
+        }
         if (ForecastConfig.arenaSupport.Value)
         {
             if (ForecastConfig.classicSnow.Value)
