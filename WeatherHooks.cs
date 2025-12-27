@@ -40,7 +40,6 @@ public class WeatherHooks
         On.Lightning.ctor += Lightning_ctor;
         On.ArenaGameSession.SpawnPlayers += ArenaGameSession_SpawnPlayers;
         On.ArenaGameSession.ctor += ArenaGameSession_ctor;
-        On.Player.ctor += Player_ctor;
         On.StoryGameSession.ctor += StoryGameSession_ctor;
         On.RainWorld.Update += RainWorld_Update;
         On.RoomRain.Update += RoomRain_Update;
@@ -48,6 +47,34 @@ public class WeatherHooks
         On.WinState.CycleCompleted += WinState_CycleCompleted;
         //On.RoomRain.DrawSprites += RoomRain_DrawSprites;
         On.Pomegranate.EnterSmashedMode += Pomegranate_EnterSmashedMode;
+        On.Player.Update += Player_Update;
+    }
+
+    private static void Player_Update(On.Player.orig_Update orig, Player self, bool eu)
+    {
+        orig.Invoke(self, eu);
+        if (ForecastConfig.classicSnow.Value)
+        {
+            if(self.room != null && self.room.game != null && self.room.game.session != null)
+            {
+                if (self.room.game.session is StoryGameSession)
+                {
+                    if(ForecastMod.exposureControllers != null)
+                    {
+                        bool added = false;
+                        foreach(var controller in ForecastMod.exposureControllers)
+                        {
+                            if(controller.player == self) added = true;
+                        }
+                        if (!added)
+                        {
+                            ForecastMod.exposureControllers.Add(new ExposureController(self));
+                            ForecastLog.Log("Added exposure controller");
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void Pomegranate_EnterSmashedMode(On.Pomegranate.orig_EnterSmashedMode orig, Pomegranate self)
@@ -198,15 +225,6 @@ public class WeatherHooks
         if (ForecastConfig.classicSnow.Value)
         {
             ForecastMod.exposureControllers = new List<ExposureController>();
-        }
-    }
-
-    private static void Player_ctor(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
-    {
-        orig.Invoke(self, abstractCreature, world);
-        if (ForecastConfig.classicSnow.Value && self.room.game.session is StoryGameSession)
-        {
-            ForecastMod.exposureControllers.Add(new ExposureController(self));
         }
     }
 
