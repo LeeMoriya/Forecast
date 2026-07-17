@@ -329,14 +329,14 @@ public class WeatherController : UpdatableAndDeletable
             }
         }
         //Cloud cover
-        if (settings.dynamicClouds)
-        {
-            room.roomSettings.Clouds = Mathf.Lerp(settings.startingIntensity, 1f, room.world.rainCycle.CycleProgression); //Cloud cover should apply everywhere
-        }
-        else
-        {
-            room.roomSettings.Clouds = settings.cloudCover;
-        }
+        //if (settings.dynamicClouds)
+        //{
+        //    room.roomSettings.Clouds = Mathf.Lerp(settings.startingIntensity, 1f, room.world.rainCycle.CycleProgression); //Cloud cover should apply everywhere
+        //}
+        //else
+        //{
+        //    room.roomSettings.Clouds = settings.cloudCover;
+        //}
         //Snowy weather - making it look the same between AerieBlizzard and normal Blizzard
         if (settings.currentWeather.weatherIndex == 2)
         {

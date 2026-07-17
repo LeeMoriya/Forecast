@@ -45,7 +45,7 @@ public class WeatherHooks
         On.RoomRain.Update += RoomRain_Update;
         On.AbstractRoom.Abstractize += AbstractRoom_Abstractize; //Remove settings
         On.WinState.CycleCompleted += WinState_CycleCompleted;
-        //On.RoomRain.DrawSprites += RoomRain_DrawSprites;
+        On.RoomRain.DrawSprites += RoomRain_DrawSprites;
         On.Pomegranate.EnterSmashedMode += Pomegranate_EnterSmashedMode;
         On.Player.Update += Player_Update;
     }
