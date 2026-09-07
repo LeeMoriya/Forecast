@@ -73,9 +73,9 @@ public class DebugWeatherUI
         container.RemoveAllChildren();
         labels = new List<FLabel>();
 
-        FLabel toggleLabel = new FLabel("font", "TOGGLE UI  -  F9\n");
+        FLabel toggleLabel = new FLabel(RWCustom.Custom.GetFont(), ForecastMod.Translate("TOGGLE UI  -  F9\n"));
         labels.Add(toggleLabel);
-        FLabel roomHeading = new FLabel("font", $"{settings.roomName} - Weather Settings");
+        FLabel roomHeading = new FLabel(RWCustom.Custom.GetFont(), string.Format(ForecastMod.Translate("{0} - Weather Settings"), settings.roomName));
         labels.Add(roomHeading);
 
         if (ForecastConfig.customRegionSettings.ContainsKey(settings.regionName))
@@ -85,7 +85,7 @@ public class DebugWeatherUI
                 //GLOBAL TAGS
                 if (pair.Key == "GLOBAL")
                 {
-                    FLabel globalTags = new FLabel("font", "Global Tags: ");
+                    FLabel globalTags = new FLabel(RWCustom.Custom.GetFont(), ForecastMod.Translate("Global Tags: "));
                     for (int i = 0; i < pair.Value.Count; i++)
                     {
                         globalTags.text += pair.Value[i] + ", ";
@@ -95,7 +95,7 @@ public class DebugWeatherUI
                 //ROOM TAGS
                 else if (pair.Key == settings.roomName)
                 {
-                    FLabel roomLabel = new FLabel("font", "Room Tags: ");
+                    FLabel roomLabel = new FLabel(RWCustom.Custom.GetFont(), ForecastMod.Translate("Room Tags: "));
                     for (int i = 0; i < pair.Value.Count; i++)
                     {
                         roomLabel.text += pair.Value[i] + ", ";
@@ -107,36 +107,34 @@ public class DebugWeatherUI
         }
 
         //SETTINGS
-        FLabel settingsLabel = new FLabel("font", "\n\n\nGENERAL:\n\n");
+        FLabel settingsLabel = new FLabel(RWCustom.Custom.GetFont(), ForecastMod.Translate("\n\n\nGENERAL:\n\n"));
 
         if (settings.currentWeather != null)
         {
-            settingsLabel.text +=
-            $"Forecast:\nNow: {settings.currentWeather.type}" +
-            $"\nNext: {WeatherForecast.regionWeatherForecasts[settings.regionName][1]}" +
-            $"\nLater: {WeatherForecast.regionWeatherForecasts[settings.regionName][2]}\n\n";
+            settingsLabel.text += string.Format(ForecastMod.Translate("Forecast:\nNow: {0}\nNext: {1}\nLater: {2}\n\n"),
+                WeatherName(settings.currentWeather.type),
+                WeatherName(WeatherForecast.regionWeatherForecasts[settings.regionName][1]),
+                WeatherName(WeatherForecast.regionWeatherForecasts[settings.regionName][2]));
         }
 
-        settingsLabel.text += $"Interior: {(settings.owner.interior ? "YES" : "NO")}\n";
-        settingsLabel.text += $"DangerType: {settings.owner.room.roomSettings.DangerType.value}\n";
-        settingsLabel.text += $"Intensity: {Mathf.RoundToInt(settings.currentIntensity * 100f)}% - {(settings.weatherIntensity == 0 ? "DYNAMIC" : "FIXED")}\n";
-        settingsLabel.text += $"Particle Limit: {settings.particleLimit}\n";
-        settingsLabel.text += $"Wind Direction: {WindDir(settings.windDirection)}\n";
-        settingsLabel.text += $"Rain Volume: {(settings.rainVolume ? "ON" : "OFF")}\n\n";
+        settingsLabel.text += string.Format(ForecastMod.Translate("Interior: {0}\n"), ForecastMod.Translate(settings.owner.interior ? "YES" : "NO"));
+        settingsLabel.text += string.Format(ForecastMod.Translate("DangerType: {0}\n"), settings.owner.room.roomSettings.DangerType.value);
+        settingsLabel.text += string.Format(ForecastMod.Translate("Intensity: {0}% - {1}\n"), Mathf.RoundToInt(settings.currentIntensity * 100f), ForecastMod.Translate(settings.weatherIntensity == 0 ? "DYNAMIC" : "FIXED"));
+        settingsLabel.text += string.Format(ForecastMod.Translate("Particle Limit: {0}\n"), settings.particleLimit);
+        settingsLabel.text += string.Format(ForecastMod.Translate("Wind Direction: {0}\n"), WindDir(settings.windDirection));
+        settingsLabel.text += string.Format(ForecastMod.Translate("Rain Volume: {0}\n\n"), ForecastMod.Translate(settings.rainVolume ? "ON" : "OFF"));
 
+        settingsLabel.text += ForecastMod.Translate("VISUALS:\n");
+        settingsLabel.text += string.Format(ForecastMod.Translate("Background Collision: {0}\n"), ForecastMod.Translate(settings.backgroundCollision ? "ON" : "OFF"));
+        settingsLabel.text += string.Format(ForecastMod.Translate("Water Collision: {0}\n"), ForecastMod.Translate(settings.waterCollision ? "ON" : "OFF"));
+        settingsLabel.text += string.Format(ForecastMod.Translate("Dynamic Clouds: {0}\n"), ForecastMod.Translate(settings.dynamicClouds ? "ON" : "OFF"));
+        settingsLabel.text += string.Format(ForecastMod.Translate("Background Lightning: {0}\n\n"), ForecastMod.Translate(settings.backgroundLightning ? "ON" : "OFF"));
 
-        settingsLabel.text += "VISUALS:\n";
-        settingsLabel.text += $"Background Collision: {(settings.backgroundCollision ? "ON" : "OFF")}\n";
-        settingsLabel.text += $"Water Collision: {(settings.waterCollision ? "ON" : "OFF")}\n";
-        settingsLabel.text += $"Dynamic Clouds: {(settings.dynamicClouds ? "ON" : "OFF")}\n";
-        settingsLabel.text += $"Background Lightning: {(settings.backgroundLightning ? "ON" : "OFF")}\n\n";
-
-
-        settingsLabel.text += $"LIGHTNING:\n";
-        settingsLabel.text += $"Lightning Strikes: {(settings.lightningStrikes ? "ON" : "OFF")}\n";
-        settingsLabel.text += $"Lightning Interval: {Mathf.RoundToInt(settings.lightningInterval)} seconds\n";
-        settingsLabel.text += $"Lightning Chance: {Mathf.RoundToInt(settings.lightningChance)}%\n";
-        settingsLabel.text += $"Lightning Color: R:{Mathf.RoundToInt(settings.strikeColor.r * 255)}, G:{Mathf.RoundToInt(settings.strikeColor.g * 255)}, B:{Mathf.RoundToInt(settings.strikeColor.b * 255)}\n";
+        settingsLabel.text += ForecastMod.Translate("LIGHTNING:\n");
+        settingsLabel.text += string.Format(ForecastMod.Translate("Lightning Strikes: {0}\n"), ForecastMod.Translate(settings.lightningStrikes ? "ON" : "OFF"));
+        settingsLabel.text += string.Format(ForecastMod.Translate("Lightning Interval: {0} seconds\n"), Mathf.RoundToInt(settings.lightningInterval));
+        settingsLabel.text += string.Format(ForecastMod.Translate("Lightning Chance: {0}%\n"), Mathf.RoundToInt(settings.lightningChance));
+        settingsLabel.text += string.Format(ForecastMod.Translate("Lightning Color: R:{0}, G:{1}, B:{2}\n"), Mathf.RoundToInt(settings.strikeColor.r * 255), Mathf.RoundToInt(settings.strikeColor.g * 255), Mathf.RoundToInt(settings.strikeColor.b * 255));
 
         labels.Add(settingsLabel);
 
@@ -153,18 +151,23 @@ public class DebugWeatherUI
         container.MoveToFront();
     }
 
+    private static string WeatherName(WeatherForecast.Weather.WeatherType weather)
+    {
+        return ForecastMod.Translate(System.Text.RegularExpressions.Regex.Replace(weather.ToString(), "(?<!^)([A-Z])", " $1"));
+    }
+
     public string WindDir(int i)
     {
         switch (i)
         {
             case 1:
-                return "LEFT";
+                return ForecastMod.Translate("LEFT");
             case 2:
-                return "MID";
+                return ForecastMod.Translate("MID");
             case 3:
-                return "RIGHT";
+                return ForecastMod.Translate("RIGHT");
         }
-        return "RANDOM";
+        return ForecastMod.Translate("RANDOM");
     }
 }
 

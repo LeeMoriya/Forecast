@@ -1,0 +1,142 @@
+leemoriya.forecast-name|天气预报
+leemoriya.forecast-description|添加了一种新的动态天气系统，以及许多可配置设置。
+Options|选项
+Regions|区域
+Version: {0}     -     By LeeMoriya|版本：{0}     -     作者：LeeMoriya
+SUPPORT MODE|支持模式
+When support mode is active, Forecast will not generate any weather<LINE>unless a region has custom settings defined by a mod.|当支持模式启动时，天气预报（Forecast）将不会生成任何天气<LINE>除非区域有通过模组进行自定义设置。
+ENABLED|开启
+DISABLED|关闭
+GLOBAL SETTINGS|全局设置
+Define settings that apply to all areas where weather is enabled, including global forecasts.<LINE>You can configure different forecasts per region in the 'Regions' tab.|自定义所有启用天气系统的区域的设置，包括全局天气预报。<LINE>你可以在“Regions”选项卡中为不同的区域配置不同的天气。
+- FORECAST SETTINGS -|- 天气预报设置 -
+EDIT|编辑
+WEATHER PREFERENCE|天气偏好
+Weathers transition more realistically - overwrites above chances|让天气转变更加真实--覆盖了随机性
+WEATHER RANDOMNESS|随机天气
+Chance that preference will be ignored and a random weather is chosen|忽略偏好，选择随机天气
+- BASIC SETTINGS -|- 基础设置 -
+WEATHER INTENSITY|天气强度
+Adjust whether intensity should change over time or be a fixed value|使天气强度随着时间变化，或者成为固定值
+WEATHER CHANCE|天气概率
+The chance that weather will occur each cycle|每个循环中天气出现的概率
+PARTICLE LIMIT|粒子限制
+Influences the number of particles that can appear|影响能够出现的粒子的数量
+WIND DIRECTION|风向
+The direction particles will fall each cycle|每个循环中粒子下落的方向
+ARENA WEATHER|竞技场天气
+Enable the global weather forecast in Arena|在竞技场中启用全局天气预报
+- VISUAL SETTINGS -|- 视觉设置 -
+BACKGROUND LIGHTNING|背景闪电
+During thunderstorms, lightning flashes can occur|在雷暴中，可能出现闪电
+BACKGROUND COLLISION|背景碰撞
+Whether particles can collide with background elements|粒子是否可以和背景发生碰撞
+WATER COLLISION|水体碰撞
+Whether particles create ripples on water surfaces|粒子是否会在水面激起波纹
+- LIGHTNING SETTINGS -|- 闪电设置 -
+LIGHTNING STRIKES|雷击
+Lightning strikes can occur during thunderstorms|雷暴期间会产生雷击
+LIGHTNING INTERVAL|闪电间隔
+The minimum interval at which lightning can strike in seconds|雷击在几秒内的最小时间间隔
+LIGHTNING CHANCE|闪电几率
+The percentage chance a strike will occur at each interval|每次间隔发生雷击的百分比
+DAMAGE TYPE|破坏类型
+What type of damage a lightning strike will inflict upon hit|闪电击中时会造成什么类型的破坏
+WEATHER TYPES|天气类型
+The weather types lightning strikes can occur in|会发生雷击的天气类型
+GREEN LIGHTNING|绿色闪电
+Makes lighting strikes green in Shaded Citadel and The Exterior|让阴影城堡和外缘的雷击变成绿色
+- SNOW SETTINGS -|- 降雪设置 -
+FORECAST|天气预报
+DOWNPOUR|倾盆大雨
+SNOW SOURCES|降雪源
+Dynamically places snow sources during snowy weather|在下雪天气中动态布置降雪源
+COLD FACTOR|寒冷因素
+Configure the rate at which you grown cold in Forecast style blizzards|配置你在天气预报类型的暴风雪中变冷的速率
+WIND SPEED|风速
+How easily the player is pushed by wind during Forecast style blizzards|在天气预报类型的暴风雪中玩家容易被风推动的程度
+ICY BORDER|冰冻边框
+Toggle an icy border that indicates coldness|切换为冰封边框来表达你的寒冷程度
+EFFECT COLORS|颜色效果
+Desaturates and tints effect colors to better match snowy palettes|降低饱和度和调浅色板颜色以更符合雪天色板
+SUPPORT MODE ENABLED|支持模式启用
+Forecast will only generate weather for regions with their own custom settings.<LINE>To allow weather for all regions, and to change the global settings, disable support mode.|天气预报只会为那些拥有自己自定义设置的区域生成天气。<LINE>若要允许所有区域成天气，以及更改全局设定，请关闭支持模式。
+DEBUG: ON|调试：开
+DEBUG: OFF|调试：关
+REGION SETTINGS|区域设置
+Adjust whether a region will use the GLOBAL forecast you have set or define a CUSTOM one.<LINE>To fully disable weather, change it's setting to NONE.<LINE><LINE>If a region has specific settings configured by a mod-maker, it can be overridden here.|配置一个区域是使用你设置的全局天气预报或者单独自定义天气预报。<LINE>完全关闭天气请将其改变为“无”。<LINE><LINE>如果一个区域有模组作者已经配置好的特殊设置，这会覆盖掉它。
+GLOBAL|全局
+Change this region's weather settings|更改此区域的天气设置
+This region has it's own modded settings|这个区域已有专属模组设置
+NONE|无
+CUSTOM|自定义
+MOD|模组
+ERROR|错误
+STUN|昏迷
+LETHAL|致死
+THUNDERSTORM|雷暴
+THUNDERSTORM<LINE>& BLIZZARD|雷暴<LINE>& 暴风雪
+ALL|全部
+DYNAMIC<LINE>(Recommended)|动态<LINE>（推荐）
+LOW|低
+MEDIUM|中等
+HIGH|高
+RANDOM|随机
+LEFT|左
+CENTER|中间
+RIGHT|右
+GLOBAL FORECAST<LINE>Adjust the probabilities that certain weathers will occur, or disable certain weathers entirely. Each cycle, a weather will be selected based on the chances you define here. The 'GLOBAL' forecast applies to all regions by default, unless you have configured a custom forecast for a specific region.|全局天气预报<LINE>调整某些天气出现的概率，或者禁用某些天气。每个循环，会基于你在此设置的概率选择一个天气。默认情况下，全局天气预报会应用于所有区域，除非您给特定区域设置了自定义天气预报。
+WEATHER PREFERENCE<LINE>This setting disables the GLOBAL forecast in favor of more realistic weather transitions. Each weather has it's own list of preferred weathers it will change into next cycle, preventing scenarios like light rain one cycle, and a blizzard the next.|天气偏好<LINE>此设置会关闭全局天气预报，转而采用更贴近现实的天气变化方式。每一个天气拥有自己的下一雨循环天气变化倾向列表，避免出现像是一个雨循环的天气是小雨，下个循环的天气是暴风雪的现象。
+WEATHER RANDOMNESS<LINE>If you are using the Weather Preference setting, you can adjust this slider to introduce some additional randomness to the forecast. Based on the percentage, a completely random weather will be selected.|随机天气<LINE>如果您启用了天气偏好设置，你可以调整调整这个滑块来为天气预报引入一些额外的随机性。基于百分比，将会选择一个完全随机的天气。
+WEATHER INTENSITY<LINE>Each weather type has a minimum and maximum intensity. In dynamic mode, weather intensity will gradually progress from the minimum to the maximum as the cycle progresses, or you can set it to a fixed value.|天气强度<LINE>每一个天气类型拥有一个最小和最大强度。在动态模式中，天气强度会随着循环进程从最小值演变到最大值，或者您可以设定一个固定值。
+BACKGROUND COLLISION<LINE>Each weather particle has a chance of colliding with elements in the background instead of just normal room geometry. This can look more realistic but may also result in less particles hitting the floor in taller rooms.|背景碰撞<LINE>每个天气粒子都会有几率撞击背景中的元素而不是房间中的常规几何结构。这会让其看起来更真实，但也可能会导致在较高的房间中撞击地板的粒子减少。
+FORECAST STYLE<LINE>Forecast's own snow style; has it's own snowflake particles and a unique end-of-cycle Blizzard. After cycle end the temperature will decrease and the wind will pick up. Your exposure to the cold is indicated by an icy border and eventually, beating drums will signal your imminent death.|天气预报类型<LINE>天气预报自己的降雪类型，拥有专属的雪花粒子效果以及专属的循环终末的暴风雪。在循环结束之后，温度会骤降并且风会增大。你暴露在寒冷中的程度将会由冰封边框表示，最终，敲击的鼓点会预示你即将到来的死亡。
+DOWNPOUR STYLE<LINE>Uses the snowfall shader added in the Downpour DLC as well as it's end-of-cycle Blizzard. Has the same hypothermia mechanics present in Saint's campaign, however if you do not own a DLC, the weather will change back to rain at the end of the cycle.|倾盆大雨类型<LINE>使用倾盆大雨DLC中添加的降雪着色器和循环结束的暴雪。有和圣徒战役相同的降温百分比机制，不过，如果你一个DLC都没有，那么天气会变成循环结束时的暴雨。
+SNOW SOURCES<LINE>During snowy weather, snow piles will be dynamically placed in rooms. As the cycle progresses, the snow will accumulate. Unfortunately can look quite jarring in dark places like Shaded Citadel.|降雪源<LINE>在下雪的天气里，雪砖会被动态地放置在房间中，随着循环发展，雪会累积起来。不幸的是，它会在黑暗的地方看起来非常显眼，比如阴影城堡。
+REGION FORECASTS|区域天气预报
+Adjust the weather probabilities for each region or disable it altogether|调整各区域的天气概率，或完全禁用天气
+CLOSE|关闭
+RESET FORECASTS|重置预报
+COPY|复制
+PASTE|粘贴
+EDIT FORECAST|编辑天气预报
+Adjust the probability that each weather will occur, or disable certain weathers entirely.|调整每个天气发生的可能性，或者完全禁用某个特定天气。
+WARNING: Saving will reset any existing region weathers.|警告：保存将会重置所有现有的区域天气设置。
+SAVE|保存
+Light Rain|小雨
+Heavy Rain|大雨
+Thunderstorm|雷暴
+Fog|雾
+Light Snow|小雪
+Heavy Snow|大雪
+Blizzard|暴风雪
+TOGGLE UI  -  F9<LINE>|切换界面  -  F9<LINE>
+{0} - Weather Settings|{0} - 天气设置
+Global Tags: |全局标签：
+Room Tags: |房间标签：
+<LINE><LINE><LINE>GENERAL:<LINE><LINE>|<LINE><LINE><LINE>常规：<LINE><LINE>
+Forecast:<LINE>Now: {0}<LINE>Next: {1}<LINE>Later: {2}<LINE><LINE>|天气预报：<LINE>当前：{0}<LINE>下次：{1}<LINE>之后：{2}<LINE><LINE>
+Interior: {0}<LINE>|室内：{0}<LINE>
+DangerType: {0}<LINE>|危险类型：{0}<LINE>
+Intensity: {0}% - {1}<LINE>|强度：{0}% - {1}<LINE>
+Particle Limit: {0}<LINE>|粒子上限：{0}<LINE>
+Wind Direction: {0}<LINE>|风向：{0}<LINE>
+Rain Volume: {0}<LINE><LINE>|雨声音量：{0}<LINE><LINE>
+VISUALS:<LINE>|视觉效果：<LINE>
+Background Collision: {0}<LINE>|背景碰撞：{0}<LINE>
+Water Collision: {0}<LINE>|水面碰撞：{0}<LINE>
+Dynamic Clouds: {0}<LINE>|动态云层：{0}<LINE>
+Background Lightning: {0}<LINE><LINE>|背景闪电：{0}<LINE><LINE>
+LIGHTNING:<LINE>|雷电：<LINE>
+Lightning Strikes: {0}<LINE>|雷击：{0}<LINE>
+Lightning Interval: {0} seconds<LINE>|雷击间隔：{0} 秒<LINE>
+Lightning Chance: {0}%<LINE>|雷击概率：{0}%<LINE>
+Lightning Color: R:{0}, G:{1}, B:{2}<LINE>|雷电颜色：R:{0}，G:{1}，B:{2}<LINE>
+YES|是
+NO|否
+ON|开
+OFF|关
+DYNAMIC|动态
+FIXED|固定
+MID|中
+None|无

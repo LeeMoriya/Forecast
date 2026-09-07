@@ -37,13 +37,13 @@ public class ForecastDialog : Dialog
         pages[0].pos.y += 2000f;
         pages[0].pos.x = leftAnchor + 0.01f;
 
-        MenuLabel title = new MenuLabel(this, pages[0], "REGION FORECASTS", new Vector2(manager.rainWorld.options.ScreenSize.x / 2, 720f), new Vector2(), true);
+        MenuLabel title = new MenuLabel(this, pages[0], ForecastMod.Translate("REGION FORECASTS"), new Vector2(manager.rainWorld.options.ScreenSize.x / 2, 720f), new Vector2(), true);
         pages[0].subObjects.Add(title);
 
-        MenuLabel desc = new MenuLabel(this, pages[0], "Adjust the weather probabilities for each region or disable it altogether", new Vector2(manager.rainWorld.options.ScreenSize.x / 2, 690f), new Vector2(), false);
+        MenuLabel desc = new MenuLabel(this, pages[0], ForecastMod.Translate("Adjust the weather probabilities for each region or disable it altogether"), new Vector2(manager.rainWorld.options.ScreenSize.x / 2, 690f), new Vector2(), false);
         pages[0].subObjects.Add(desc);
 
-        close = new SimpleButton(this, pages[0], "CLOSE", "CLOSE", new Vector2(manager.rainWorld.options.ScreenSize.x / 2 - 50f, 20f), new Vector2(100f, 30f));
+        close = new SimpleButton(this, pages[0], ForecastMod.Translate("CLOSE"), "CLOSE", new Vector2(manager.rainWorld.options.ScreenSize.x / 2 - 50f, 20f), new Vector2(100f, 30f));
         close.rectColor = new HSLColor(0f, 0.8f, 0.45f);
         close.labelColor = new HSLColor(0f, 0.8f, 0.45f);
         pages[0].subObjects.Add(close);
@@ -57,7 +57,7 @@ public class ForecastDialog : Dialog
         right = new SimpleButton(this, pages[0], ">", "RIGHT", new Vector2(manager.rainWorld.options.ScreenSize.x / 2 + 200f - 30f, 50f), new Vector2(30f, 30f));
         pages[0].subObjects.Add(right);
 
-        wipe = new SimpleButton(this, pages[0], "RESET FORECASTS", "wipe", new Vector2(manager.rainWorld.options.ScreenSize.x / 2 - 50f, 60f), new Vector2(100f, 30f));
+        wipe = new SimpleButton(this, pages[0], ForecastMod.Translate("RESET FORECASTS"), "wipe", new Vector2(manager.rainWorld.options.ScreenSize.x / 2 - 50f, 60f), new Vector2(100f, 30f));
         pages[0].subObjects.Add(wipe);
 
         leftShade = new FSprite("LinearGradient200", true);
@@ -272,7 +272,7 @@ public class ForecastDialog : Dialog
         {
             editMode = false;
             acronym = region;
-            regionName = region == "GLOBAL" ? "GLOBAL" : Region.GetRegionFullName(region, SlugcatStats.Name.White);
+            regionName = ForecastMod.Translate(region == "GLOBAL" ? "GLOBAL" : Region.GetRegionFullName(region, SlugcatStats.Name.White));
             rect = new RoundedRect(menu, this, new Vector2(), new Vector2(350f, 250f), true);
             regionNameLabel = new MenuLabel(menu, this, regionName, new Vector2(rect.size.x / 2, rect.size.y - 20f), new Vector2(), true);
             regionNameLabel.label.alignment = FLabelAlignment.Center;
@@ -312,14 +312,14 @@ public class ForecastDialog : Dialog
             probabilitySlider = new HorizontalSlider(menu, this, "", new Vector2(30f, 75f), new Vector2(270f, 0f), weatherSlider, false);
             subObjects.Add(probabilitySlider);
 
-            editButton = new SimpleButton(menu, this, "EDIT", "edit", new Vector2(rect.size.x - 100f, 20f), new Vector2(80f, 30f));
+            editButton = new SimpleButton(menu, this, ForecastMod.Translate("EDIT"), "edit", new Vector2(rect.size.x - 100f, 20f), new Vector2(80f, 30f));
             subObjects.Add(editButton);
 
             //temp?
-            copy = new SimpleButton(menu, this, "COPY", "copy", new Vector2(20f, 20f), new Vector2(50f, 30f));
+            copy = new SimpleButton(menu, this, ForecastMod.Translate("COPY"), "copy", new Vector2(20f, 20f), new Vector2(50f, 30f));
             subObjects.Add(copy);
 
-            paste = new SimpleButton(menu, this, "PASTE", "paste", new Vector2(80f, 20f), new Vector2(50f, 30f));
+            paste = new SimpleButton(menu, this, ForecastMod.Translate("PASTE"), "paste", new Vector2(80f, 20f), new Vector2(50f, 30f));
             paste.buttonBehav.greyedOut = ForecastConfig.copiedWeather == null;
             subObjects.Add(paste);
 
@@ -418,7 +418,7 @@ public class ForecastDialog : Dialog
             {
                 if(weatherButtons[i] != null && weatherButtons[i].MouseOver)
                 {
-                    weatherTypeLabel.text = Regex.Replace(weatherButtons[i].symbolSprite.element.name, "(?<!^)([A-Z])", " $1");
+                    weatherTypeLabel.text = ForecastMod.Translate(Regex.Replace(weatherButtons[i].symbolSprite.element.name, "(?<!^)([A-Z])", " $1"));
                 }
             }
         }

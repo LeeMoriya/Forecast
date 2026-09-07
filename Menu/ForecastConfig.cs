@@ -330,8 +330,8 @@ public class ForecastConfig : OptionInterface
     public override void Initialize()
     {
         init = false;
-        var options = new OpTab(this, "Options");
-        var regions = new OpTab(this, "Regions");
+        var options = new OpTab(this, ForecastMod.Translate("Options"));
+        var regions = new OpTab(this, ForecastMod.Translate("Regions"));
         Tabs = new[]
         {
             options, regions
@@ -349,7 +349,7 @@ public class ForecastConfig : OptionInterface
         rainBanner.alpha = weatherType.Value == 1 ? 0f : 1f;
 
         //Version label
-        OpLabel version = new OpLabel(300f, 525f, $"Version: {ForecastMod.versionNum}     -     By LeeMoriya", false);
+        OpLabel version = new OpLabel(300f, 525f, string.Format(ForecastMod.Translate("Version: {0}     -     By LeeMoriya"), ForecastMod.versionNum), false);
         version.color = new Color(0.4f, 0.4f, 0.4f);
         version.label.alignment = FLabelAlignment.Center;
         options.AddItems(version, rainBanner);
@@ -358,10 +358,10 @@ public class ForecastConfig : OptionInterface
         supportRect = new OpRect(new Vector2(10f, 420f), new Vector2(580f, 80f));
         supportRect.colorEdge = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0.7f, 0.7f, 0.7f);
         supportRect.colorFill = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0f, 0f, 0f);
-        OpLabel supportTitle = new OpLabel(165f, 470f, "SUPPORT MODE");
-        OpLabel supportDesc = new OpLabel(165f, 440f, "When support mode is active, Forecast will not generate any weather\nunless a region has custom settings defined by a mod.");
+        OpLabel supportTitle = new OpLabel(165f, 470f, ForecastMod.Translate("SUPPORT MODE"));
+        OpLabel supportDesc = new OpLabel(165f, 440f, ForecastMod.Translate("When support mode is active, Forecast will not generate any weather\nunless a region has custom settings defined by a mod."));
 
-        supportModeButton = new OpSimpleButton(new Vector2(33f, 437f), new Vector2(110f, 45f), supportMode.Value ? "ENABLED" : "DISABLED");
+        supportModeButton = new OpSimpleButton(new Vector2(33f, 437f), new Vector2(110f, 45f), supportMode.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         supportModeButton.OnClick += SupportModeButton_OnClick;
         options.AddItems(supportRect, supportTitle, supportDesc, supportModeButton);
 
@@ -369,13 +369,13 @@ public class ForecastConfig : OptionInterface
         settingsBox = new OpScrollBox(new Vector2(0f, 0f), new Vector2(600f, 400f), settingsHeight, false, true, true);
         options.AddItems(settingsBox);
 
-        OpLabel globalSettings = new OpLabel(new Vector2(290f, settingsHeight - 35f), new Vector2(), "GLOBAL SETTINGS", FLabelAlignment.Center, true);
-        OpLabel globalDesc = new OpLabel(new Vector2(290f, settingsHeight - 70f), new Vector2(), "Define settings that apply to all areas where weather is enabled, including global forecasts.\nYou can configure different forecasts per region in the 'Regions' tab.", FLabelAlignment.Center);
+        OpLabel globalSettings = new OpLabel(new Vector2(290f, settingsHeight - 35f), new Vector2(), ForecastMod.Translate("GLOBAL SETTINGS"), FLabelAlignment.Center, true);
+        OpLabel globalDesc = new OpLabel(new Vector2(290f, settingsHeight - 70f), new Vector2(), ForecastMod.Translate("Define settings that apply to all areas where weather is enabled, including global forecasts.\nYou can configure different forecasts per region in the 'Regions' tab."), FLabelAlignment.Center);
 
         //GLOBAL FORECAST
         float globalForecastAnchor = settingsHeight - 130f;
 
-        OpLabel forecastLabel = new OpLabel(new Vector2(290f, globalForecastAnchor + 15f), new Vector2(), "- FORECAST SETTINGS -", FLabelAlignment.Center);
+        OpLabel forecastLabel = new OpLabel(new Vector2(290f, globalForecastAnchor + 15f), new Vector2(), ForecastMod.Translate("- FORECAST SETTINGS -"), FLabelAlignment.Center);
         OpRect forecastRect = new OpRect(new Vector2(15f, globalForecastAnchor - 240f), new Vector2(555f, 250f));
         forecastRect.colorFill = new Color(0.8f, 0.8f, 0.8f);
         settingsBox.AddItems(forecastLabel, forecastRect);
@@ -385,7 +385,7 @@ public class ForecastConfig : OptionInterface
         int numOfWeathers = 7; //We do a little hardcoding
         float startPos = 320f - 50f * (numOfWeathers / 2);
 
-        forecastEdit = new OpSimpleButton(new Vector2(30f, globalForecastAnchor - 58f), new Vector2(110f, 45f), "EDIT");
+        forecastEdit = new OpSimpleButton(new Vector2(30f, globalForecastAnchor - 58f), new Vector2(110f, 45f), ForecastMod.Translate("EDIT"));
         forecastEdit.OnClick += ForecastEdit_OnClick;
         settingsBox.AddItems(forecastEdit);
 
@@ -403,91 +403,91 @@ public class ForecastConfig : OptionInterface
             settingsBox.AddItems(icon, label);
         }
 
-        preferenceToggle = new OpSimpleButton(new Vector2(30f, globalForecastAnchor - 140f), new Vector2(110f, 45f), weatherPreference.Value ? "ENABLED" : "DISABLED");
+        preferenceToggle = new OpSimpleButton(new Vector2(30f, globalForecastAnchor - 140f), new Vector2(110f, 45f), weatherPreference.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         preferenceToggle.OnClick += PreferenceToggle_OnClick;
-        OpLabel preferenceLabel = new OpLabel(160f, globalForecastAnchor - 118f, "WEATHER PREFERENCE");
-        OpLabel preferenceDesc = new OpLabel(160f, globalForecastAnchor - 138f, "Weathers transition more realistically - overwrites above chances");
+        OpLabel preferenceLabel = new OpLabel(160f, globalForecastAnchor - 118f, ForecastMod.Translate("WEATHER PREFERENCE"));
+        OpLabel preferenceDesc = new OpLabel(160f, globalForecastAnchor - 138f, ForecastMod.Translate("Weathers transition more realistically - overwrites above chances"));
 
         randomnessSlider = new OpSlider(weatherRandomness, new Vector2(30f, globalForecastAnchor - 210f), 110, false);
-        OpLabel randomnessLabel = new OpLabel(160f, globalForecastAnchor - 190f, "WEATHER RANDOMNESS");
-        OpLabel randomnessDesc = new OpLabel(160f, globalForecastAnchor - 210f, "Chance that preference will be ignored and a random weather is chosen");
+        OpLabel randomnessLabel = new OpLabel(160f, globalForecastAnchor - 190f, ForecastMod.Translate("WEATHER RANDOMNESS"));
+        OpLabel randomnessDesc = new OpLabel(160f, globalForecastAnchor - 210f, ForecastMod.Translate("Chance that preference will be ignored and a random weather is chosen"));
         settingsBox.AddItems(preferenceToggle, randomnessSlider, preferenceLabel, preferenceDesc, randomnessLabel, randomnessDesc);
 
         //BASIC SETTINGS
         float basicAnchor = globalForecastAnchor - 300f;
 
-        OpLabel basicLabel = new OpLabel(new Vector2(280f, basicAnchor + 15f), new Vector2(), "- BASIC SETTINGS -", FLabelAlignment.Center);
+        OpLabel basicLabel = new OpLabel(new Vector2(280f, basicAnchor + 15f), new Vector2(), ForecastMod.Translate("- BASIC SETTINGS -"), FLabelAlignment.Center);
 
         OpRect basicSettingsRect = new OpRect(new Vector2(15f, basicAnchor - 393.5f), new Vector2(555f, 400f));
         basicSettingsRect.colorFill = new Color(0f, 0f, 1f);
         settingsBox.AddItems(basicSettingsRect, basicLabel);
 
         //Weather Intensity
-        OpLabel intensityLabel = new OpLabel(160f, basicAnchor - 30f, "WEATHER INTENSITY");
-        OpLabel intensityDesc = new OpLabel(160f, basicAnchor - 50f, "Adjust whether intensity should change over time or be a fixed value");
+        OpLabel intensityLabel = new OpLabel(160f, basicAnchor - 30f, ForecastMod.Translate("WEATHER INTENSITY"));
+        OpLabel intensityDesc = new OpLabel(160f, basicAnchor - 50f, ForecastMod.Translate("Adjust whether intensity should change over time or be a fixed value"));
         intensityToggle = new OpSimpleButton(new Vector2(30f, basicAnchor - 55f), new Vector2(110f, 45f), IntensityValue());
         intensityToggle.OnClick += IntensityToggle_OnClick;
         settingsBox.AddItems(globalSettings, globalDesc, intensityLabel, intensityDesc, intensityToggle);
 
         //Weather Chance
         OpSlider weatherChanceSlider = new OpSlider(weatherChance, new Vector2(30f, basicAnchor - 120f), 110, false);
-        OpLabel chanceLabel = new OpLabel(160f, basicAnchor - 110f, "WEATHER CHANCE");
-        OpLabel chanceDesc = new OpLabel(160f, basicAnchor - 130f, "The chance that weather will occur each cycle");
+        OpLabel chanceLabel = new OpLabel(160f, basicAnchor - 110f, ForecastMod.Translate("WEATHER CHANCE"));
+        OpLabel chanceDesc = new OpLabel(160f, basicAnchor - 130f, ForecastMod.Translate("The chance that weather will occur each cycle"));
         settingsBox.AddItems(weatherChanceSlider, chanceLabel, chanceDesc);
 
         //Particle Limit
         OpSlider particleLimitSlider = new OpSlider(particleLimit, new Vector2(30f, basicAnchor - 200f), 110, false);
-        OpLabel particleLimitLabel = new OpLabel(160f, basicAnchor - 190f, "PARTICLE LIMIT");
-        OpLabel particleLimitDesc = new OpLabel(160f, basicAnchor - 210f, "Influences the number of particles that can appear");
+        OpLabel particleLimitLabel = new OpLabel(160f, basicAnchor - 190f, ForecastMod.Translate("PARTICLE LIMIT"));
+        OpLabel particleLimitDesc = new OpLabel(160f, basicAnchor - 210f, ForecastMod.Translate("Influences the number of particles that can appear"));
         settingsBox.AddItems(particleLimitSlider, particleLimitLabel, particleLimitDesc);
 
         //Wind Direction
-        OpLabel windLabel = new OpLabel(160f, basicAnchor - 270f, "WIND DIRECTION");
-        OpLabel windDesc = new OpLabel(160f, basicAnchor - 290f, "The direction particles will fall each cycle");
+        OpLabel windLabel = new OpLabel(160f, basicAnchor - 270f, ForecastMod.Translate("WIND DIRECTION"));
+        OpLabel windDesc = new OpLabel(160f, basicAnchor - 290f, ForecastMod.Translate("The direction particles will fall each cycle"));
         windToggle = new OpSimpleButton(new Vector2(30f, basicAnchor - 295f), new Vector2(110f, 45f), WindDirectionValue());
         windToggle.OnClick += WindToggle_OnClick;
         settingsBox.AddItems(windLabel, windDesc, windToggle);
 
         //Arena Support
-        OpLabel arenaLabel = new OpLabel(160f, basicAnchor - 350f, "ARENA WEATHER");
-        OpLabel arenaDesc = new OpLabel(160f, basicAnchor - 370f, "Enable the global weather forecast in Arena");
-        arenaSupportToggle = new OpSimpleButton(new Vector2(30f, basicAnchor - 375f), new Vector2(110f, 45f), arenaSupport.Value ? "ENABLED" : "DISABLED");
+        OpLabel arenaLabel = new OpLabel(160f, basicAnchor - 350f, ForecastMod.Translate("ARENA WEATHER"));
+        OpLabel arenaDesc = new OpLabel(160f, basicAnchor - 370f, ForecastMod.Translate("Enable the global weather forecast in Arena"));
+        arenaSupportToggle = new OpSimpleButton(new Vector2(30f, basicAnchor - 375f), new Vector2(110f, 45f), arenaSupport.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         arenaSupportToggle.OnClick += ArenaSupportToggle_OnClick;
         settingsBox.AddItems(arenaLabel, arenaDesc, arenaSupportToggle);
 
         //VISUAL SETTINGS
         float visualAnchor = basicAnchor - 450f;
-        OpLabel visualLabel = new OpLabel(new Vector2(280f, visualAnchor + 15f), new Vector2(), "- VISUAL SETTINGS -", FLabelAlignment.Center);
+        OpLabel visualLabel = new OpLabel(new Vector2(280f, visualAnchor + 15f), new Vector2(), ForecastMod.Translate("- VISUAL SETTINGS -"), FLabelAlignment.Center);
 
         OpRect visualRect = new OpRect(new Vector2(15f, visualAnchor - 233.5f), new Vector2(555, 240f));
         visualRect.colorFill = new Color(1f, 0f, 1f);
         settingsBox.AddItems(visualRect, visualLabel);
 
         //Background Lightning
-        OpLabel bgLabel = new OpLabel(160f, visualAnchor - 30f, "BACKGROUND LIGHTNING");
-        OpLabel bgDesc = new OpLabel(160f, visualAnchor - 50f, "During thunderstorms, lightning flashes can occur");
-        bgToggle = new OpSimpleButton(new Vector2(30f, visualAnchor - 55f), new Vector2(110f, 45f), backgroundLightning.Value ? "ENABLED" : "DISABLED");
+        OpLabel bgLabel = new OpLabel(160f, visualAnchor - 30f, ForecastMod.Translate("BACKGROUND LIGHTNING"));
+        OpLabel bgDesc = new OpLabel(160f, visualAnchor - 50f, ForecastMod.Translate("During thunderstorms, lightning flashes can occur"));
+        bgToggle = new OpSimpleButton(new Vector2(30f, visualAnchor - 55f), new Vector2(110f, 45f), backgroundLightning.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         bgToggle.OnClick += BgToggle_OnClick;
         settingsBox.AddItems(bgLabel, bgDesc, bgToggle);
 
         //Background Collision
-        OpLabel backgroundCollisionLabel = new OpLabel(160f, visualAnchor - 110f, "BACKGROUND COLLISION");
-        OpLabel backgroundCollisionDesc = new OpLabel(160f, visualAnchor - 130f, "Whether particles can collide with background elements");
-        backgroundCollisionToggle = new OpSimpleButton(new Vector2(30f, visualAnchor - 135f), new Vector2(110f, 45f), backgroundCollision.Value ? "ENABLED" : "DISABLED");
+        OpLabel backgroundCollisionLabel = new OpLabel(160f, visualAnchor - 110f, ForecastMod.Translate("BACKGROUND COLLISION"));
+        OpLabel backgroundCollisionDesc = new OpLabel(160f, visualAnchor - 130f, ForecastMod.Translate("Whether particles can collide with background elements"));
+        backgroundCollisionToggle = new OpSimpleButton(new Vector2(30f, visualAnchor - 135f), new Vector2(110f, 45f), backgroundCollision.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         backgroundCollisionToggle.OnClick += BackgroundCollisionToggle_OnClick;
         settingsBox.AddItems(backgroundCollisionLabel, backgroundCollisionDesc, backgroundCollisionToggle);
 
         //Water Collision
-        OpLabel waterCollisionLabel = new OpLabel(160f, visualAnchor - 190f, "WATER COLLISION");
-        OpLabel waterCollisionDesc = new OpLabel(160f, visualAnchor - 210f, "Whether particles create ripples on water surfaces");
-        waterCollisionToggle = new OpSimpleButton(new Vector2(30f, visualAnchor - 215f), new Vector2(110f, 45f), waterCollision.Value ? "ENABLED" : "DISABLED");
+        OpLabel waterCollisionLabel = new OpLabel(160f, visualAnchor - 190f, ForecastMod.Translate("WATER COLLISION"));
+        OpLabel waterCollisionDesc = new OpLabel(160f, visualAnchor - 210f, ForecastMod.Translate("Whether particles create ripples on water surfaces"));
+        waterCollisionToggle = new OpSimpleButton(new Vector2(30f, visualAnchor - 215f), new Vector2(110f, 45f), waterCollision.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         waterCollisionToggle.OnClick += WaterCollisionToggle_OnClick;
         settingsBox.AddItems(waterCollisionLabel, waterCollisionDesc, waterCollisionToggle);
 
 
         //LIGHTNING SETTINGS
         float lightningAnchor = visualAnchor - 290f;
-        OpLabel lightningLabel = new OpLabel(new Vector2(280f, lightningAnchor + 15f), new Vector2(), "- LIGHTNING SETTINGS -", FLabelAlignment.Center);
+        OpLabel lightningLabel = new OpLabel(new Vector2(280f, lightningAnchor + 15f), new Vector2(), ForecastMod.Translate("- LIGHTNING SETTINGS -"), FLabelAlignment.Center);
 
         OpRect lightningSettingsRect = new OpRect(new Vector2(15f, lightningAnchor - 483.5f), new Vector2(555f, 490f));
         lightningSettingsRect.colorFill = new Color(1f, 1f, 0f);
@@ -495,48 +495,48 @@ public class ForecastConfig : OptionInterface
         settingsBox.AddItems(lightningLabel, lightningSettingsRect);
 
         //Lightning Strikes
-        OpLabel strikeLabel = new OpLabel(160f, lightningAnchor - 30f, "LIGHTNING STRIKES");
-        OpLabel strikeDesc = new OpLabel(160f, lightningAnchor - 50f, "Lightning strikes can occur during thunderstorms");
-        strikeToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 55f), new Vector2(110f, 45f), lightningStrikes.Value ? "ENABLED" : "DISABLED");
+        OpLabel strikeLabel = new OpLabel(160f, lightningAnchor - 30f, ForecastMod.Translate("LIGHTNING STRIKES"));
+        OpLabel strikeDesc = new OpLabel(160f, lightningAnchor - 50f, ForecastMod.Translate("Lightning strikes can occur during thunderstorms"));
+        strikeToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 55f), new Vector2(110f, 45f), lightningStrikes.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         strikeToggle.OnClick += StrikeToggle_OnClick;
         settingsBox.AddItems(strikeLabel, strikeDesc, strikeToggle);
 
         //Strike Interval
         intervalSlider = new OpSlider(lightningInterval, new Vector2(30f, lightningAnchor - 120f), 110, false);
-        OpLabel intervalLabel = new OpLabel(160f, lightningAnchor - 110f, "LIGHTNING INTERVAL");
-        OpLabel intervalDesc = new OpLabel(160f, lightningAnchor - 130f, "The minimum interval at which lightning can strike in seconds");
+        OpLabel intervalLabel = new OpLabel(160f, lightningAnchor - 110f, ForecastMod.Translate("LIGHTNING INTERVAL"));
+        OpLabel intervalDesc = new OpLabel(160f, lightningAnchor - 130f, ForecastMod.Translate("The minimum interval at which lightning can strike in seconds"));
         settingsBox.AddItems(intervalSlider, intervalLabel, intervalDesc);
 
         //Strike Chance
         strikeChanceSlider = new OpSlider(lightningChance, new Vector2(30f, lightningAnchor - 200f), 110, false);
-        OpLabel strikeChanceLabel = new OpLabel(160f, lightningAnchor - 190f, "LIGHTNING CHANCE");
-        OpLabel strikeChanceDesc = new OpLabel(160f, lightningAnchor - 210f, "The percentage chance a strike will occur at each interval");
+        OpLabel strikeChanceLabel = new OpLabel(160f, lightningAnchor - 190f, ForecastMod.Translate("LIGHTNING CHANCE"));
+        OpLabel strikeChanceDesc = new OpLabel(160f, lightningAnchor - 210f, ForecastMod.Translate("The percentage chance a strike will occur at each interval"));
         settingsBox.AddItems(strikeChanceSlider, strikeChanceLabel, strikeChanceDesc);
 
         //Strike Damage
-        OpLabel strikeTypeLabel = new OpLabel(160f, lightningAnchor - 270f, "DAMAGE TYPE");
-        OpLabel strikeTypeDesc = new OpLabel(160f, lightningAnchor - 290f, "What type of damage a lightning strike will inflict upon hit");
+        OpLabel strikeTypeLabel = new OpLabel(160f, lightningAnchor - 270f, ForecastMod.Translate("DAMAGE TYPE"));
+        OpLabel strikeTypeDesc = new OpLabel(160f, lightningAnchor - 290f, ForecastMod.Translate("What type of damage a lightning strike will inflict upon hit"));
         strikeTypeToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 295f), new Vector2(110f, 45f), StrikeDamageValue());
         strikeTypeToggle.OnClick += StrikeTypeToggle_OnClick;
         settingsBox.AddItems(strikeTypeLabel, strikeTypeDesc, strikeTypeToggle);
 
         //Strike Weathers
-        OpLabel strikeWeatherLabel = new OpLabel(160f, lightningAnchor - 350f, "WEATHER TYPES");
-        OpLabel strikeWeatherDesc = new OpLabel(160f, lightningAnchor - 370f, "The weather types lightning strikes can occur in");
+        OpLabel strikeWeatherLabel = new OpLabel(160f, lightningAnchor - 350f, ForecastMod.Translate("WEATHER TYPES"));
+        OpLabel strikeWeatherDesc = new OpLabel(160f, lightningAnchor - 370f, ForecastMod.Translate("The weather types lightning strikes can occur in"));
         strikeWeatherToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 375f), new Vector2(110f, 45f), StrikeWeathers());
         strikeWeatherToggle.OnClick += StrikeWeatherToggle_OnClick;
         settingsBox.AddItems(strikeWeatherLabel, strikeWeatherDesc, strikeWeatherToggle);
 
         //Green Strikes
-        OpLabel greenStrikeLabel = new OpLabel(160f, lightningAnchor - 430f, "GREEN LIGHTNING");
-        OpLabel greenStrikeDesc = new OpLabel(160f, lightningAnchor - 450f, "Makes lighting strikes green in Shaded Citadel and The Exterior");
-        greenToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 455), new Vector2(110f, 45f), greenLightning.Value ? "ENABLED" : "DISABLED");
+        OpLabel greenStrikeLabel = new OpLabel(160f, lightningAnchor - 430f, ForecastMod.Translate("GREEN LIGHTNING"));
+        OpLabel greenStrikeDesc = new OpLabel(160f, lightningAnchor - 450f, ForecastMod.Translate("Makes lighting strikes green in Shaded Citadel and The Exterior"));
+        greenToggle = new OpSimpleButton(new Vector2(30f, lightningAnchor - 455), new Vector2(110f, 45f), greenLightning.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         greenToggle.OnClick += GreenToggle_OnClick;
         settingsBox.AddItems(greenStrikeLabel, greenStrikeDesc, greenToggle);
 
         //SNOW SETTINGS
         float snowAnchor = lightningAnchor - 540f;
-        OpLabel snowLabel = new OpLabel(new Vector2(280f, snowAnchor + 15f), new Vector2(), "- SNOW SETTINGS -", FLabelAlignment.Center);
+        OpLabel snowLabel = new OpLabel(new Vector2(280f, snowAnchor + 15f), new Vector2(), ForecastMod.Translate("- SNOW SETTINGS -"), FLabelAlignment.Center);
 
         OpRect snowSettingsRect = new OpRect(new Vector2(15f, snowAnchor - 443.5f), new Vector2(555f, 450f));
         snowSettingsRect.colorFill = new Color(0.5f, 1f, 1f);
@@ -551,54 +551,54 @@ public class ForecastConfig : OptionInterface
         selector = new OpRect(new Vector2(35f, snowAnchor - 45f), new Vector2(230f, 25f));
         selector.fillAlpha = 1f;
         selector.colorFill = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
-        classicLabel = new OpLabel(130f, snowAnchor - 42f, "FORECAST", false);
+        classicLabel = new OpLabel(130f, snowAnchor - 42f, ForecastMod.Translate("FORECAST"), false);
         classicLabel.color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.DarkGrey);
-        downpourLabel = new OpLabel(390f, snowAnchor - 42f, "DOWNPOUR", false);
+        downpourLabel = new OpLabel(390f, snowAnchor - 42f, ForecastMod.Translate("DOWNPOUR"), false);
         downpourLabel.color = Menu.Menu.MenuRGB(Menu.Menu.MenuColors.MediumGrey);
         settingsBox.AddItems(snowSlider, selector, classicLabel, downpourLabel);
 
         //Snow Sources
-        OpLabel snowSourceLabel = new OpLabel(160f, snowAnchor - 100f, "SNOW SOURCES");
-        OpLabel snowSourceDesc = new OpLabel(160f, snowAnchor - 120f, "Dynamically places snow sources during snowy weather");
-        snowSourceToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 125f), new Vector2(110f, 45f), snowSources.Value ? "ENABLED" : "DISABLED");
+        OpLabel snowSourceLabel = new OpLabel(160f, snowAnchor - 100f, ForecastMod.Translate("SNOW SOURCES"));
+        OpLabel snowSourceDesc = new OpLabel(160f, snowAnchor - 120f, ForecastMod.Translate("Dynamically places snow sources during snowy weather"));
+        snowSourceToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 125f), new Vector2(110f, 45f), snowSources.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         snowSourceToggle.OnClick += SnowSourceToggle_OnClick;
         settingsBox.AddItems(snowSourceLabel, snowSourceDesc, snowSourceToggle);
 
         //Cold Factor
         coldSlider = new OpSlider(coldFactor, new Vector2(30f, snowAnchor - 190f), 110, false);
-        OpLabel coldFactorLabel = new OpLabel(160f, snowAnchor - 180f, "COLD FACTOR");
-        OpLabel coldFactorDesc = new OpLabel(160f, snowAnchor - 200f, "Configure the rate at which you grown cold in Forecast style blizzards");
+        OpLabel coldFactorLabel = new OpLabel(160f, snowAnchor - 180f, ForecastMod.Translate("COLD FACTOR"));
+        OpLabel coldFactorDesc = new OpLabel(160f, snowAnchor - 200f, ForecastMod.Translate("Configure the rate at which you grown cold in Forecast style blizzards"));
         settingsBox.AddItems(coldSlider, coldFactorLabel, coldFactorDesc);
 
         //Wind Speed
         windSlider = new OpSlider(windSpeed, new Vector2(30f, snowAnchor - 260f), 110, false);
-        OpLabel windSpeedLabel = new OpLabel(160f, snowAnchor - 250f, "WIND SPEED");
-        OpLabel windSpeedDesc = new OpLabel(160f, snowAnchor - 270f, "How easily the player is pushed by wind during Forecast style blizzards");
+        OpLabel windSpeedLabel = new OpLabel(160f, snowAnchor - 250f, ForecastMod.Translate("WIND SPEED"));
+        OpLabel windSpeedDesc = new OpLabel(160f, snowAnchor - 270f, ForecastMod.Translate("How easily the player is pushed by wind during Forecast style blizzards"));
         settingsBox.AddItems(windSlider, windSpeedLabel, windSpeedDesc);
 
         //Snow Sources
-        OpLabel vignetteLabel = new OpLabel(160f, snowAnchor - 320f, "ICY BORDER");
-        OpLabel vignetteDesc = new OpLabel(160f, snowAnchor - 340f, "Toggle an icy border that indicates coldness");
-        vignetteToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 345f), new Vector2(110f, 45f), vignette.Value ? "ENABLED" : "DISABLED");
+        OpLabel vignetteLabel = new OpLabel(160f, snowAnchor - 320f, ForecastMod.Translate("ICY BORDER"));
+        OpLabel vignetteDesc = new OpLabel(160f, snowAnchor - 340f, ForecastMod.Translate("Toggle an icy border that indicates coldness"));
+        vignetteToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 345f), new Vector2(110f, 45f), vignette.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         vignetteToggle.OnClick += VignetteToggle_OnClick;
         settingsBox.AddItems(vignetteLabel, vignetteDesc, vignetteToggle);
 
         //Effect Colors
-        OpLabel effectColorLabel = new OpLabel(160f, snowAnchor - 400f, "EFFECT COLORS");
-        OpLabel effectColorDesc = new OpLabel(160f, snowAnchor - 420f, "Desaturates and tints effect colors to better match snowy palettes");
-        effectColorToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 425f), new Vector2(110f, 45f), effectColor.Value ? "ENABLED" : "DISABLED");
+        OpLabel effectColorLabel = new OpLabel(160f, snowAnchor - 400f, ForecastMod.Translate("EFFECT COLORS"));
+        OpLabel effectColorDesc = new OpLabel(160f, snowAnchor - 420f, ForecastMod.Translate("Desaturates and tints effect colors to better match snowy palettes"));
+        effectColorToggle = new OpSimpleButton(new Vector2(30f, snowAnchor - 425f), new Vector2(110f, 45f), effectColor.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED"));
         effectColorToggle.OnClick += EffectColorToggle_OnClick;
         settingsBox.AddItems(effectColorLabel, effectColorDesc, effectColorToggle);
 
         //Support Label
-        supportWarning = new OpLabel(new Vector2(290f, 220f), new Vector2(), "SUPPORT MODE ENABLED", FLabelAlignment.Center, true);
-        supportWarningDesc = new OpLabel(new Vector2(290f, 180f), new Vector2(), "Forecast will only generate weather for regions with their own custom settings.\nTo allow weather for all regions, and to change the global settings, disable support mode.", FLabelAlignment.Center);
+        supportWarning = new OpLabel(new Vector2(290f, 220f), new Vector2(), ForecastMod.Translate("SUPPORT MODE ENABLED"), FLabelAlignment.Center, true);
+        supportWarningDesc = new OpLabel(new Vector2(290f, 180f), new Vector2(), ForecastMod.Translate("Forecast will only generate weather for regions with their own custom settings.\nTo allow weather for all regions, and to change the global settings, disable support mode."), FLabelAlignment.Center);
         options.AddItems(supportWarning, supportWarningDesc);
 
         //INFO LABEL
         infoRect = new OpRect(new Vector2(10f, 420f), new Vector2(580f, 80f));
         infoRect.OnGrafUpdate += InfoRect_OnGrafUpdate;
-        infoLabel = new OpLabel(new Vector2(20f, 480f), new Vector2(), "TEST\n\nThis a description", FLabelAlignment.Left, false);
+        infoLabel = new OpLabel(new Vector2(20f, 480f), new Vector2(), "", FLabelAlignment.Left, false);
         infoLabel.label.SetAnchor(0f, 1f);
         options.AddItems(infoRect, infoLabel);
 
@@ -627,23 +627,23 @@ public class ForecastConfig : OptionInterface
         OpScrollBox scrollBox = new OpScrollBox(regions, scrollHeight, false, true);
         regions.AddItems(scrollBox);
 
-        debugButton = new OpSimpleButton(new Vector2(290f - 40f, 15f), new Vector2(80f, 30f), debugMode.Value ? "DEBUG: ON" : "DEBUG: OFF");
+        debugButton = new OpSimpleButton(new Vector2(290f - 40f, 15f), new Vector2(80f, 30f), debugMode.Value ? ForecastMod.Translate("DEBUG: ON") : ForecastMod.Translate("DEBUG: OFF"));
         debugButton.OnClick += DebugButton_OnClick;
         scrollBox.AddItems(debugButton);
 
-        OpLabel regionHeading = new OpLabel(new Vector2(290f, scrollHeight - 20f), new Vector2(), "REGION SETTINGS", FLabelAlignment.Center, true);
-        OpLabel regionDesc = new OpLabel(new Vector2(290f, scrollHeight - 73f), new Vector2(), "Adjust whether a region will use the GLOBAL forecast you have set or define a CUSTOM one.\nTo fully disable weather, change it's setting to NONE.\n\nIf a region has specific settings configured by a mod-maker, it can be overridden here.", FLabelAlignment.Center, false); ;
+        OpLabel regionHeading = new OpLabel(new Vector2(290f, scrollHeight - 20f), new Vector2(), ForecastMod.Translate("REGION SETTINGS"), FLabelAlignment.Center, true);
+        OpLabel regionDesc = new OpLabel(new Vector2(290f, scrollHeight - 73f), new Vector2(), ForecastMod.Translate("Adjust whether a region will use the GLOBAL forecast you have set or define a CUSTOM one.\nTo fully disable weather, change it's setting to NONE.\n\nIf a region has specific settings configured by a mod-maker, it can be overridden here."), FLabelAlignment.Center, false); ;
         scrollBox.AddItems(regionHeading, regionDesc);
 
         for (int i = 0; i < array.Length; i++)
         {
             OpRect rect = new OpRect(new Vector2(0f, itemHeight - 50f - (70f * i)), new Vector2(580f, 60f));
             regionRects.Add(rect);
-            OpLabel regionName = new OpLabel(20f, itemHeight - 34f - (70f * i), array[i] + " - " + Region.GetRegionFullName(array[i], SlugcatStats.Name.White), true);
+            OpLabel regionName = new OpLabel(20f, itemHeight - 34f - (70f * i), array[i] + " - " + ForecastMod.Translate(Region.GetRegionFullName(array[i], SlugcatStats.Name.White)), true);
             regionLabels.Add(regionName);
-            OpSimpleButton weatherSwitch = new OpSimpleButton(new Vector2(470f, itemHeight - 40f - (70f * i)), new Vector2(100f, 40f), "GLOBAL");
+            OpSimpleButton weatherSwitch = new OpSimpleButton(new Vector2(470f, itemHeight - 40f - (70f * i)), new Vector2(100f, 40f), ForecastMod.Translate("GLOBAL"));
             weatherSwitch.OnClick += WeatherSwitch_OnClick;
-            weatherSwitch.description = $"{i}.{array[i]}) Change this region's weather settings";
+            weatherSwitch.description = $"{i}.{array[i]}) " + ForecastMod.Translate("Change this region's weather settings");
             regionButtons.Add(weatherSwitch);
 
             OpSimpleImageButton forecastButton = new OpSimpleImageButton(weatherSwitch.pos + new Vector2(-45f, 5f), new Vector2(30f, 30f), "forecastcog");
@@ -659,7 +659,7 @@ public class ForecastConfig : OptionInterface
             {
                 regionName.SetPos(regionName.GetPos() + new Vector2(0f, 11f));
             }
-            OpLabel customLabel = new OpLabel(20f, itemHeight - 42f - (70f * i), customRegionSettings.ContainsKey(array[i]) ? "This region has it's own modded settings" : "", false);
+            OpLabel customLabel = new OpLabel(20f, itemHeight - 42f - (70f * i), customRegionSettings.ContainsKey(array[i]) ? ForecastMod.Translate("This region has it's own modded settings") : "", false);
             customLabels.Add(customLabel);
             scrollBox.AddItems(customLabel);
 
@@ -880,15 +880,15 @@ public class ForecastConfig : OptionInterface
         switch (val)
         {
             case 0:
-                return "NONE";
+                return ForecastMod.Translate("NONE");
             case 1:
-                return "GLOBAL";
+                return ForecastMod.Translate("GLOBAL");
             case 2:
-                return "CUSTOM";
+                return ForecastMod.Translate("CUSTOM");
             case 3:
-                return "MOD";
+                return ForecastMod.Translate("MOD");
         }
-        return "ERROR";
+        return ForecastMod.Translate("ERROR");
     }
 
     private string StrikeDamageValue()
@@ -896,11 +896,11 @@ public class ForecastConfig : OptionInterface
         switch (strikeDamageType.Value)
         {
             case 0:
-                return "NONE";
+                return ForecastMod.Translate("NONE");
             case 1:
-                return "STUN";
+                return ForecastMod.Translate("STUN");
             case 2:
-                return "LETHAL";
+                return ForecastMod.Translate("LETHAL");
         }
         return "";
     }
@@ -910,11 +910,11 @@ public class ForecastConfig : OptionInterface
         switch (strikeWeathers.Value)
         {
             case 0:
-                return "THUNDERSTORM";
+                return ForecastMod.Translate("THUNDERSTORM");
             case 1:
-                return "THUNDERSTORM\n& BLIZZARD";
+                return ForecastMod.Translate("THUNDERSTORM\n& BLIZZARD");
             case 2:
-                return "ALL";
+                return ForecastMod.Translate("ALL");
         }
         return "";
     }
@@ -924,13 +924,13 @@ public class ForecastConfig : OptionInterface
         switch (weatherIntensity.Value)
         {
             case 0:
-                return "DYNAMIC\n(Recommended)";
+                return ForecastMod.Translate("DYNAMIC\n(Recommended)");
             case 1:
-                return "LOW";
+                return ForecastMod.Translate("LOW");
             case 2:
-                return "MEDIUM";
+                return ForecastMod.Translate("MEDIUM");
             case 3:
-                return "HIGH";
+                return ForecastMod.Translate("HIGH");
         }
         return "";
     }
@@ -940,13 +940,13 @@ public class ForecastConfig : OptionInterface
         switch (windDirection.Value)
         {
             case 0:
-                return "RANDOM";
+                return ForecastMod.Translate("RANDOM");
             case 1:
-                return "LEFT";
+                return ForecastMod.Translate("LEFT");
             case 2:
-                return "CENTER";
+                return ForecastMod.Translate("CENTER");
             case 3:
-                return "RIGHT";
+                return ForecastMod.Translate("RIGHT");
         }
         return "";
     }
@@ -958,42 +958,42 @@ public class ForecastConfig : OptionInterface
         if (forecastEdit.MouseOver)
         {
             infoAlpha += 0.1f;
-            infoLabel.text = LabelTest.WrapText("GLOBAL FORECAST\nAdjust the probabilities that certain weathers will occur, or disable certain weathers entirely. Each cycle, a weather will be selected based on the chances you define here. The 'GLOBAL' forecast applies to all regions by default, unless you have configured a custom forecast for a specific region.", false, 570f);
+            infoLabel.text = LabelTest.WrapText(ForecastMod.Translate("GLOBAL FORECAST\nAdjust the probabilities that certain weathers will occur, or disable certain weathers entirely. Each cycle, a weather will be selected based on the chances you define here. The 'GLOBAL' forecast applies to all regions by default, unless you have configured a custom forecast for a specific region."), false, 570f);
         }
         else if (preferenceToggle.MouseOver)
         {
             infoAlpha += 0.1f;
-            infoLabel.text = LabelTest.WrapText("WEATHER PREFERENCE\nThis setting disables the GLOBAL forecast in favor of more realistic weather transitions. Each weather has it's own list of preferred weathers it will change into next cycle, preventing scenarios like light rain one cycle, and a blizzard the next.", false, 570f);
+            infoLabel.text = LabelTest.WrapText(ForecastMod.Translate("WEATHER PREFERENCE\nThis setting disables the GLOBAL forecast in favor of more realistic weather transitions. Each weather has it's own list of preferred weathers it will change into next cycle, preventing scenarios like light rain one cycle, and a blizzard the next."), false, 570f);
         }
         else if (randomnessSlider.MouseOver)
         {
             infoAlpha += 0.1f;
-            infoLabel.text = LabelTest.WrapText("WEATHER RANDOMNESS\nIf you are using the Weather Preference setting, you can adjust this slider to introduce some additional randomness to the forecast. Based on the percentage, a completely random weather will be selected.", false, 570f);
+            infoLabel.text = LabelTest.WrapText(ForecastMod.Translate("WEATHER RANDOMNESS\nIf you are using the Weather Preference setting, you can adjust this slider to introduce some additional randomness to the forecast. Based on the percentage, a completely random weather will be selected."), false, 570f);
         }
         else if (intensityToggle.MouseOver)
         {
             infoAlpha += 0.1f;
-            infoLabel.text = LabelTest.WrapText("WEATHER INTENSITY\nEach weather type has a minimum and maximum intensity. In dynamic mode, weather intensity will gradually progress from the minimum to the maximum as the cycle progresses, or you can set it to a fixed value.", false, 570f);
+            infoLabel.text = LabelTest.WrapText(ForecastMod.Translate("WEATHER INTENSITY\nEach weather type has a minimum and maximum intensity. In dynamic mode, weather intensity will gradually progress from the minimum to the maximum as the cycle progresses, or you can set it to a fixed value."), false, 570f);
         }
         else if (backgroundCollisionToggle.MouseOver)
         {
             infoAlpha += 0.1f;
-            infoLabel.text = LabelTest.WrapText("BACKGROUND COLLISION\nEach weather particle has a chance of colliding with elements in the background instead of just normal room geometry. This can look more realistic but may also result in less particles hitting the floor in taller rooms.", false, 570f);
+            infoLabel.text = LabelTest.WrapText(ForecastMod.Translate("BACKGROUND COLLISION\nEach weather particle has a chance of colliding with elements in the background instead of just normal room geometry. This can look more realistic but may also result in less particles hitting the floor in taller rooms."), false, 570f);
         }
         else if (snowSlider.MouseOver && snowSlider.MousePos.x < 300f)
         {
             infoAlpha += 0.1f;
-            infoLabel.text = LabelTest.WrapText("FORECAST STYLE\nForecast's own snow style; has it's own snowflake particles and a unique end-of-cycle Blizzard. After cycle end the temperature will decrease and the wind will pick up. Your exposure to the cold is indicated by an icy border and eventually, beating drums will signal your imminent death.", false, 570f);
+            infoLabel.text = LabelTest.WrapText(ForecastMod.Translate("FORECAST STYLE\nForecast's own snow style; has it's own snowflake particles and a unique end-of-cycle Blizzard. After cycle end the temperature will decrease and the wind will pick up. Your exposure to the cold is indicated by an icy border and eventually, beating drums will signal your imminent death."), false, 570f);
         }
         else if (snowSlider.MouseOver && snowSlider.MousePos.x >= 300f)
         {
             infoAlpha += 0.1f;
-            infoLabel.text = LabelTest.WrapText("DOWNPOUR STYLE\nUses the snowfall shader added in the Downpour DLC as well as it's end-of-cycle Blizzard. Has the same hypothermia mechanics present in Saint's campaign, however if you do not own a DLC, the weather will change back to rain at the end of the cycle.", false, 570f);
+            infoLabel.text = LabelTest.WrapText(ForecastMod.Translate("DOWNPOUR STYLE\nUses the snowfall shader added in the Downpour DLC as well as it's end-of-cycle Blizzard. Has the same hypothermia mechanics present in Saint's campaign, however if you do not own a DLC, the weather will change back to rain at the end of the cycle."), false, 570f);
         }
         else if (snowSourceToggle.MouseOver)
         {
             infoAlpha += 0.1f;
-            infoLabel.text = LabelTest.WrapText("SNOW SOURCES\nDuring snowy weather, snow piles will be dynamically placed in rooms. As the cycle progresses, the snow will accumulate. Unfortunately can look quite jarring in dark places like Shaded Citadel.", false, 570f);
+            infoLabel.text = LabelTest.WrapText(ForecastMod.Translate("SNOW SOURCES\nDuring snowy weather, snow piles will be dynamically placed in rooms. As the cycle progresses, the snow will accumulate. Unfortunately can look quite jarring in dark places like Shaded Citadel."), false, 570f);
         }
         else
         {
@@ -1023,18 +1023,18 @@ public class ForecastConfig : OptionInterface
         }
         supportRect.colorEdge = supportMode.Value ? new Color(0.2f, 1f, 0.2f) : new Color(0.7f, 0.7f, 0.7f);
         supportRect.colorFill = supportMode.Value ? new Color(0f, 0.5f, 0f) : new Color(0f, 0f, 0f);
-        supportModeButton.text = supportMode.Value ? "ENABLED" : "DISABLED";
-        bgToggle.text = backgroundLightning.Value ? "ENABLED" : "DISABLED";
-        strikeToggle.text = lightningStrikes.Value ? "ENABLED" : "DISABLED";
-        waterCollisionToggle.text = waterCollision.Value ? "ENABLED" : "DISABLED";
-        backgroundCollisionToggle.text = backgroundCollision.Value ? "ENABLED" : "DISABLED";
-        debugButton.text = debugMode.Value ? "DEBUG: ON" : "DEBUG: OFF";
-        preferenceToggle.text = weatherPreference.Value ? "ENABLED" : "DISABLED";
-        greenToggle.text = greenLightning.Value ? "ENABLED" : "DISABLED";
-        snowSourceToggle.text = snowSources.Value ? "ENABLED" : "DISABLED";
-        vignetteToggle.text = vignette.Value ? "ENABLED" : "DISABLED";
-        effectColorToggle.text = effectColor.Value ? "ENABLED" : "DISABLED";
-        arenaSupportToggle.text = arenaSupport.Value ? "ENABLED" : "DISABLED";
+        supportModeButton.text = supportMode.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
+        bgToggle.text = backgroundLightning.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
+        strikeToggle.text = lightningStrikes.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
+        waterCollisionToggle.text = waterCollision.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
+        backgroundCollisionToggle.text = backgroundCollision.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
+        debugButton.text = debugMode.Value ? ForecastMod.Translate("DEBUG: ON") : ForecastMod.Translate("DEBUG: OFF");
+        preferenceToggle.text = weatherPreference.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
+        greenToggle.text = greenLightning.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
+        snowSourceToggle.text = snowSources.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
+        vignetteToggle.text = vignette.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
+        effectColorToggle.text = effectColor.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
+        arenaSupportToggle.text = arenaSupport.Value ? ForecastMod.Translate("ENABLED") : ForecastMod.Translate("DISABLED");
 
         windToggle.text = WindDirectionValue();
         intensityToggle.text = IntensityValue();

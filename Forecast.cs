@@ -23,6 +23,7 @@ public class ForecastMod : BaseUnityPlugin
 {
     public static bool init = false;
     public static string versionNum = "1.2.4";
+
     public ForecastMod()
     {
         
@@ -237,4 +238,14 @@ public class ForecastMod : BaseUnityPlugin
     public static bool interiorRain = true;
     public static Texture2D snowExt;
     public static Texture2D snowInt;
+
+    public static string Translate(string text)
+    {
+        // Short-string files store each entry on one physical line.
+        string key = text.Replace("\r\n", "\n").Replace("\n", "<LINE>");
+        string translated = Custom.rainWorld?.inGameTranslator?.Translate(key);
+        return string.IsNullOrEmpty(translated) || translated == "!NO TRANSLATION!"
+            ? text
+            : translated.Replace("<LINE>", "\n");
+    }
 }
