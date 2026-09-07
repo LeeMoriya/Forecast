@@ -23,6 +23,17 @@ public class ForecastMod : BaseUnityPlugin
 {
     public static bool init = false;
     public static string versionNum = "1.2.4";
+
+    public static string Translate(string text)
+    {
+        // Short-string files store each entry on one physical line.
+        string key = text.Replace("\r\n", "\n").Replace("\n", "<LINE>");
+        string translated = Custom.rainWorld?.inGameTranslator?.Translate(key);
+        return string.IsNullOrEmpty(translated) || translated == "!NO TRANSLATION!"
+            ? text
+            : translated.Replace("<LINE>", "\n");
+    }
+
     public ForecastMod()
     {
         

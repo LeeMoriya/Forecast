@@ -58,24 +58,24 @@ public class ForecastDialog2 : Dialog
         rightShade.color = Color.black;
         container.AddChild(rightShade);
 
-        MenuLabel title = new MenuLabel(this, pages[0], "EDIT FORECAST", new Vector2(850, 630f), new Vector2(), true);
+        MenuLabel title = new MenuLabel(this, pages[0], ForecastMod.Translate("EDIT FORECAST"), new Vector2(850, 630f), new Vector2(), true);
         pages[0].subObjects.Add(title);
 
-        MenuLabel desc = new MenuLabel(this, pages[0], "Adjust the probability that each weather will occur, or disable certain weathers entirely.", new Vector2(850, 600f), new Vector2(), false);
+        MenuLabel desc = new MenuLabel(this, pages[0], ForecastMod.Translate("Adjust the probability that each weather will occur, or disable certain weathers entirely."), new Vector2(850, 600f), new Vector2(), false);
         pages[0].subObjects.Add(desc);
 
         ForecastDialog.RegionForecastPanel panel = new ForecastDialog.RegionForecastPanel(this, pages[0], new Vector2(670f, 300f), region);
         pages[0].subObjects.Add(panel);
 
-        MenuLabel warning = new MenuLabel(this, pages[0], "WARNING: Saving will reset any existing region weathers.", new Vector2(850, 260f), new Vector2(), false);
+        MenuLabel warning = new MenuLabel(this, pages[0], ForecastMod.Translate("WARNING: Saving will reset any existing region weathers."), new Vector2(850, 260f), new Vector2(), false);
         pages[0].subObjects.Add(warning);
 
-        close = new SimpleButton(this, pages[0], "CLOSE", "CLOSE", new Vector2(740, 200f), new Vector2(100f, 30f));
+        close = new SimpleButton(this, pages[0], ForecastMod.Translate("CLOSE"), "CLOSE", new Vector2(740, 200f), new Vector2(100f, 30f));
         close.rectColor = new HSLColor(0f, 0.8f, 0.45f);
         close.labelColor = new HSLColor(0f, 0.8f, 0.45f);
         pages[0].subObjects.Add(close);
 
-        save = new SimpleButton(this, pages[0], "SAVE", "SAVE", new Vector2(860, 200f), new Vector2(100f, 30f));
+        save = new SimpleButton(this, pages[0], ForecastMod.Translate("SAVE"), "SAVE", new Vector2(860, 200f), new Vector2(100f, 30f));
         save.rectColor = new HSLColor(0.39f, 0.8f, 0.45f);
         save.labelColor = new HSLColor(0.39f, 0.8f, 0.45f);
         pages[0].subObjects.Add(save);
